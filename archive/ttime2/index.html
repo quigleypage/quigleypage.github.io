@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="The official website for Kevin Quigley.">
+    <meta name="author" content="Kevin Quigley">
+
+    <title>Kevin Quigley - T-Time</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="css/landing-page.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic,700italic" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <style type="text/css">
+    	.verticalCenter {
+    		height: 100%;
+    		display: inline-block;
+    		vertical-align: middle;
+    	}
+    	.verticalCenterImg {
+    		display: inline-block; vertical-align: middle;
+    	}
+    </style>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script> 
+    <script src="http://malsup.github.com/jquery.form.js"></script>
+
+</head>
+
+<body>
+<br><br><br><br>
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-fixed-top topnav" role="navigation">
+        <div class="container topnav">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand topnav" href="http://kevinquigley.net/">Kevin Quigley</a>
+            </div>
+            
+        </div>
+        <!-- /.container -->
+    </nav>
+
+
+    <form id="tweetForm">
+        <label for="pw">Access key: </label>
+        <input type="password" name="pw" id="pw" />
+        <br />
+
+        <label for="user">Twitter handle: @</label>
+        <input type="text" name="user" id="user" value="realDonaldTrump"/>
+        <br />
+
+        <label for="replies">Include replies?</label>
+        <input type="checkbox" name="replies" id="replies" />
+        <br />
+
+        <label for="rts">Include retweets?</label>
+        <input type="checkbox" name="rts" id="rts"/>
+        <br />
+
+        <label for="search">Count tweets including: </label>
+        <input type="text" name="search" id="search"/>
+        <br />
+
+        <button type="submit" id="tweetSubmit">Submit</button>
+    </form>
+
+    <section id="error"><h1 id="errorDesc"></h1></section>
+    <section id="tweetResults">
+        <br>
+        <h4><span id="userSpan"></span> Recent Tweet Stats</h4>
+        <p>Sample size: <span id="sampleSize"></span></p>
+        <p>Sample average frequency: <span id="perDay"></span> tweets/day</p>
+        <p>Sample average time between tweets: <span id="averageHoursBetween"></span> hours</p>
+        <p id="searchHitsLabel">Sample number of tweets including <span id="searchPhrase"></span>: <span id="searchHits"></span></p>
+        <p>Time since last tweet: <span id="daysSince"></span> days</p>
+        <p>List of times tweeted</p>
+        <ul id="timestamps"></ul>
+    </section>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <ul class="list-inline">
+                        <li>
+                            <a href="http://kevinquigley.net/">Home</a>
+                        </li>
+                        <li class="footer-menu-divider">&sdot;</li>
+                        <!--<li>
+                            <a href="#about">About</a>
+                        </li>
+                        <li class="footer-menu-divider">&sdot;</li>-->
+                        <li>
+                            <a href="http://kevinquigley.net/#about">About</a>
+                        </li>
+                        <li class="footer-menu-divider">&sdot;</li>
+                        <li>
+                            <a href="http://kevinquigley.net/#contact">Contact</a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted small">Copyright &copy; Kevin Quigley 2018. All Rights Reserved</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="js/bootstrap.min.js"></script>
+
+</body>
+
+</html>
+
+<!--Analytics-->
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  
+    ga('create', 'UA-101729424-1', 'auto');
+    ga('send', 'pageview');
+  
+  </script>
+
+<script>
+    $(document).ready(function() {
+        $("#tweetForm").ajaxForm({
+            //url: 'http://tweetgettimestamps.herokuapp.com/?' + $('#tweetForm').serialize(),
+            url: 'http://tweetgettimestamps.herokuapp.com/?pw=' + $('#pw').val() + '&user=' + $('#user').val() + ($('#replies').is(":checked") ? '&replies=1' : '') + ($('#rts').is(":checked") ? '&rts=1' : '') + ($('#search').val() != "" ? "&search=" + $("#search").val() : "" ),
+            type: 'get', 
+            beforeSend: function() {
+                $('#tweetSubmit').attr("disabled",true);
+                $('#tweetSubmit').html("Loading");  
+                $("#tweetResults").hide();
+                $("#error").hide();
+                console.log('http://tweetgettimestamps.herokuapp.com/?pw=' + $('#pw').val() + '&user=' + $('#user').val() + ($('#replies').is(":checked") ? '&replies=1' : '') + ($('#rts').is(":checked") ? '&rts=1' : ''));
+            },
+            success: function(responseText, statusText, xhr, $form) {
+                console.log(responseText);
+                console.log("succ");
+                $('#tweetSubmit').attr("disabled",false);
+                $('#tweetSubmit').html("Submit");
+                
+                if (responseText.name)
+                    $("#userSpan").html("@" + responseText.name);
+                else
+                    $("#userSpan").html("Name Not Found");
+                
+                if (responseText.sampleSize)
+                    $("#sampleSize").html(responseText.sampleSize);
+                else
+                    $("#sampleSize").html("0");
+
+                if (responseText.perDay)
+                    $("#perDay").html(responseText.perDay.toFixed(4));
+                else 
+                    $("#perDay").html("0");
+
+                if (responseText.avgHoursBetween)
+                    $("#averageHoursBetween").html(responseText.avgHoursBetween.toFixed(4));
+                else
+                    $("#averageHoursBetween").html("0");
+
+                if (responseText.daysSince)
+                    $("#daysSince").html(responseText.daysSince.toFixed(4));
+                else
+                    $("#daysSince").html("0");
+
+                if (responseText.searchHits !== undefined) {
+                    $("#searchHits").html(responseText.searchHits);
+                    $("#searchPhrase").html($("#search").val());
+                    $("#searchHitsLabel").show();
+                } else {
+                    $("#searchHitsLabel").hide();
+                }
+                
+                let timeList = "";
+                for (var i = 0; responseText.dates && i < responseText.dates.length; i++) {
+                    timeList += "<li>" + responseText.dates[i].substring(0, 10) + " " + responseText.dates[i].substring(11, 19) + "</li>";
+                }
+                $("#timestamps").html(timeList);
+
+                if (responseText.error) {
+                    console.log("We found an error");
+                    $("#errorDesc").html(responseText.error);
+                    if (Array.isArray(responseText.error))
+                        $("#errorDesc").html(responseText.error[0].message);
+                    $("#error").show();
+                } else{
+                    $("#tweetResults").show();}
+                }
+        });
+        $("#tweetResults").hide();
+        $("#error").hide();
+    });
+</script>
+    
+  </html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Tweet Frequency</title>
+
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script> 
+        <script src="http://malsup.github.com/jquery.form.js"></script> 
+    </head>
+
+    <body>
+        <form id="tweetForm">
+            <label for="pw">Access key: </label>
+            <input type="password" name="pw" id="pw" />
+            <br />
+
+            <label for="user">Twitter handle: @</label>
+            <input type="text" name="user" id="user" />
+            <br />
+
+            <label for="replies">Include replies?</label>
+            <input type="checkbox" name="replies" id="replies" />
+            <br />
+
+            <label for="rts">Include retweets?</label>
+            <input type="checkbox" name="rts" id="rts" />
+            <br />
+
+            <label for="search">Count tweets including: </label>
+            <input type="text" name="search" id="search" />
+            <br />
+
+            <button type="submit" id="tweetSubmit">Submit</button>
+        </form>
+
+        <section id="error"><h1 id="errorDesc"></h1></section>
+        <section id="tweetResults">
+            <h1><span id="userSpan"></span> Recent Tweet Stats</h1>
+            <h3>Sample size: <span id="sampleSize"></span></h3>
+            <h3>Sample average frequency: <span id="perDay"></span> tweets/day</h3>
+            <h3>Sample average time between tweets: <span id="averageHoursBetween"></span> hours</h3>
+            <h3 id="searchHitsLabel">Sample number of tweets including <span id="searchPhrase"></span>: <span id="searchHits"></span></h3>
+            <h3>Time since last tweet: <span id="daysSince"></span> days</h3>
+            <h3>List of times tweeted</h3>
+            <ul id="timestamps"></ul>
+        </section>
+    </body>
+
+    <script>
+        $(document).ready(function() {
+            $("#tweetForm").ajaxForm({
+                //url: 'http://tweetgettimestamps.herokuapp.com/?' + $('#tweetForm').serialize(),
+                url: 'http://tweetgettimestamps.herokuapp.com/?pw=' + $('#pw').val() + '&user=' + $('#user').val() + ($('#replies').is(":checked") ? '&replies=1' : '') + ($('#rts').is(":checked") ? '&rts=1' : '') + ($('#search').val() != "" ? "&search=" + $("#search").val() : "" ),
+                type: 'get', 
+                beforeSend: function() {
+                    $('#tweetSubmit').attr("disabled",true);
+                    $('#tweetSubmit').html("Loading");  
+                    $("#tweetResults").hide();
+                    $("#error").hide();
+                    console.log('http://tweetgettimestamps.herokuapp.com/?pw=' + $('#pw').val() + '&user=' + $('#user').val() + ($('#replies').is(":checked") ? '&replies=1' : '') + ($('#rts').is(":checked") ? '&rts=1' : ''));
+                },
+                success: function(responseText, statusText, xhr, $form) {
+                    console.log(responseText);
+                    console.log("succ");
+                    $('#tweetSubmit').attr("disabled",false);
+                    $('#tweetSubmit').html("Submit");
+                    
+                    if (responseText.name)
+                        $("#userSpan").html("@" + responseText.name);
+                    else
+                        $("#userSpan").html("Name Not Found");
+                    
+                    if (responseText.sampleSize)
+                        $("#sampleSize").html(responseText.sampleSize);
+                    else
+                        $("#sampleSize").html("0");
+
+                    if (responseText.perDay)
+                        $("#perDay").html(responseText.perDay.toFixed(4));
+                    else 
+                        $("#perDay").html("0");
+
+                    if (responseText.avgHoursBetween)
+                        $("#averageHoursBetween").html(responseText.avgHoursBetween.toFixed(4));
+                    else
+                        $("#averageHoursBetween").html("0");
+
+                    if (responseText.daysSince)
+                        $("#daysSince").html(responseText.daysSince.toFixed(4));
+                    else
+                        $("#daysSince").html("0");
+
+                    if (responseText.searchHits !== undefined) {
+                        $("#searchHits").html(responseText.searchHits);
+                        $("#searchPhrase").html($("#search").val());
+                        $("#searchHitsLabel").show();
+                    } else {
+                        $("#searchHitsLabel").hide();
+                    }
+                    
+                    let timeList = "";
+                    for (var i = 0; responseText.dates && i < responseText.dates.length; i++) {
+                        timeList += "<li>" + responseText.dates[i].substring(0, 10) + " " + responseText.dates[i].substring(11, 19) + "</li>";
+                    }
+                    $("#timestamps").html(timeList);
+
+                    if (responseText.error) {
+                        console.log("We found an error");
+                        $("#errorDesc").html(responseText.error);
+                        if (Array.isArray(responseText.error))
+                            $("#errorDesc").html(responseText.error[0].message);
+                        $("#error").show();
+                    } else{
+                        $("#tweetResults").show();}
+                    }
+            });
+            $("#tweetResults").hide();
+            $("#error").hide();
+        });
+    </script>
+</html>
