@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="A dev repository for Kevin Quigley.">
+        <meta name="author" content="Kevin Quigley">
+    
+        <title>Color Removal Tool</title>
+</head>
+<body>
+
+    <h1>Color Removal Tool</h1>
+    <p>Select the color you would like to remove: <input type="color" id="targetcolor" name="targetcolor" value="#ffffff"></p>
+    <p>Select an image to upload:</p>
+    <input type="file" id="imageLoader" accept="image/*" name="imageLoader"/>
+    <canvas id="imageCanvas"></canvas>
+    <br><br>
+    <a id="download" href="" download="colorRemovedImage.png" type="button" onclick="download_img(this);">Download as PNG</a>
+
+</body>
+</html>
+
+<script>
+    var imageLoader = document.getElementById('imageLoader');
+    imageLoader.addEventListener('change', handleImage, false);
+    var canvas = document.getElementById('imageCanvas');
+    var ctx = canvas.getContext('2d');
+    var removalColor = document.getElementById('targetcolor').value;
+
+    function handleImage(e){
+        removalColor = document.getElementById('targetcolor').value;
+        var reader = new FileReader();
+        reader.onload = function(event){
+            var img = new Image();
+            img.onload = function(){
+                canvas.width = img.width;
+                canvas.height = img.height;
+                
+                ctx.drawImage(img,0,0);
+
+                var imgData = ctx.getImageData(0,0,canvas.width,canvas.height);
+
+                for(var i=0; i<imgData.data.length; i+=4) {
+                    if(rgbToHex(imgData.data[i], imgData.data[i+1], imgData.data[i+2]) == removalColor){
+                        imgData.data[i+3] = 0;
+                    }
+                }
+
+                ctx.putImageData(imgData, 0, 0);
+            }
+            img.src = event.target.result;
+        }
+        reader.readAsDataURL(e.target.files[0]);     
+    }
+
+    function componentToHex(c) {
+        var hex = c.toString(16);
+        return hex.length == 1 ? "0" + hex : hex;
+        }
+
+    function rgbToHex(r, g, b) {
+        return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+        }
+    
+    download_img = function(el) {
+        var image = canvas.toDataURL("image/png");
+        el.href = image;
+};
+
+</script>
