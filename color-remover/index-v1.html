@@ -14,7 +14,6 @@
 
     <h1>Color Removal Tool</h1>
     <p>Select the color you would like to remove: <input type="color" id="targetcolor" name="targetcolor" value="#ffffff"></p>
-    <p>Choose a threshold for how strictly to adhere to this value (0-255 RGB): <input type="number" id="threshold" name="threshold" min="0" max="255" value="25"></p>
     <p>Select an image to upload:</p>
     <input type="file" id="imageLoader" accept="image/*" name="imageLoader"/>
     <canvas id="imageCanvas"></canvas>
@@ -30,11 +29,9 @@
     var canvas = document.getElementById('imageCanvas');
     var ctx = canvas.getContext('2d');
     var removalColor = document.getElementById('targetcolor').value;
-    var threshold = document.getElementById('threshold').value;
 
     function handleImage(e){
         removalColor = document.getElementById('targetcolor').value;
-        threshold = document.getElementById('threshold').value;
         var reader = new FileReader();
         reader.onload = function(event){
             var img = new Image();
@@ -47,9 +44,7 @@
                 var imgData = ctx.getImageData(0,0,canvas.width,canvas.height);
 
                 for(var i=0; i<imgData.data.length; i+=4) {
-                    if((rgbToHex(imgData.data[i], imgData.data[i+1], imgData.data[i+2]) == removalColor) || 
-                    (imgData.data[i] <= hexToRgb(removalColor).r + threshold && imgData.data[i+1] <= hexToRgb(removalColor).g + threshold && imgData.data[i+2] <= hexToRgb(removalColor).b + threshold &&
-                    imgData.data[i] >= hexToRgb(removalColor).r - threshold && imgData.data[i+1] >= hexToRgb(removalColor).g - threshold && imgData.data[i+2] >= hexToRgb(removalColor).b - threshold)){
+                    if(rgbToHex(imgData.data[i], imgData.data[i+1], imgData.data[i+2]) == removalColor){
                         imgData.data[i+3] = 0;
                     }
                 }
@@ -69,15 +64,6 @@
     function rgbToHex(r, g, b) {
         return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
         }
-
-    function hexToRgb(hex) {
-        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        } : null;
-    }
     
     download_img = function(el) {
         var image = canvas.toDataURL("image/png");
