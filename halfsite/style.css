@@ -1,0 +1,72 @@
+body {
+  display: grid;
+  height: 98vh;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: 1fr 2fr;
+  font-family: system-ui, sans-serif;
+}
+
+.span-site {
+  grid-column: 1 / 13;
+}
+
+.span-HTML {
+  background: #33333D;
+  grid-column: 1/5;
+  display: grid;
+  place-items: center;
+}
+.span-CSS {
+  background: #33333D;
+  grid-column: 5/8;
+  display: grid;
+  place-items: center;
+}
+.span-JS {
+  background: #33333D;
+  grid-column: 8/12;
+  display: grid;
+  place-items: center;
+}
+.span-run{
+  background: #33333D;
+  grid-column: 12/13;
+  display: grid;
+  place-items: center;
+}
+
+.run-button{
+  background-color: #F5F5FF;
+  border: none;
+  font-size: 24px;
+  padding: 32px 16px;
+}
+.run-button:hover{
+  background-color: #C8C8D2;
+}
+
+.halfsite-textarea {
+  width: 95%;
+  height: 95%;
+  background-color: #1E1E28;
+  color: #DDF3F5;
+  resize: none;
+  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+  -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+  box-sizing: border-box;         /* Opera/IE 8+ */
+}
+.halfsite-textarea::-webkit-input-placeholder {
+  color: #7D99ED;
+}
+.halfsite-textarea:-moz-placeholder { /* Firefox 18- */
+  color: #7D99ED;  
+}
+.halfsite-textarea::-moz-placeholder {  /* Firefox 19+ */
+  color: #7D99ED;  
+}
+.halfsite-textarea:-ms-input-placeholder {
+  color: #7D99ED;  
+}
+.halfsite-textarea::placeholder {
+  color: #7D99ED;  
+}
