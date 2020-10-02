@@ -1,0 +1,127 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+
+.hide {
+	display: none;
+}
+
+body {	
+	font-size: 100%;
+	margin: 15px;
+	background: #E6E6E6;
+	color: #fff;
+}
+
+/******************************
+ *      C O N T R O L S       *
+ ******************************/
+#controls img {
+	width: 28px;
+	height: 30px;
+	background: rgba(0, 0, 0, 0);
+}
+#controls i {
+	width: 28px;
+	height: 30px;
+	background: rgba(0, 0, 0, 0);
+}
+
+#controls img:hover, #controls img:focus {
+	-webkit-transform: scale(1.2);  
+  	-moz-transform: scale(1.2);  
+  	-o-transform: scale(1.2);  
+  	position:relative;
+}
+
+/************************
+ *      N O T E S       *
+ ************************/
+ul, li {
+	list-style: none;
+}
+
+ul {
+	overflow: hidden;
+	padding: 15px;
+}
+
+ul li {
+	margin: 15px;
+	float: left;
+	position: relative;
+}
+
+ul li div {
+	text-decoration: none;
+	color: #000;
+	background: #ffc;
+	display: block;
+	height: 200px;
+	width: 200px;
+	padding: 10px;
+	-moz-box-shadow: 5px 5px 7px rgba(33, 33, 33, 1);
+	-webkit-box-shadow: 5px 5px 7px  rgba(33, 33, 33, .7);
+	box-shadow: 5px 5px 7px rgba(33, 33, 33, .7);
+	-moz-transition: -moz-transform .15s linear;
+	-o-transition: -o-transform .15s linear;
+	-webkit-transition: -webkit-transform .15s linear;
+}
+
+ul li div img {
+	padding: 1px 3px;
+	margin: 10px; 
+	position: absolute; 
+	top: 0; 
+	right: 0;
+}
+
+ul li textarea {
+	font-family: Arial, Helvetica, sans-serif;
+	background: rgba(0, 0, 0, 0); /* transparent background */
+	resize: none;
+	padding: 3px;
+	border-style: none;
+}
+
+.note-title {
+	font-size: 140%;
+	font-weight: bold;
+	height: 36px;
+	width: 80%;
+}
+
+.note-content {
+	font-size:120%;
+	height: 80%;
+	width: 95%;
+}
+
+ul li div:hover, ul li div:focus {  
+  -moz-box-shadow:10px 10px 7px rgba(0,0,0,.7);  
+  -webkit-box-shadow: 10px 10px 7px rgba(0,0,0,.7);  
+  box-shadow:10px 10px 7px rgba(0,0,0,.7);  
+  -webkit-transform: scale(1.12);  
+  -moz-transform: scale(1.12);  
+  -o-transform: scale(1.12);  
+  position:relative;  
+  z-index:5;   
+}
+
+/* define 3 different colours for the notes */
+ul li div.colour-white {
+	background: #FFFFFF;
+}
+ul li div.colour-yellow {
+	background: #ffc;
+}
+ul li div.colour-green {
+	background: #cfc;
+}
+ul li div.colour-blue {
+	background: #AAE4FF;
+}
+ul li div.colour-purple {
+	background: #ccf;
+}
