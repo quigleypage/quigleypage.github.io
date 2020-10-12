@@ -39,10 +39,22 @@ body {
   background-color: #F5F5FF;
   border: none;
   font-size: 24px;
-  padding: 32px 16px;
+  padding: 24px 16px;
 }
 .run-button:hover{
   background-color: #C8C8D2;
+}
+
+.language-button{
+  background-color: #1E1E28;
+  color: #FFFFFF;
+  border: none;
+  width: 64px;
+  font-size: 14px;
+  padding: 8px 8px;
+}
+.language-button:hover{
+  background-color: #131319;
 }
 
 .halfsite-textarea {

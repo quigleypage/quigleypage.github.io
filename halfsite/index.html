@@ -3,15 +3,24 @@
 <head>
     <link rel="stylesheet" href="style.css">
     <script src="update.js"></script>
+    <meta name="viewport" content="width=device-width,initial-scale=0.6,maximum-scale=1,user-scalable=yes"/>
 </head>
 
 <body>
 
-    <div class="span-HTML"><textarea class="halfsite-textarea" id="HTML" placeholder="Enter some HTML..."></textarea></div>
-    <div class="span-CSS"><textarea class="halfsite-textarea" id="CSS" placeholder="Enter some CSS..."></textarea></div>
-    <div class="span-JS"><textarea class="halfsite-textarea" id="JS" placeholder="Enter some JS..."></textarea></div>
-    <div class="span-run"><button class="run-button" onclick="updateSite()">Run</button></div>
+    <div class="span-HTML" id="div-HTML"><textarea class="halfsite-textarea" id="HTML" placeholder="Enter some HTML..."></textarea></div>
+    <div class="span-CSS" id="div-CSS"><textarea class="halfsite-textarea" id="CSS" placeholder="Enter some CSS..."></textarea></div>
+    <div class="span-JS" id="div-JS"><textarea class="halfsite-textarea" id="JS" placeholder="Enter some JS..."></textarea></div>
+    <div class="span-run">
+        <button class="language-button" onclick="showHTML()">HTML</button>
+        <button class="language-button" onclick="showCSS()">CSS</button>
+        <button class="language-button" onclick="showJS()">JS</button>
+        <button class="language-button" onclick="showAll()">All</button>
+        <button class="run-button" onclick="updateSite()">Run</button>
     
+    </div>
+    
+
     <div class="span-site" id="site"><div style="display:grid;place-items:center;">This is where the site goes.</div></div>
 
     <style id="siteStyle"></style>
