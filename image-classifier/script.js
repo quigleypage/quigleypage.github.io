@@ -83,15 +83,17 @@ const pauseStream = () => {
   pause.classList.add('d-none');
 };
 
-//const doScreenshot = () => {
-function doScreenshot() {
+const doScreenshot = () => {
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   canvas.getContext('2d').drawImage(video, 0, 0);
   screenshotImage.src = canvas.toDataURL('image/webp');
   screenshotImage.classList.remove('d-none');
+  classifyScreenshot();
+};
 
-  const img = document.getElementById('img');
+function classifyScreenshot(){
+    const img = document.getElementById('img');
 
     // Load the model.
     mobilenet.load().then(model => {
@@ -102,8 +104,7 @@ function doScreenshot() {
         $("#Predictions").html('<h1>Classifications</h1><p>1: ' + predictions[0].className + '</p><p>2: ' + predictions[1].className + '</p><p>3: ' + predictions[2].className + '</p>');
         });
     });
-};
+}
 
 pause.onclick = pauseStream;
-//screenshot.onclick = doScreenshot;
-screenshot.onclick = function() {doScreenshot()};
+screenshot.onclick = doScreenshot;
