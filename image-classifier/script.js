@@ -83,7 +83,8 @@ const pauseStream = () => {
   pause.classList.add('d-none');
 };
 
-const doScreenshot = () => {
+//const doScreenshot = () => {
+function doScreenshot() {
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   canvas.getContext('2d').drawImage(video, 0, 0);
@@ -104,4 +105,5 @@ const doScreenshot = () => {
 };
 
 pause.onclick = pauseStream;
-screenshot.onclick = doScreenshot;
+//screenshot.onclick = doScreenshot;
+screenshot.onclick = doScreenshot();
