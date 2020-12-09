@@ -89,6 +89,18 @@ const doScreenshot = () => {
   canvas.getContext('2d').drawImage(video, 0, 0);
   screenshotImage.src = canvas.toDataURL('image/webp');
   screenshotImage.classList.remove('d-none');
+
+  const img = document.getElementById('img');
+
+    // Load the model.
+    mobilenet.load().then(model => {
+        // Classify the image.
+        model.classify(img).then(predictions => {
+        console.log('Predictions: ');
+        console.log(predictions);
+        $("#Predictions").html('<h1>Classification:</h1><p>Guess 1: ' + predictions[0].className + '</p><p>Guess 2: ' + predictions[1].className + '</p><p> Guess 3: ' + predictions[2].className + '</p>');
+        });
+    });
 };
 
 pause.onclick = pauseStream;
