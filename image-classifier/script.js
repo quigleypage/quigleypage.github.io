@@ -7,8 +7,9 @@ const canvas = document.querySelector('canvas');
 const screenshotImage = document.querySelector('img');
 const buttons = [...controls.querySelectorAll('button')];
 let streamStarted = false;
+let whichCamera = "rear";
 
-const [play, pause, screenshot] = buttons;
+const [play, pause, screenshot, switchCamera] = buttons;
 
 const constraints = {
   video: {
@@ -21,10 +22,9 @@ const constraints = {
       min: 720,
       ideal: 1080,
       max: 1440
-    },
+    },    
     facingMode: { 
       ideal: "environment",
-      acceptable: "user",
     },
   }
 };
@@ -66,6 +66,7 @@ const handleStream = (stream) => {
   play.classList.add('d-none');
   pause.classList.remove('d-none');
   screenshot.classList.remove('d-none');
+  switchCamera.classList.remove('d-none');
   streamStarted = true;
 };
 
@@ -85,6 +86,49 @@ const pauseStream = () => {
   video.pause();
   play.classList.remove('d-none');
   pause.classList.add('d-none');
+};
+
+const switchCam = () => {
+  if(whichCamera == "rear"){
+    constraints = {
+      video: {
+        width: {
+          min: 1280,
+          ideal: 1920,
+          max: 2560,
+        },
+        height: {
+          min: 720,
+          ideal: 1080,
+          max: 1440
+        },    
+        facingMode: { 
+          ideal: "user",
+        },
+      }
+    };
+    whichCamera = "selfie";
+  }
+  else{
+    constraints = {
+      video: {
+        width: {
+          min: 1280,
+          ideal: 1920,
+          max: 2560,
+        },
+        height: {
+          min: 720,
+          ideal: 1080,
+          max: 1440
+        },    
+        facingMode: { 
+          ideal: "environment",
+        },
+      }
+    };
+    whichCamera = "rear";
+  }
 };
 
 const doScreenshot = () => {
@@ -109,6 +153,7 @@ function classifyScreenshot(){
         });
     });
 }
-//classifyScreenshot();
+
 pause.onclick = pauseStream;
 screenshot.onclick = doScreenshot;
+switchCamera.onclick = switchCam;
