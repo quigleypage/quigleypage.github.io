@@ -98,7 +98,7 @@ const doScreenshot = () => {
         model.classify(img).then(predictions => {
         console.log('Predictions: ');
         console.log(predictions);
-        $("#Predictions").html('<h1>Classification:</h1><p>Guess 1: ' + predictions[0].className + '</p><p>Guess 2: ' + predictions[1].className + '</p><p> Guess 3: ' + predictions[2].className + '</p>');
+        $("#Predictions").html('<h1>Classifications</h1><p>1: ' + predictions[0].className + '</p><p>2: ' + predictions[1].className + '</p><p>3: ' + predictions[2].className + '</p>');
         });
     });
 };
