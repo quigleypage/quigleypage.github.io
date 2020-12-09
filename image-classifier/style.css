@@ -45,18 +45,21 @@ video {
   margin: 0 6px;
   background: transparent;
 }
+
 .controls > button:hover svg {
   color: white !important;
 }
 
 @media (min-width: 300px) and (max-width: 400px) {
   .controls {
-    flex-direction: column;
+      flex-direction: column;
   }
+
   .controls button {
-    margin: 5px 0 !important;
+      margin: 5px 0 !important;
   }
 }
+
 .controls > button > svg {
   height: 20px;
   width: 18px;
@@ -68,6 +71,7 @@ video {
 .controls button:nth-child(1) {
   border: 2px solid #D2002E;
 }
+
 .controls button:nth-child(1) svg {
   color: #D2002E;
 }
@@ -75,6 +79,7 @@ video {
 .controls button:nth-child(2) {
   border: 2px solid #008496;
 }
+
 .controls button:nth-child(2) svg {
   color: #008496;
 }
@@ -82,6 +87,7 @@ video {
 .controls button:nth-child(3) {
   border: 2px solid #00B541;
 }
+
 .controls button:nth-child(3) svg {
   color: #00B541;
 }
@@ -94,6 +100,7 @@ video {
   margin: 0 6px;
   background: transparent;
 }
+
 .controls > button:hover svg {
   color: white;
 }
