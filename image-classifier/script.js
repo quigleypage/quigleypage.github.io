@@ -23,8 +23,8 @@ const constraints = {
       max: 1440
     },
     facingMode: { 
-      //acceptable: "user",
-      exact: "environment",
+      ideal: "environment",
+      acceptable: "user",
     },
   }
 };
