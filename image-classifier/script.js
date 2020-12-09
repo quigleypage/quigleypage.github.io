@@ -7,9 +7,10 @@ const canvas = document.querySelector('canvas');
 const screenshotImage = document.querySelector('img');
 const buttons = [...controls.querySelectorAll('button')];
 let streamStarted = false;
-let whichCamera = "rear";
+let whichCamera = "environment";
 
-const [play, pause, screenshot, switchCamera] = buttons;
+const [play, pause, screenshot] = buttons;
+//const [play, pause, screenshot, switchCamera] = buttons;
 
 const constraints = {
   video: {
@@ -24,7 +25,7 @@ const constraints = {
       max: 1440
     },    
     facingMode: { 
-      ideal: "environment",
+      ideal: whichCamera,
     },
   }
 };
@@ -66,18 +67,29 @@ const handleStream = (stream) => {
   play.classList.add('d-none');
   pause.classList.remove('d-none');
   screenshot.classList.remove('d-none');
-  switchCamera.classList.remove('d-none');
+  //switchCamera.classList.remove('d-none');
   streamStarted = true;
 };
 
 getCameraSelection();
 
 cameraOptions.onchange = () => {
+  
+  if(whichCamera == "environment"){
+    whichCamera = "user";
+  }
+  else{
+    whichCamera = "environment";
+  }
+
   const updatedConstraints = {
     ...constraints,
     deviceId: {
       exact: cameraOptions.value
-    }
+    },
+    facingMode: {
+      ideal: whichCamera,
+    },
   };
   startStream(updatedConstraints);
 };
@@ -88,7 +100,7 @@ const pauseStream = () => {
   pause.classList.add('d-none');
 };
 
-const switchCam = () => {
+/*const switchCam = () => {
   if(whichCamera == "rear"){
     constraints = {
       video: {
@@ -129,7 +141,7 @@ const switchCam = () => {
     };
     whichCamera = "rear";
   }
-};
+};*/
 
 const doScreenshot = () => {
   canvas.width = video.videoWidth;
@@ -156,4 +168,4 @@ function classifyScreenshot(){
 
 pause.onclick = pauseStream;
 screenshot.onclick = doScreenshot;
-switchCamera.onclick = switchCam;
+//switchCamera.onclick = switchCam;
