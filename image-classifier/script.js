@@ -106,4 +106,4 @@ function doScreenshot() {
 
 pause.onclick = pauseStream;
 //screenshot.onclick = doScreenshot;
-screenshot.onclick = doScreenshot();
+screenshot.onclick = function() {doScreenshot()};
