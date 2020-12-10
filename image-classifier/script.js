@@ -88,7 +88,7 @@ cameraOptions.onchange = () => {
       exact: cameraOptions.value
     },
     facingMode: {
-      ideal: whichCamera,
+      exact: whichCamera,
     },
   };
   startStream(updatedConstraints);
