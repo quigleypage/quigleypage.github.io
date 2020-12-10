@@ -25,7 +25,7 @@ const constraints = {
       max: 1440
     },    
     facingMode: { 
-      ideal: whichCamera,
+      exact: whichCamera,
     },
   }
 };
