@@ -167,7 +167,7 @@ function classifyScreenshot(){
         document.getElementById("Classif1").innerHTML = predictions[0].className;
         document.getElementById("Classif2").innerHTML = predictions[1].className;
         document.getElementById("Classif3").innerHTML = predictions[2].className;
-        document.getElementById("classifTable").style.display = "block";
+        document.getElementById("classifTable").style.visibility = "visible";
         });
     });
 }
