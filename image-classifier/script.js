@@ -164,7 +164,7 @@ function classifyScreenshot(){
         console.log('Predictions: ');
         console.log(predictions);
         //document.getElementById("Predictions").innerHTML = '<h1>Classifications</h1><p>1: ' + predictions[0].className + '</p><p>2: ' + predictions[1].className + '</p><p>3: ' + predictions[2].className + '</p>';
-        document.getElementById("Classif1").innerHTML = predictions[0].className;
+        document.getElementById("Classif1").innerHTML = "<a href='https://www.google.com/search?q=" +  predictions[0].className + "'>" + predictions[0].className + "</a>";
         document.getElementById("Classif2").innerHTML = predictions[1].className;
         document.getElementById("Classif3").innerHTML = predictions[2].className;
         document.getElementById("classifTable").style.visibility = "visible";
