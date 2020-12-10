@@ -161,7 +161,10 @@ function classifyScreenshot(){
         model.classify(img).then(predictions => {
         console.log('Predictions: ');
         console.log(predictions);
-        document.getElementById("Predictions").innerHTML = '<h1>Classifications</h1><p>1: ' + predictions[0].className + '</p><p>2: ' + predictions[1].className + '</p><p>3: ' + predictions[2].className + '</p>';
+        //document.getElementById("Predictions").innerHTML = '<h1>Classifications</h1><p>1: ' + predictions[0].className + '</p><p>2: ' + predictions[1].className + '</p><p>3: ' + predictions[2].className + '</p>';
+        document.getElementById("Classif1").innerHTML = predictions[0].className;
+        document.getElementById("Classif2").innerHTML = predictions[1].className;
+        document.getElementById("Classif3").innerHTML = predictions[2].className;
         });
     });
 }
