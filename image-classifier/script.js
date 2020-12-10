@@ -58,6 +58,8 @@ play.onclick = () => {
 };
 
 const startStream = async (constraints) => {
+  document.getElementById("cameraDeviceSelectDropdown").classList.add('d-none');
+  
   const stream = await navigator.mediaDevices.getUserMedia(constraints);
   handleStream(stream);
 };
@@ -165,6 +167,7 @@ function classifyScreenshot(){
         document.getElementById("Classif1").innerHTML = predictions[0].className;
         document.getElementById("Classif2").innerHTML = predictions[1].className;
         document.getElementById("Classif3").innerHTML = predictions[2].className;
+        document.getElementById("classifTable").classList.remove('d-none');
         });
     });
 }
