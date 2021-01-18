@@ -1,7 +1,7 @@
 function onScanSuccess(qrMessage) {
 	// handle the scanned code as you like
   console.log(`QR matched = ${qrMessage}`);
-  document.getElementById("result").innerHTML = "<br><a href='" + qrMessage + "' target='_blank'>" + qrMessage + "</a>";
+  document.getElementById("result").innerHTML += "<br><a href='" + qrMessage + "' target='_blank'>" + qrMessage + "</a>";
 }
 
 function onScanFailure(error) {
