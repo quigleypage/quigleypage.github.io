@@ -29,17 +29,11 @@
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="https://quigley.page/murdermystery/?s=al">Al Abord (Kevin) - Ticket Inspector</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="https://quigley.page/murdermystery/?s=anna">Anna Takka (Veronica) - Ballerina</a></li>
-                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="https://quigley.page/murdermystery/?s=bob">Bob Cutt (Mike) - Hair Dresser</a></li>
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="https://quigley.page/murdermystery/?s=bea">Bea Minor (Sarah) - Piano Tuner</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="https://quigley.page/murdermystery/?s=greeta">Greeta Klient (Maria) - Receptionist</a></li>
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="https://quigley.page/murdermystery/?s=hugh">Hugh Dunnit (Mike) - Retired Policeman</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="https://quigley.page/murdermystery/?s=pat">Pat O'Logist (Jesse) - Doctor</a></li>
-                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="">Bea Minor - Piano Tuner</a></li>
-                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="">Brat Wurst - Chef</a></li>
-                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="">Cam Shafte - Racing Driver</a></li>
-                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="">Eddy Tor - Journalist</a></li>
-                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="">Hugh Dunnit - Retired Policeman</a></li>
-                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="">Mo Lah - Dentist</a></li>
-                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="">Pixie Catto - Composer</a></li>
-                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="">Rene Weigh - Wealthy</a></li>
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="https://quigley.page/murdermystery/?s=rene">Rene Weigh (Brianna) - Wealthy</a></li>
                     </ul>
                 </div>
             </div>
@@ -116,13 +110,13 @@
                 document.getElementById("OccupationAndNationality").innerHTML = "Ballerina - Russian";
                 document.getElementById("BackgroundQuote").innerHTML = '"I almost got a place in the Russian National Ballet. Isn’t that amazing?!"';
             }
-            else if(pathSearch == "?s=bob"){
-                document.getElementById("AvatarImg").src = "assets/img/Mike.png";
-                document.getElementById("CharacterName").innerHTML = "Bob Cutt";
-                document.getElementById("PlayerName").innerHTML = "Mike";
-                document.getElementById("OccupationSymbol").innerHTML = "<i class='fas fa-cut'></i>";
-                document.getElementById("OccupationAndNationality").innerHTML = "Hair Dresser - English";
-                document.getElementById("BackgroundQuote").innerHTML = '"I love hair! I can always come up with new ideas to help people look and feel their best."';
+            else if(pathSearch == "?s=bea"){
+                document.getElementById("AvatarImg").src = "assets/img/Sarah.png";
+                document.getElementById("CharacterName").innerHTML = "Bea Minor";
+                document.getElementById("PlayerName").innerHTML = "Sarah";
+                document.getElementById("OccupationSymbol").innerHTML = "<i class='fas fa-music'></i>";
+                document.getElementById("OccupationAndNationality").innerHTML = "Piano Tuner - Australian";
+                document.getElementById("BackgroundQuote").innerHTML = '"I used to live on a kangaroo farm. They’re amazing animals, and I think I might have been one in a previous life!"';
             }
             else if(pathSearch == "?s=greeta"){
                 document.getElementById("AvatarImg").src = "assets/img/Maria.png";
@@ -132,6 +126,14 @@
                 document.getElementById("OccupationAndNationality").innerHTML = "Receptionist - Swedish";
                 document.getElementById("BackgroundQuote").innerHTML = '"I’m used to much colder temperatures than this. It’s always too hot everywhere these days. I can’t wait for the temperatures to plummet!"';
             }
+            else if(pathSearch == "?s=hugh"){
+                document.getElementById("AvatarImg").src = "assets/img/Mike.png";
+                document.getElementById("CharacterName").innerHTML = "Hugh Dunnit";
+                document.getElementById("PlayerName").innerHTML = "Mike";
+                document.getElementById("OccupationSymbol").innerHTML = "<i class='fas fa-coffee'></i>";
+                document.getElementById("OccupationAndNationality").innerHTML = "Retired Policeman - Welsh";
+                document.getElementById("BackgroundQuote").innerHTML = '"Wales is the best country in the world. It’s so green and everyone’s really friendly. And of course, we have the most gorgeous accent you’ll ever hear!"';
+            }
             else if(pathSearch == "?s=pat"){
                 document.getElementById("AvatarImg").src = "assets/img/Jesse.png";
                 document.getElementById("CharacterName").innerHTML = "Pat O'Logist";
@@ -139,6 +141,14 @@
                 document.getElementById("OccupationSymbol").innerHTML = "<i class='fas fa-briefcase-medical'></i>";
                 document.getElementById("OccupationAndNationality").innerHTML = "Doctor - Irish";
                 document.getElementById("BackgroundQuote").innerHTML = '"I love being a doctor. It’s great to be able to help people. Let me know if you have any medical concerns I can help you with!"';
+            }
+            else if(pathSearch == "?s=rene"){
+                document.getElementById("AvatarImg").src = "assets/img/Brianna.png";
+                document.getElementById("CharacterName").innerHTML = "Rene Weigh";
+                document.getElementById("PlayerName").innerHTML = "Brianna";
+                document.getElementById("OccupationSymbol").innerHTML = "<i class='fas fa-dollar-sign'></i>";
+                document.getElementById("OccupationAndNationality").innerHTML = "Wealthy - Spanish";
+                document.getElementById("BackgroundQuote").innerHTML = '"I’m twelfth in line to the Spanish throne! Even though Spain only became a republic four years ago, I’m sure I’ll actually be monarch one day!"';
             }
         </script>
         
