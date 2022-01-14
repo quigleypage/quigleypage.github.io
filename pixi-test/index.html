@@ -3,10 +3,10 @@
   <head>
     <script src="https://pixijs.download/release/pixi.min.js"></script>
   </head>
-  <body>
+  <body style="background-color:grey;">
     <script>
       // Create the application helper and add its render target to the page
-      let app = new PIXI.Application({ width: 640, height: 360 });
+      let app = new PIXI.Application({transparent: true, resizeTo: window});
       document.body.appendChild(app.view);
 
       // Create the sprite and add it to the stage
