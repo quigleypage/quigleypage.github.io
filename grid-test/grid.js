@@ -1,31 +1,62 @@
-//generate the grid
-var size = 16;
-for(var i = 1; i <= size; i++){
-    document.getElementById("boardSpace").innerHTML += '<div class="square" id="' + i.toString() + '" onclick="testLog(id)"><div class="content"><div class="table"><div class="table-cell">' + i.toString() + '</div></div></div></div>';
-}
-
-//calculate target
-var int1 = 1 + Math.floor(Math.random() * (size));
-var int2 = int1;
-while(int2 == int1){
-    int2 = 1 + Math.floor(Math.random() * (size));
-}
-var int3 = int2;
-while(int3 == int2 || int3 == int1){
-    int3 = 1 + Math.floor(Math.random() * (size));
-}
-var int4 = int3;
-while(int4 == int3 || int4 == int2 || int4 == int1){
-    int4 = 1 + Math.floor(Math.random() * (size));
-}
-var target = int1 * int2 * int3 * int4;
-console.log(target.toString() + " = " + int1.toString() + " x " + int2.toString() + " x " + int3.toString() + " x " + int4.toString());
-document.getElementById("targetNumber").innerHTML = target.toString();
-
-// let the user create an expression
+var target = 0;
 var activeColor = "rgb(127, 201, 255)";
 var inactiveColor = "rgb(241, 241, 241)";
 var activeArray = [];
+
+function loadBoard(loadSize){
+    
+    var size = loadSize;
+
+    //reset board in case there is previous data
+    document.getElementById("boardSpace").innerHTML = "";
+    document.getElementById("currentExpression").innerHTML = "<br>";
+    document.getElementById("currentExpression").style.color = "black";
+    document.getElementById("targetNumber").style.color = "black";
+    activeArray = [];
+
+    //generate the grid
+    for(var i = 1; i <= size; i++){
+        document.getElementById("boardSpace").innerHTML += '<div class="square" id="' + i.toString() + '" onclick="testLog(id)"><div class="content"><div class="table"><div class="table-cell">' + i.toString() + '</div></div></div></div>';
+    }
+
+    if(size == 9)
+    {
+        var elements = document.querySelectorAll('.square');
+        for(var k=0; k<elements.length; k++){
+            elements[k].style.width = "30%";
+            elements[k].style.paddingBottom = "30%";
+            elements[k].style.margin = "1.66%";
+        }
+    }
+    else if(size == 25){
+        var elements = document.querySelectorAll('.square');
+        for(var k=0; k<elements.length; k++){
+            elements[k].style.width = "18%";
+            elements[k].style.paddingBottom = "18%";
+            elements[k].style.margin = "1%";
+        }
+    }
+
+    //calculate target
+    var int1 = 1 + Math.floor(Math.random() * (size));
+    var int2 = int1;
+    while(int2 == int1){
+        int2 = 1 + Math.floor(Math.random() * (size));
+    }
+    var int3 = int2;
+    while(int3 == int2 || int3 == int1){
+        int3 = 1 + Math.floor(Math.random() * (size));
+    }
+    var int4 = int3;
+    while(int4 == int3 || int4 == int2 || int4 == int1){
+        int4 = 1 + Math.floor(Math.random() * (size));
+    }
+    target = int1 * int2 * int3 * int4;
+    console.log(target.toString() + " = " + int1.toString() + " x " + int2.toString() + " x " + int3.toString() + " x " + int4.toString());
+    document.getElementById("targetNumber").innerHTML = target.toString();
+}
+
+// let the user create an expression
 function testLog(testID){
 
     //add the new digit

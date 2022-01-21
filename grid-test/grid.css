@@ -15,7 +15,7 @@
     width:90%; /* = 100% - 2*5% padding */
     padding: 10% 5%;
     text-align: center;
-    font-size: 10vw
+    font-size: 10vw;
 }
 
 .table{
@@ -43,5 +43,11 @@
 
 .title{
     text-align: center;
-    font-size: 16vw;
+    font-size: 12vw;
+}
+
+.difficultyButton{
+    width:28%;
+    font-size: 5vw;
+    margin: 2%;
 }
