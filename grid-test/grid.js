@@ -1,22 +1,22 @@
 //generate the grid
 var size = 16;
-for(var i = 0; i < size; i++){
+for(var i = 1; i <= size; i++){
     document.getElementById("boardSpace").innerHTML += '<div class="square" id="' + i.toString() + '" onclick="testLog(id)"><div class="content"><div class="table"><div class="table-cell">' + i.toString() + '</div></div></div></div>';
 }
 
 //calculate target
-var int1 = Math.floor(Math.random() * size);
+var int1 = 1 + Math.floor(Math.random() * (size));
 var int2 = int1;
 while(int2 == int1){
-    int2 = Math.floor(Math.random() * size);
+    int2 = 1 + Math.floor(Math.random() * (size));
 }
 var int3 = int2;
 while(int3 == int2 || int3 == int1){
-    int3 = Math.floor(Math.random() * size);
+    int3 = 1 + Math.floor(Math.random() * (size));
 }
 var int4 = int3;
 while(int4 == int3 || int4 == int2 || int4 == int1){
-    int4 = Math.floor(Math.random() * size);
+    int4 = 1 + Math.floor(Math.random() * (size));
 }
 var target = int1 * int2 * int3 * int4;
 console.log(target.toString() + " = " + int1.toString() + " x " + int2.toString() + " x " + int3.toString() + " x " + int4.toString());
