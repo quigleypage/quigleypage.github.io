@@ -16,6 +16,7 @@
     padding: 10% 5%;
     text-align: center;
     font-size: 10vw;
+    font-family: 'Roboto', sans-serif;
 }
 
 .table{
@@ -33,17 +34,20 @@
 
 .target{
     text-align: center;
-    font-size: 14vw
+    font-size: 14vw;
+    font-family: 'Roboto', sans-serif;
 }
 
 .expression{
     text-align: center;
-    font-size: 10vw
+    font-size: 10vw;
+    font-family: 'Roboto', sans-serif;
 }
 
 .title{
     text-align: center;
     font-size: 10vw;
+    font-family: 'Roboto', sans-serif;
 }
 
 .difficultyButton{
@@ -58,6 +62,7 @@
     text-align: center;
     font-size: 5vw;
     padding: 3% 2%;
+    font-family: 'Roboto', sans-serif;
 }
 
 .settingsButton{
@@ -101,6 +106,7 @@
     animation-name: slideIn;
     animation-duration: 0.4s;
     font-size: 5vw;
+    font-family: 'Roboto', sans-serif;
   }
   
   /* The Close Button */
@@ -123,6 +129,7 @@
     background-color: #5cb85c;
     color: white;
     font-size: 4vw;
+    font-family: 'Roboto', sans-serif;
   }
   
   .modal-body {padding: 2px 16px;}

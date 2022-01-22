@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="grid.css">
     <meta name="viewport" content="width=device-width,initial-scale=0.6,maximum-scale=1,user-scalable=yes"/>
     <!-- Font Awesome icons (free version)-->
@@ -9,7 +10,7 @@
 
 <body onload="loadBoard(16)">
   
-    <div id="title" class = "title"><button class="settingsButton"><i class="fas fa-chart-bar"></i></button> Four Factor <button id="myBtn" class="settingsButton"><i class="fas fa-cog"></i></button><br><br></div>  
+    <div id="title" class = "title"><button class="settingsButton" id="myBtn2"><i class="fas fa-info-circle"></i></button> Four Factor <button id="myBtn" class="settingsButton"><i class="fas fa-cog"></i></button><br><br></div>  
 
     <!-- The Modal -->
     <div id="myModal" class="modal">
@@ -24,6 +25,26 @@
                 <div class="difficultyButton" onclick="loadBoard(9)">Beginner</div>
                 <div class="difficultyButton" onclick="loadBoard(16)">Standard</div>
                 <div class="difficultyButton" onclick="loadBoard(25)">Expert</div>
+            </div>
+            <div class="modal-footer">
+            <h3>Modal Footer</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- The Modal -->
+    <div id="myModal2" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <div class="modal-header">
+            <span class="close">&times;</span>
+            <h2>Instructions</h2>
+            </div>
+            <div class="modal-body">
+                <p>Select the four factors that yield the given product when multiplied.</p>
+                <p>You can only use each factor once.</p>
+                <p>You can deselect a factor by clicking it a second time.</p>
+                <p>Once you have selected all four factors, you either win or lose; you cannot undo.</p>
             </div>
             <div class="modal-footer">
             <h3>Modal Footer</h3>
