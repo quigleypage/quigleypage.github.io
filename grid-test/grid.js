@@ -127,6 +127,9 @@ window.onclick = function(event) {
   if (event.target == modal) {
     modal.style.display = "none";
   }
+  if (event.target == modal2) {
+    modal2.style.display = "none";
+  }
 }
 
 
@@ -138,9 +141,4 @@ btn2.onclick = function() {
 }
 span2.onclick = function() {
   modal2.style.display = "none";
-}
-window.onclick = function(event) {
-  if (event.target == modal2) {
-    modal2.style.display = "none";
-  }
 }
