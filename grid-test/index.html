@@ -9,15 +9,35 @@
 
 <body onload="loadBoard(16)">
   
-    <div id="title" class = "title">Four Factor<br><br></div>
+    <div id="title" class = "title"><button class="settingsButton"><i class="fas fa-chart-bar"></i></button> Four Factor <button id="myBtn" class="settingsButton"><i class="fas fa-cog"></i></button><br><br></div>  
+
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <div class="modal-header">
+            <span class="close">&times;</span>
+            <h2>Settings</h2>
+            </div>
+            <div class="modal-body">
+                <p>Difficulty</p>
+                <div class="difficultyButton" onclick="loadBoard(9)">Beginner</div>
+                <div class="difficultyButton" onclick="loadBoard(16)">Standard</div>
+                <div class="difficultyButton" onclick="loadBoard(25)">Expert</div>
+            </div>
+            <div class="modal-footer">
+            <h3>Modal Footer</h3>
+            </div>
+        </div>
+    </div>
+
+    
+
+
     <div id="targetNumber" class="target"></div>
     <div id="currentExpression" class="expression"><br></div>
     <br><br>
     <div id="boardSpace"></div>
-    
-    <div class="difficultyButton" onclick="loadBoard(9)">Beginner</div>
-    <div class="difficultyButton" onclick="loadBoard(16)">Standard</div>
-    <div class="difficultyButton" onclick="loadBoard(25)">Expert</div>
 
 </body>
 
