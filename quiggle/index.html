@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="grid.css">
+    <meta name="viewport" content="width=device-width,initial-scale=0.6,maximum-scale=1,user-scalable=yes"/>
+    <!-- Font Awesome icons (free version)-->
+    <script src="https://use.fontawesome.com/releases/v5.15.4/js/all.js" crossorigin="anonymous"></script>
+    <title>Quiggle</title>
+</head>
+
+<body onload="loadBoard()">
+  
+    <div id="title" class = "title"><button class="settingsButton" id="myBtn2"><i class="fas fa-info-circle"></i></button> Quiggle <button id="myBtn" class="settingsButton"><i class="fas fa-cog"></i></button></div>  
+
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <div class="modal-header">
+            <span class="close">&times;</span>
+            <h2>Settings</h2>
+            </div>
+            <div class="modal-body">
+                <p>Difficulty</p>
+                <div class="difficultyButton" onclick="loadBoard()">Beginner</div>
+                <div class="difficultyButton" onclick="loadBoard()">Standard</div>
+                <div class="difficultyButton" onclick="loadBoard()">Expert</div>
+            </div>
+            <div class="modal-footer">
+            <h3>Modal Footer</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- The Modal -->
+    <div id="myModal2" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <div class="modal-header">
+            <span class="close">&times;</span>
+            <h2>Instructions</h2>
+            </div>
+            <div class="modal-body">
+                <p>Select four factors that yield the given product when multiplied.</p>
+                <p>You can only use each factor once.</p>
+                <p>You can deselect a factor by clicking it a second time.</p>
+                <p>Once you have selected all four factors, you either win or lose; you cannot undo.</p>
+            </div>
+            <div class="modal-footer">
+            <h3>Modal Footer</h3>
+            </div>
+        </div>
+    </div>
+
+    <p>.</p>
+    <div id="boardSpace"></div>
+    <p>.</p>
+    <div id="keyboard"></div>
+
+</body>
+
+<script src="grid.js"></script>
+</html>

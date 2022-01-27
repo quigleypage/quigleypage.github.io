@@ -1,0 +1,185 @@
+.square {
+    float:left;
+    position: relative;
+    width: 18%;
+    padding-bottom :16%; /* = width for a 1:1 aspect ratio */
+    margin:1%;
+    overflow:hidden;
+    background: #ffffff;
+    border-radius: 5%;
+    outline: auto;
+    outline-color: #b1b1b1;
+}
+
+.keys {
+    float:left;
+    position: relative;
+    width: 8.4%;
+    padding-bottom :12%; /* = width for a 1:1 aspect ratio */
+    margin:0.8%;
+    overflow:hidden;
+    background: #f1f1f1;
+    border-radius: 14%;
+    color: #000000;
+}
+.spacer {
+  float:left;
+  position: relative;
+  width: 3.2%;
+  padding-bottom :12%; /* = width for a 1:1 aspect ratio */
+  margin:0.8%;
+  overflow:hidden;
+  background: #ffffff;
+  border-radius: 14%;
+  color: #000000;
+}
+
+.content {
+    position:absolute;
+    height:80%; /* = 100% - 2*10% padding */
+    width:90%; /* = 100% - 2*5% padding */
+    padding: 10% 5%;
+    text-align: center;
+    font-size: 10vw;
+    font-family: 'Roboto', sans-serif;
+}
+
+.keyLetter {
+    position:absolute;
+    height:80%; /* = 100% - 2*10% padding */
+    width:90%; /* = 100% - 2*5% padding */
+    padding: 10% 5%;
+    text-align: center;
+    font-size: 5vw;
+    font-family: 'Roboto', sans-serif;
+}
+
+.table{
+    display:table;
+    height:100%;
+    width:100%;
+}
+
+.table-cell{
+    display:table-cell;
+    vertical-align:middle;
+    height:100%;
+    width:100%;
+}
+
+.title{
+    text-align: center;
+    font-size: 10vw;
+    font-family: 'Roboto', sans-serif;
+}
+
+.difficultyButton{
+    float:left;
+    position: relative;
+    width: 27%;
+    padding-bottom : 3%; 
+    margin:1%;
+    overflow:hidden;
+    background: #d1d1d1;
+    border-radius: 5%;
+    text-align: center;
+    font-size: 5vw;
+    padding: 3% 2%;
+    font-family: 'Roboto', sans-serif;
+}
+
+.settingsButton{
+    background-color: white; /* Green */
+    border: none;
+    color: black;
+    padding: 3% 2%;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 7vw;
+    vertical-align: middle;
+}
+
+/* The Modal (background) */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    -webkit-animation-name: fadeIn; /* Fade in the background */
+    -webkit-animation-duration: 0.4s;
+    animation-name: fadeIn;
+    animation-duration: 0.4s
+  }
+  
+  /* Modal Content */
+  .modal-content {
+    position: fixed;
+    bottom: 0;
+    background-color: #fefefe;
+    width: 100%;
+    -webkit-animation-name: slideIn;
+    -webkit-animation-duration: 0.4s;
+    animation-name: slideIn;
+    animation-duration: 0.4s;
+    font-size: 5vw;
+    font-family: 'Roboto', sans-serif;
+  }
+  
+  /* The Close Button */
+  .close {
+    color: white;
+    float: right;
+    font-size: 10vw;
+    font-weight: bold;
+  }
+  
+  .close:hover,
+  .close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  
+  .modal-header {
+    padding: 2px 16px;
+    background-color: #5cb85c;
+    color: white;
+    font-size: 4vw;
+    font-family: 'Roboto', sans-serif;
+  }
+  
+  .modal-body {padding: 2px 16px;}
+  
+  .modal-footer {
+    padding: 2px 16px;
+    background-color: white;
+    color: white;
+  }
+  
+  /* Add Animation */
+  @-webkit-keyframes slideIn {
+    from {bottom: -300px; opacity: 0} 
+    to {bottom: 0; opacity: 1}
+  }
+  
+  @keyframes slideIn {
+    from {bottom: -300px; opacity: 0}
+    to {bottom: 0; opacity: 1}
+  }
+  
+  @-webkit-keyframes fadeIn {
+    from {opacity: 0} 
+    to {opacity: 1}
+  }
+  
+  @keyframes fadeIn {
+    from {opacity: 0} 
+    to {opacity: 1}
+  }
