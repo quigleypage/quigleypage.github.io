@@ -55,6 +55,13 @@ function keyPress(selectedLetter){
         guessArray.push(selectedLetter);
         nextSpace += 1;
     }
+    else if(selectedLetter == "backspace"){
+        document.getElementById("Space" + (nextSpace-1).toString()).innerHTML = "";
+        document.getElementById((nextSpace-1).toString()).style.outlineColor = "#b1b1b1";
+        document.getElementById((nextSpace-1).toString()).style.animation = "";
+        guessArray.pop();
+        nextSpace-=1;
+    }
     
 }
 
