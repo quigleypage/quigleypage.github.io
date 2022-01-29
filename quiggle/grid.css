@@ -57,7 +57,7 @@
 .backspaceKey {
   float:left;
   position: relative;
-  width: 13%;
+  width: 13.2%;
   padding-bottom :12%; /* = width for a 1:1 aspect ratio */
   margin:0.8%;
   overflow:hidden;
