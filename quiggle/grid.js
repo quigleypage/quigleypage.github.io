@@ -1,8 +1,11 @@
 //var activeColor = "rgb(127, 201, 255)";
 //var inactiveColor = "rgb(241, 241, 241)";
 var size = 30;
+var wordLength = 5;
 var nextSpace = 0;
 var guessArray = [];
+
+var targetWord = "steak";
 
 function loadBoard(){
     
@@ -48,11 +51,11 @@ function loadBoard(){
 
 function keyPress(selectedLetter){
     
-    if(nextSpace < size && selectedLetter != "backspace" && selectedLetter != "enter"){
+    if(nextSpace < wordLength && selectedLetter != "backspace" && selectedLetter != "enter"){
         document.getElementById("Space" + nextSpace.toString()).innerHTML = selectedLetter;
         document.getElementById(nextSpace.toString()).style.outlineColor = "#404040";
         document.getElementById(nextSpace.toString()).style.animation = "pulse 1s";
-        guessArray.push(selectedLetter);
+        guessArray.push(selectedLetter.toLowerCase());
         nextSpace += 1;
     }
     else if(selectedLetter == "backspace"){
@@ -62,6 +65,32 @@ function keyPress(selectedLetter){
         guessArray.pop();
         nextSpace-=1;
     }
+    else if(selectedLetter == "enter"){
+        for(var l = 0; l < guessArray.length; l++){
+            console.log(guessArray[l] + " : " + targetWord[l]);
+            if(guessArray[l] == targetWord[l]){
+                document.getElementById(l).style.outlineColor = "#A6ECA8";
+                document.getElementById(l).style.background = "#A6ECA8";
+                document.getElementById(l).style.color = "#FFFFFF";
+            }
+            else{
+                for(var k = 0; k < targetWord.length; k++){
+                    if(guessArray[l] == targetWord[k]){
+                        document.getElementById(l).style.outlineColor = "#EAE4A6";
+                        document.getElementById(l).style.background = "#EAE4A6";
+                        document.getElementById(l).style.color = "#FFFFFF";s";
+                    }
+                }
+                if(document.getElementById(l).style.background == ""){
+                    document.getElementById(l).style.outlineColor = "#C0C0C0";
+                    document.getElementById(l).style.background = "#C0C0C0";
+                    document.getElementById(l).style.color = "#FFFFFF";
+                }
+            }
+        }
+    }
+
+    console.log(guessArray);
     
 }
 
