@@ -78,7 +78,7 @@ function keyPress(selectedLetter){
                     if(guessArray[l] == targetWord[k]){
                         document.getElementById(l).style.outlineColor = "#EAE4A6";
                         document.getElementById(l).style.background = "#EAE4A6";
-                        document.getElementById(l).style.color = "#FFFFFF";
+                        document.getElementById(l).style.color = "#FFFFFF"; //test
                     }
                 }
                 if(document.getElementById(l).style.background == ""){
