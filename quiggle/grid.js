@@ -72,19 +72,29 @@ function keyPress(selectedLetter){
                 document.getElementById(l).style.outlineColor = "#A6ECA8";
                 document.getElementById(l).style.background = "#A6ECA8";
                 document.getElementById(l).style.color = "#FFFFFF";
+                document.getElementById(guessArray[l].toUpperCase()).style.background = "#A6ECA8";
+                document.getElementById(guessArray[l].toUpperCase()).style.color = "#FFFFFF";
+                document.getElementById(guessArray[l].toUpperCase()).style.opacity = "0.4";
+                document.getElementById(guessArray[l].toUpperCase()).onclick = "";
             }
             else{
                 for(var k = 0; k < targetWord.length; k++){
                     if(guessArray[l] == targetWord[k]){
                         document.getElementById(l).style.outlineColor = "#EAE4A6";
                         document.getElementById(l).style.background = "#EAE4A6";
-                        document.getElementById(l).style.color = "#FFFFFF"; //test
+                        document.getElementById(l).style.color = "#FFFFFF";
+                        document.getElementById(guessArray[l].toUpperCase()).style.background = "#EAE4A6";
+                        document.getElementById(guessArray[l].toUpperCase()).style.color = "#FFFFFF";
                     }
                 }
                 if(document.getElementById(l).style.background == ""){
                     document.getElementById(l).style.outlineColor = "#C0C0C0";
                     document.getElementById(l).style.background = "#C0C0C0";
                     document.getElementById(l).style.color = "#FFFFFF";
+                    document.getElementById(guessArray[l].toUpperCase()).style.background = "#C0C0C0";
+                    document.getElementById(guessArray[l].toUpperCase()).style.color = "#FFFFFF";
+                    document.getElementById(guessArray[l].toUpperCase()).style.opacity = "0.4";
+                    document.getElementById(guessArray[l].toUpperCase()).onclick = "";
                 }
             }
         }
