@@ -1,9 +1,9 @@
-//var activeColor = "rgb(127, 201, 255)";
-//var inactiveColor = "rgb(241, 241, 241)";
-var size = 30;
 var wordLength = 5;
+var chances = 6;
+var size = wordLength*chances;
 var nextSpace = 0;
 var guessArray = [];
+var rowTracker = 1;
 
 var targetWord = "steak";
 
@@ -51,31 +51,57 @@ function loadBoard(){
 
 function keyPress(selectedLetter){
     
-    if(nextSpace < wordLength && selectedLetter != "backspace" && selectedLetter != "enter"){
+    if(nextSpace < wordLength*rowTracker && selectedLetter != "backspace" && selectedLetter != "enter"){
         document.getElementById("Space" + nextSpace.toString()).innerHTML = selectedLetter;
         document.getElementById(nextSpace.toString()).style.outlineColor = "#404040";
         document.getElementById(nextSpace.toString()).style.animation = "pulse 1s";
+        
+        document.getElementById(selectedLetter).style.opacity = 0.4;
+        document.getElementById(selectedLetter).style.pointerEvents = 'none';
+
         guessArray.push(selectedLetter.toLowerCase());
         nextSpace += 1;
     }
-    else if(selectedLetter == "backspace"){
+    else if(selectedLetter == "backspace" && (nextSpace) > wordLength*(rowTracker-1)){
         document.getElementById("Space" + (nextSpace-1).toString()).innerHTML = "";
         document.getElementById((nextSpace-1).toString()).style.outlineColor = "#b1b1b1";
         document.getElementById((nextSpace-1).toString()).style.animation = "";
+        
+        document.getElementById(guessArray[guessArray.length-1].toUpperCase()).style.opacity = 1.0;
+        document.getElementById(guessArray[guessArray.length-1].toUpperCase()).style.pointerEvents = 'auto'; 
+        
         guessArray.pop();
         nextSpace-=1;
     }
-    else if(selectedLetter == "enter"){
-        for(var l = 0; l < guessArray.length; l++){
-            console.log(guessArray[l] + " : " + targetWord[l]);
-            if(guessArray[l] == targetWord[l]){
+    else if(selectedLetter == "enter" && guessArray.length == wordLength*rowTracker){
+        for(var l = wordLength*(rowTracker-1); l < guessArray.length; l++){
+            console.log(guessArray[l] + " : " + targetWord[l-(wordLength*(rowTracker-1))]);
+            if(guessArray[l] == targetWord[l-(wordLength*(rowTracker-1))]){
                 document.getElementById(l).style.outlineColor = "#A6ECA8";
                 document.getElementById(l).style.background = "#A6ECA8";
                 document.getElementById(l).style.color = "#FFFFFF";
+                document.getElementById(l).style.animation = "pulse2 0.5s";
+               
                 document.getElementById(guessArray[l].toUpperCase()).style.background = "#A6ECA8";
                 document.getElementById(guessArray[l].toUpperCase()).style.color = "#FFFFFF";
-                document.getElementById(guessArray[l].toUpperCase()).style.opacity = "0.4";
-                document.getElementById(guessArray[l].toUpperCase()).onclick = "";
+                
+                //temp - keep green buttons active
+                document.getElementById(guessArray[l].toUpperCase()).style.opacity = "1.0";
+                document.getElementById(guessArray[l].toUpperCase()).style.pointerEvents = 'auto';
+                
+                //disbale green button
+                //document.getElementById(guessArray[l].toUpperCase()).style.opacity = "0.4";
+                //document.getElementById(guessArray[l].toUpperCase()).style.pointerEvents = 'none';
+
+                //automatically copy the greens to the next row
+                /*if(rowTracker < size/wordLength){
+                    document.getElementById(l+wordLength).style.outlineColor = "#A6ECA8";
+                    document.getElementById(l+wordLength).style.background = "#A6ECA8";
+                    document.getElementById(l+wordLength).style.color = "#FFFFFF";
+                    document.getElementById(l+wordLength).style.animation = "pulse2 0.5s";
+                    document.getElementById("Space" + (l+wordLength).toString()).innerHTML = guessArray[l].toUpperCase();
+                    guessArray[l+wordLength] = guessArray[l];
+                }*/
             }
             else{
                 for(var k = 0; k < targetWord.length; k++){
@@ -85,6 +111,8 @@ function keyPress(selectedLetter){
                         document.getElementById(l).style.color = "#FFFFFF";
                         document.getElementById(guessArray[l].toUpperCase()).style.background = "#EAE4A6";
                         document.getElementById(guessArray[l].toUpperCase()).style.color = "#FFFFFF";
+                        document.getElementById(guessArray[l].toUpperCase()).style.opacity = "1.0";
+                        document.getElementById(guessArray[l].toUpperCase()).style.pointerEvents = "auto";
                     }
                 }
                 if(document.getElementById(l).style.background == ""){
@@ -94,10 +122,17 @@ function keyPress(selectedLetter){
                     document.getElementById(guessArray[l].toUpperCase()).style.background = "#C0C0C0";
                     document.getElementById(guessArray[l].toUpperCase()).style.color = "#FFFFFF";
                     document.getElementById(guessArray[l].toUpperCase()).style.opacity = "0.4";
-                    document.getElementById(guessArray[l].toUpperCase()).onclick = "";
+                    document.getElementById(guessArray[l].toUpperCase()).style.pointerEvents = 'none';
                 }
             }
         }
+        if(rowTracker < size/wordLength){
+            rowTracker += 1;
+        }
+        else{
+            document.getElementById("backspace").style.pointerEvents = 'none'; // temp
+        }
+
     }
 
     console.log(guessArray);

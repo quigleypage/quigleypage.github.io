@@ -36,6 +36,23 @@ p{
 	}
 }
 
+@keyframes pulse2 {
+	0% {
+		transform: scale(0.95);
+		box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+	}
+
+	70% {
+		transform: scale(1);
+		box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+	}
+
+	100% {
+		transform: scale(0.95);
+		box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+	}
+}
+
 .keys {
     float:left;
     position: relative;
@@ -184,14 +201,18 @@ p{
   }
   
   .modal-header {
-    padding: 2px 16px;
-    background-color: #5cb85c;
+    padding: 4px 16px;
+    background-color: #A6CFEA;
     color: white;
     font-size: 4vw;
     font-family: 'Roboto', sans-serif;
   }
   
-  .modal-body {padding: 2px 16px;}
+  .modal-body {
+    padding: 4px 16px;
+    color: black;
+    font-family: 'Roboto', sans-serif;
+  }
   
   .modal-footer {
     padding: 2px 16px;
