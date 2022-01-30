@@ -232,7 +232,7 @@ function keyPress(selectedLetter){
             document.getElementById("avgDuration").innerHTML = "Average Time: " + avgDisplayTime;
             // allocate guess distribution
             distributionOfWonGuesses[rowTracker] += 1;
-            setCookie("distributonOfWonGuess" + rowTracker.toString(), distributionOfWonGuesses[rowTracker].toString());
+            setCookie("distributionOfWonGuesses" + rowTracker.toString(), distributionOfWonGuesses[rowTracker].toString());
             plotDist();
             
             //show win stats
