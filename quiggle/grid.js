@@ -59,12 +59,14 @@ var distributionYData = [];
 for(var m = 1; m <= chances; m++){
     if(getCookie("distributionOfWonGuesses" + m.toString()) != ""){
         distributionOfWonGuesses[m] = parseInt(getCookie("distributionOfWonGuesses" + m.toString())); // this is indexed at 1-6
-        plotDist();
     }
     else{
         distributionOfWonGuesses[m] = 0;
     }
     distributionYData.push(m); // note, this is indexed at 0-5, not 1-6. This is correced for in the plotDist function
+}
+if(getCookie("distributionOfWonGuesses" + m.toString()) != ""){
+    plotDist();
 }
 
 function loadBoard(){
