@@ -22,7 +22,7 @@ if(getCookie("gamesWon") != ""){
 else{
     var gamesWon = 0;
 }
-document.getElementById("gamesWon").innerHTML = "<br>Won: " + (gamesWon/gamesPlayed).toString + "%";
+document.getElementById("gamesWon").innerHTML = "<br>Won: " + gamesWon.toString();
 
 
 function loadBoard(){
@@ -169,10 +169,10 @@ function keyPress(selectedLetter){
             //save the win stats
             gamesPlayed += 1;
             setCookie("gamesPlayed", gamesPlayed.toString());
-            document.getElementById("gamesPlayed").innerHTML = "<br>Games Played: " + gamesPlayed;
+            document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
             gamesWon += 1;
             setCookie("gamesWon", gamesWon.toString());
-            document.getElementById("gamesWon").innerHTML = "<br>Won: " + (gamesWon/gamesPlayed).toString + "%";
+            document.getElementById("gamesWon").innerHTML = "<br>Won: " + gamesWon.toString();
         }
         else{
             if(rowTracker < size/wordLength){
@@ -187,8 +187,8 @@ function keyPress(selectedLetter){
                 //save the lost stats
                 gamesPlayed += 1;
                 setCookie("gamesPlayed", gamesPlayed.toString());
-                document.getElementById("gamesPlayed").innerHTML = "<br>Games Played: " + gamesPlayed;
-                document.getElementById("gamesWon").innerHTML = "<br>Won: " + (gamesWon/gamesPlayed).toString + "%";
+                document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
+                document.getElementById("gamesWon").innerHTML = "<br>Won: " + gamesWon.toString();
             }
         }
         currentGuess = "";
