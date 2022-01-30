@@ -56,16 +56,18 @@ var avgDisplayTime = (Math.floor(avgTime)).toString() + "m " + (Math.round(((avg
 document.getElementById("avgDuration").innerHTML = "Average Time: " + avgDisplayTime;
 var distributionOfWonGuesses = [];
 var distributionYData = [];
+var showHistoricPlot = false;
 for(var m = 1; m <= chances; m++){
     if(getCookie("distributionOfWonGuesses" + m.toString()) != ""){
         distributionOfWonGuesses[m] = parseInt(getCookie("distributionOfWonGuesses" + m.toString())); // this is indexed at 1-6
+        showHistoricPlot = true;
     }
     else{
         distributionOfWonGuesses[m] = 0;
     }
     distributionYData.push(m); // note, this is indexed at 0-5, not 1-6. This is correced for in the plotDist function
 }
-if(getCookie("distributionOfWonGuesses1") != ""){
+if(showHistoricPlot == true){
     plotDist();
 }
 
