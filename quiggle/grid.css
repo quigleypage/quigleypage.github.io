@@ -201,9 +201,10 @@ p{
   }
   
   .modal-footer {
-    padding: 2px 16px;
+    padding: 4px 16px;
     background-color: white;
-    color: white;
+    color: black;
+    font-family: 'Roboto', sans-serif;
   }
   
   /* Add Animation */

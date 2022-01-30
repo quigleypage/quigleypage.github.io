@@ -54,6 +54,18 @@ else{
 var avgTime = sumOfWonDurations / gamesWon; // convert to average duration in minutes
 var avgDisplayTime = (Math.floor(avgTime)).toString() + "m " + (Math.round(((avgTime - Math.floor(avgTime))*60))).toString() + "s"; // convert to minutes and seconds
 document.getElementById("avgDuration").innerHTML = "Average Time: " + avgDisplayTime;
+var distributionOfWonGuesses = [];
+var distributionYData = [];
+for(var m = 1; m <= chances; m++){
+    if(getCookie("distributionOfWonGuesses" + m.toString()) != ""){
+        distributionOfWonGuesses[m] = parseInt(getCookie("distributionOfWonGuesses" + m.toString())); // this is indexed at 1-6
+        plotDist();
+    }
+    else{
+        distributionOfWonGuesses[m] = 0;
+    }
+    distributionYData.push(m); // note, this is indexed at 0-5, not 1-6. This is correced for in the plotDist function
+}
 
 function loadBoard(){
     
@@ -218,6 +230,10 @@ function keyPress(selectedLetter){
             avgTime = sumOfWonDurations / gamesWon;
             avgDisplayTime = (Math.floor(avgTime)).toString() + "m " + (Math.round(((avgTime - Math.floor(avgTime))*60))).toString() + "s"; // convert from minutes to minutes and seconds
             document.getElementById("avgDuration").innerHTML = "Average Time: " + avgDisplayTime;
+            // allocate guess distribution
+            distributionOfWonGuesses[rowTracker] += 1;
+            setCookie("distributonOfWonGuess" + rowTracker.toString(), distributionOfWonGuesses[rowTracker].toString());
+            plotDist();
             
             //show win stats
             won = true;
@@ -317,4 +333,52 @@ function getCookie(cname) {
         }
     }
     return "";
+}
+
+function plotDist(){
+    var distributionXData = [];
+    for(var n = 1; n <= chances; n++){
+        distributionXData.push(distributionOfWonGuesses[n]);
+    }
+    var distChartData = [
+        {
+            type: 'bar',
+            x: distributionXData,
+            y: distributionYData,
+            orientation: 'h',
+            textposition: 'inside',
+            text: distributionXData,
+        }
+      ];
+    var config = {
+        modeBarButtonsToRemove: ['zoom2d', 'pan2d', 'select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d', 'resetScale2d', 'hoverClosestGl2d', 'hoverClosestPie','toggleHover', 'resetViews', 'sendDataToCloud', 'toggleSpikelines', 'resetViewMapbox','hoverClosestCartesian', 'hoverCompareCartesian','toImage'], 
+        displaylogo: false,
+        responsive: true,
+    };
+    var layout = {
+        yaxis: {
+            tick0: 1,
+            dtick: 1,
+            tickfont: {
+                family: 'Roboto, sans-serif',
+                size: 28,
+            },
+        },
+        xaxis:{
+            showgrid: false,
+        },
+        margin: {
+            l: 40,
+            r: 100,
+            b: 0,
+            t: 70,
+            pad: 16,
+        },
+        font: {
+            size: 24,
+            family: 'Roboto, sans-serif',
+        }
+    };
+      
+    Plotly.newPlot('distrbutionChart', distChartData, layout, config);
 }
