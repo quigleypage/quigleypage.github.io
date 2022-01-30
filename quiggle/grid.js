@@ -43,7 +43,7 @@ if(getCookie("sumOfWonGuesses") != ""){
 else{
     var sumOfWonGuesses = 0;
 }
-document.getElementById("avgGuesses").innerHTML = "Average Guesses: " + (sumOfWonGuesses / gamesPlayed).toFixed(1).toString();
+document.getElementById("avgGuesses").innerHTML = "Average Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString();
 
 
 function loadBoard(){
@@ -202,7 +202,7 @@ function keyPress(selectedLetter){
             document.getElementById("maxStreak").innerHTML = "Max Streak: " + maxStreak.toString();
             sumOfWonGuesses += rowTracker;
             setCookie("sumOfWonGuesses", sumOfWonGuesses.toString());
-            document.getElementById("avgGuesses").innerHTML = "Average Guesses: " + (sumOfWonGuesses / gamesPlayed).toFixed(1).toString();
+            document.getElementById("avgGuesses").innerHTML = "Average Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString();
 
         }
         else{
