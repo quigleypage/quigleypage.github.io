@@ -16,7 +16,7 @@ if(getCookie("gamesPlayed") != ""){
 else{
     var gamesPlayed = 0;
 }
-document.getElementById("gamesPlayed").innerHTML = "Played: " + gamesPlayed;
+document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
 if(getCookie("gamesWon") != ""){
     var gamesWon = parseInt(getCookie("gamesWon"));
 }
@@ -44,7 +44,7 @@ if(getCookie("sumOfWonGuesses") != ""){
 else{
     var sumOfWonGuesses = 0;
 }
-document.getElementById("avgGuesses").innerHTML = "<br>Average Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString();
+document.getElementById("avgGuesses").innerHTML = "Average Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString();
 if(getCookie("sumOfWonDurations") != ""){
     var sumOfWonDurations = parseFloat(getCookie("sumOfWonDurations")); // read in sumOfWonDurations in minutes
 }
@@ -204,7 +204,7 @@ function keyPress(selectedLetter){
             //save the win stats
             gamesPlayed += 1; // # games played
             setCookie("gamesPlayed", gamesPlayed.toString());
-            document.getElementById("gamesPlayed").innerHTML = "Played: " + gamesPlayed;
+            document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
             // # games won
             gamesWon += 1; 
             setCookie("gamesWon", gamesWon.toString());
@@ -220,7 +220,7 @@ function keyPress(selectedLetter){
             // sum of won guesses and average guesses
             sumOfWonGuesses += rowTracker; 
             setCookie("sumOfWonGuesses", sumOfWonGuesses.toString());
-            document.getElementById("avgGuesses").innerHTML = "<br>Average Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString();
+            document.getElementById("avgGuesses").innerHTML = "Average Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString();
             // current time, sum of won durations and average duration
             var endDateTime = new Date();
             var diff = (endDateTime.getTime() - startDateTime.getTime()) / 1000;
@@ -246,6 +246,7 @@ function keyPress(selectedLetter){
             else{
                 document.getElementById("winorlose").innerHTML = "<br>You won after " + rowTracker.toString() + " guesses in " + currentDisplayTime + "!<br>";
             }
+            document.getElementById("playAgain").innerHTML = "<button class='playAgain' onclick='window.location.reload();'><b>Play Again</b></button>"
             modal.style.display = "block";
 
         }
@@ -262,7 +263,7 @@ function keyPress(selectedLetter){
                 //save the lost stats
                 gamesPlayed += 1;
                 setCookie("gamesPlayed", gamesPlayed.toString());
-                document.getElementById("gamesPlayed").innerHTML = "Played: " + gamesPlayed;
+                document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
                 document.getElementById("gamesWon").innerHTML = "Won: " + gamesWon.toString() + " (" + Math.round((gamesWon/gamesPlayed)*100).toString() + "%)";
                 currentStreak = 0;
                 setCookie("currentStreak", currentStreak.toString());
