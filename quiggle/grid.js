@@ -1,3 +1,4 @@
+var targetWord = "steak";
 var wordLength = 5;
 var chances = 6;
 var size = wordLength*chances;
@@ -14,9 +15,15 @@ if(getCookie("gamesPlayed") != ""){
 else{
     var gamesPlayed = 0;
 }
-document.getElementById("gamesPlayed").innerHTML = "<br>Games Played: " + gamesPlayed;
+document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
+if(getCookie("gamesWon") != ""){
+    var gamesWon = parseInt(getCookie("gamesWon"));
+}
+else{
+    var gamesWon = 0;
+}
+document.getElementById("gamesWon").innerHTML = "<br>Won: " + (gamesWon/gamesPlayed).toString + "%";
 
-var targetWord = "steak";
 
 function loadBoard(){
     
@@ -163,6 +170,9 @@ function keyPress(selectedLetter){
             gamesPlayed += 1;
             setCookie("gamesPlayed", gamesPlayed.toString());
             document.getElementById("gamesPlayed").innerHTML = "<br>Games Played: " + gamesPlayed;
+            gamesWon += 1;
+            setCookie("gamesWon", gamesWon.toString());
+            document.getElementById("gamesWon").innerHTML = "<br>Won: " + (gamesWon/gamesPlayed).toString + "%";
         }
         else{
             if(rowTracker < size/wordLength){
@@ -178,6 +188,7 @@ function keyPress(selectedLetter){
                 gamesPlayed += 1;
                 setCookie("gamesPlayed", gamesPlayed.toString());
                 document.getElementById("gamesPlayed").innerHTML = "<br>Games Played: " + gamesPlayed;
+                document.getElementById("gamesWon").innerHTML = "<br>Won: " + (gamesWon/gamesPlayed).toString + "%";
             }
         }
         currentGuess = "";
