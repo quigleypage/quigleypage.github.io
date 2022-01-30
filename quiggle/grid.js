@@ -9,7 +9,7 @@ var won = false;
 
 //save data
 if(getCookie("gamesPlayed") != ""){
-    var gamesPlayed = getCookie("gamesPlayed");
+    var gamesPlayed = parseInt(getCookie("gamesPlayed"));
 }
 else{
     var gamesPlayed = 0;
