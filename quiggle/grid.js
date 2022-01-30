@@ -46,7 +46,7 @@ else{
 }
 document.getElementById("avgGuesses").innerHTML = "<br>Average Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString();
 if(getCookie("sumOfWonDurations") != ""){
-    var sumOfWonDurations = parseInt(getCookie("sumOfWonDurations")); // read in sumOfWonDurations in minutes
+    var sumOfWonDurations = parseFloat(getCookie("sumOfWonDurations")); // read in sumOfWonDurations in minutes
 }
 else{
     var sumOfWonDurations = 0;
