@@ -248,7 +248,7 @@ function keyPress(selectedLetter){
             else{
                 document.getElementById("winorlose").innerHTML = "<br>You won after " + rowTracker.toString() + " guesses in " + currentDisplayTime + "!<br>";
             }
-            document.getElementById("playAgain").innerHTML = "<button class='playAgain' onclick='window.location.reload();'><b>Play Again</b></button>"
+            document.getElementById("playAgain").innerHTML = "<button class='playAgain' onclick='window.location.reload();'><b>Play Again</b></button>";
             modal.style.display = "block";
 
         }
@@ -260,6 +260,7 @@ function keyPress(selectedLetter){
                 //you lose
                 console.log("You lose!");
                 document.getElementById("winorlose").innerHTML = "<br>You lost, the word was " + targetWord.toUpperCase() + "!<br>";
+                document.getElementById("playAgain").innerHTML = "<button class='playAgain' onclick='window.location.reload();'><b>Play Again</b></button>";
                 modal.style.display = "block";
                 
                 //save the lost stats
