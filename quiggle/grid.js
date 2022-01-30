@@ -4,11 +4,21 @@ var size = wordLength*chances;
 var nextSpace = 0;
 var guessArray = [];
 var rowTracker = 1;
+var currentGuess = "";
+var won = false;
+
+var listOfWinAttempts = [];
 
 var targetWord = "steak";
 
 function loadBoard(){
     
+    nextSpace = 0;
+    guessArray = [];
+    rowTracker = 1;
+    currentGuess = "";
+    won = false;
+
     //reset board in case there is previous data
     document.getElementById("boardSpace").innerHTML = "";
 
@@ -51,7 +61,7 @@ function loadBoard(){
 
 function keyPress(selectedLetter){
     
-    if(nextSpace < wordLength*rowTracker && selectedLetter != "backspace" && selectedLetter != "enter"){
+    if(nextSpace < wordLength*rowTracker && selectedLetter != "backspace" && selectedLetter != "enter" && won == false){
         document.getElementById("Space" + nextSpace.toString()).innerHTML = selectedLetter;
         document.getElementById(nextSpace.toString()).style.outlineColor = "#404040";
         document.getElementById(nextSpace.toString()).style.animation = "pulse 1s";
@@ -62,7 +72,7 @@ function keyPress(selectedLetter){
         guessArray.push(selectedLetter.toLowerCase());
         nextSpace += 1;
     }
-    else if(selectedLetter == "backspace" && (nextSpace) > wordLength*(rowTracker-1)){
+    else if(selectedLetter == "backspace" && (nextSpace) > wordLength*(rowTracker-1) && won == false){
         document.getElementById("Space" + (nextSpace-1).toString()).innerHTML = "";
         document.getElementById((nextSpace-1).toString()).style.outlineColor = "#b1b1b1";
         document.getElementById((nextSpace-1).toString()).style.animation = "";
@@ -73,8 +83,9 @@ function keyPress(selectedLetter){
         guessArray.pop();
         nextSpace-=1;
     }
-    else if(selectedLetter == "enter" && guessArray.length == wordLength*rowTracker){
+    else if(selectedLetter == "enter" && guessArray.length == wordLength*rowTracker && won == false){
         for(var l = wordLength*(rowTracker-1); l < guessArray.length; l++){
+            currentGuess += guessArray[l];
             console.log(guessArray[l] + " : " + targetWord[l-(wordLength*(rowTracker-1))]);
             if(guessArray[l] == targetWord[l-(wordLength*(rowTracker-1))]){
                 document.getElementById(l).style.outlineColor = "#A6ECA8";
@@ -126,13 +137,37 @@ function keyPress(selectedLetter){
                 }
             }
         }
-        if(rowTracker < size/wordLength){
-            rowTracker += 1;
+
+
+        console.log(currentGuess);
+        if(currentGuess == targetWord){
+            //win condition
+            won = true;
+            console.log("You win!");
+            if(rowTracker == 1){
+                document.getElementById("winorlose").innerHTML = "<br>Wow, you won on the first try!<br>";
+            }
+            else{
+                document.getElementById("winorlose").innerHTML = "<br>You won after " + rowTracker.toString() + " guesses!<br>";
+            }
+            modal.style.display = "block";
+
+            //save the win stats
+            listOfWinAttempts.push(rowTracker);
+            console.log("List of win attempts: " + listOfWinAttempts);
         }
         else{
-            document.getElementById("backspace").style.pointerEvents = 'none'; // temp
+            if(rowTracker < size/wordLength){
+                rowTracker += 1;
+            }
+            else{
+                //you lose
+                console.log("You lose!");
+                document.getElementById("winorlose").innerHTML = "<br>You lost!<br>";
+                modal.style.display = "block";
+            }
         }
-
+        currentGuess = "";
     }
 
     console.log(guessArray);
