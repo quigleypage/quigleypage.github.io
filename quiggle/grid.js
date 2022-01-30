@@ -7,6 +7,7 @@ var guessArray = [];
 var rowTracker = 1;
 var currentGuess = "";
 var won = false;
+var startDateTime = new Date();
 
 //load saved data
 if(getCookie("gamesPlayed") != ""){
@@ -15,7 +16,7 @@ if(getCookie("gamesPlayed") != ""){
 else{
     var gamesPlayed = 0;
 }
-document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
+document.getElementById("gamesPlayed").innerHTML = "Played: " + gamesPlayed;
 if(getCookie("gamesWon") != ""){
     var gamesWon = parseInt(getCookie("gamesWon"));
 }
@@ -43,8 +44,16 @@ if(getCookie("sumOfWonGuesses") != ""){
 else{
     var sumOfWonGuesses = 0;
 }
-document.getElementById("avgGuesses").innerHTML = "Average Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString();
-
+document.getElementById("avgGuesses").innerHTML = "<br>Average Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString();
+if(getCookie("sumOfWonDurations") != ""){
+    var sumOfWonDurations = parseInt(getCookie("sumOfWonDurations")); // read in sumOfWonDurations in minutes
+}
+else{
+    var sumOfWonDurations = 0;
+}
+var avgTime = sumOfWonDurations / gamesWon; // convert to average duration in minutes
+var avgDisplayTime = (Math.floor(avgTime)).toString() + "m " + (Math.round(((avgTime - Math.floor(avgTime))*60))).toString() + "s"; // convert to minutes and seconds
+document.getElementById("avgDuration").innerHTML = "Average Time: " + avgDisplayTime;
 
 function loadBoard(){
     
@@ -177,39 +186,56 @@ function keyPress(selectedLetter){
         console.log(currentGuess);
         if(currentGuess == targetWord){
             //win condition
+
+            //save the win stats
+            gamesPlayed += 1; // # games played
+            setCookie("gamesPlayed", gamesPlayed.toString());
+            document.getElementById("gamesPlayed").innerHTML = "Played: " + gamesPlayed;
+            // # games won
+            gamesWon += 1; 
+            setCookie("gamesWon", gamesWon.toString());
+            document.getElementById("gamesWon").innerHTML = "Won: " + gamesWon.toString() + " (" + Math.round((gamesWon/gamesPlayed)*100).toString() + "%)";
+            // current streak
+            currentStreak += 1; 
+            setCookie("currentStreak", currentStreak.toString());
+            document.getElementById("currentStreak").innerHTML = "Current Streak: " + currentStreak.toString();
+            // max streak
+            if(currentStreak > maxStreak){maxStreak = currentStreak;} 
+            setCookie("maxStreak", maxStreak.toString());
+            document.getElementById("maxStreak").innerHTML = "Max Streak: " + maxStreak.toString();
+            // sum of won guesses and average guesses
+            sumOfWonGuesses += rowTracker; 
+            setCookie("sumOfWonGuesses", sumOfWonGuesses.toString());
+            document.getElementById("avgGuesses").innerHTML = "<br>Average Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString();
+            // current time, sum of won durations and average duration
+            var endDateTime = new Date();
+            var diff = (endDateTime.getTime() - startDateTime.getTime()) / 1000;
+            diff /= 60;
+            var currentTime = Math.abs(diff); // difference between start and end time in minutes
+            sumOfWonDurations += currentTime;
+            setCookie("sumOfWonDurations", sumOfWonDurations.toString());
+            var currentDisplayTime = (Math.floor(currentTime)).toString() + "m " + (Math.round(((currentTime - Math.floor(currentTime))*60))).toString() + "s";
+            avgTime = sumOfWonDurations / gamesWon;
+            avgDisplayTime = (Math.floor(avgTime)).toString() + "m " + (Math.round(((avgTime - Math.floor(avgTime))*60))).toString() + "s"; // convert from minutes to minutes and seconds
+            document.getElementById("avgDuration").innerHTML = "Average Time: " + avgDisplayTime;
+            
+            //show win stats
             won = true;
             console.log("You win!");
             if(rowTracker == 1){
-                document.getElementById("winorlose").innerHTML = "<br>Wow, you won on the first try!<br>";
+                document.getElementById("winorlose").innerHTML = "<br>Wow, you won on the first try!<br>Time: " + currentDisplayTime + "<br>";
             }
             else{
-                document.getElementById("winorlose").innerHTML = "<br>You won after " + rowTracker.toString() + " guesses!<br>";
+                document.getElementById("winorlose").innerHTML = "<br>You won after " + rowTracker.toString() + " guesses in " + currentDisplayTime + "!<br>";
             }
             modal.style.display = "block";
 
-            //save the win stats
-            gamesPlayed += 1;
-            setCookie("gamesPlayed", gamesPlayed.toString());
-            document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
-            gamesWon += 1;
-            setCookie("gamesWon", gamesWon.toString());
-            document.getElementById("gamesWon").innerHTML = "Won: " + gamesWon.toString() + " (" + Math.round((gamesWon/gamesPlayed)*100).toString() + "%)";
-            currentStreak += 1;
-            setCookie("currentStreak", currentStreak.toString());
-            document.getElementById("currentStreak").innerHTML = "Current Streak: " + currentStreak.toString();
-            if(currentStreak > maxStreak){maxStreak = currentStreak;}
-            setCookie("maxStreak", maxStreak.toString());
-            document.getElementById("maxStreak").innerHTML = "Max Streak: " + maxStreak.toString();
-            sumOfWonGuesses += rowTracker;
-            setCookie("sumOfWonGuesses", sumOfWonGuesses.toString());
-            document.getElementById("avgGuesses").innerHTML = "Average Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString();
-
         }
-        else{
-            if(rowTracker < size/wordLength){
+        else{ //if they did not win yet
+            if(rowTracker < size/wordLength){ //let them keep playing
                 rowTracker += 1;
             }
-            else{
+            else{ //they lost
                 //you lose
                 console.log("You lose!");
                 document.getElementById("winorlose").innerHTML = "<br>You lost, the word was " + targetWord.toUpperCase() + "!<br>";
@@ -218,7 +244,7 @@ function keyPress(selectedLetter){
                 //save the lost stats
                 gamesPlayed += 1;
                 setCookie("gamesPlayed", gamesPlayed.toString());
-                document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
+                document.getElementById("gamesPlayed").innerHTML = "Played: " + gamesPlayed;
                 document.getElementById("gamesWon").innerHTML = "Won: " + gamesWon.toString() + " (" + Math.round((gamesWon/gamesPlayed)*100).toString() + "%)";
                 currentStreak = 0;
                 setCookie("currentStreak", currentStreak.toString());
