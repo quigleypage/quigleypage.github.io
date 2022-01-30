@@ -7,7 +7,14 @@ var rowTracker = 1;
 var currentGuess = "";
 var won = false;
 
-var listOfWinAttempts = [];
+//save data
+if(getCookie("gamesPlayed") != ""){
+    var gamesPlayed = getCookie("gamesPlayed");
+}
+else{
+    var gamesPlayed = 0;
+}
+document.getElementById("gamesPlayed").innerHTML = "<br>Games Played: " + gamesPlayed;
 
 var targetWord = "steak";
 
@@ -153,8 +160,9 @@ function keyPress(selectedLetter){
             modal.style.display = "block";
 
             //save the win stats
-            listOfWinAttempts.push(rowTracker);
-            console.log("List of win attempts: " + listOfWinAttempts);
+            gamesPlayed += 1;
+            setCookie("gamesPlayed", gamesPlayed.toString());
+            document.getElementById("gamesPlayed").innerHTML = "<br>Games Played: " + gamesPlayed;
         }
         else{
             if(rowTracker < size/wordLength){
@@ -163,8 +171,13 @@ function keyPress(selectedLetter){
             else{
                 //you lose
                 console.log("You lose!");
-                document.getElementById("winorlose").innerHTML = "<br>You lost!<br>";
+                document.getElementById("winorlose").innerHTML = "<br>You lost, the word was " + targetWord.toUpperCase() + "!<br>";
                 modal.style.display = "block";
+                
+                //save the lost stats
+                gamesPlayed += 1;
+                setCookie("gamesPlayed", gamesPlayed.toString());
+                document.getElementById("gamesPlayed").innerHTML = "<br>Games Played: " + gamesPlayed;
             }
         }
         currentGuess = "";
@@ -213,4 +226,24 @@ btn2.onclick = function() {
 }
 span2.onclick = function() {
   modal2.style.display = "none";
+}
+
+function setCookie(cname, cvalue) {
+    document.cookie = cname + "=" + cvalue + ";path=/";
+}
+
+function getCookie(cname) {
+    let name = cname + "=";
+    let decodedCookie = decodeURIComponent(document.cookie);
+    let ca = decodedCookie.split(';');
+    for(let i = 0; i <ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+        }
+    }
+    return "";
 }
