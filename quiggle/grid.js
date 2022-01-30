@@ -22,7 +22,7 @@ if(getCookie("gamesWon") != ""){
 else{
     var gamesWon = 0;
 }
-document.getElementById("gamesWon").innerHTML = "<br>Won: " + gamesWon.toString();
+document.getElementById("gamesWon").innerHTML = "Won: " + gamesWon.toString();
 
 
 function loadBoard(){
@@ -172,7 +172,7 @@ function keyPress(selectedLetter){
             document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
             gamesWon += 1;
             setCookie("gamesWon", gamesWon.toString());
-            document.getElementById("gamesWon").innerHTML = "<br>Won: " + gamesWon.toString();
+            document.getElementById("gamesWon").innerHTML = "Won: " + gamesWon.toString();
         }
         else{
             if(rowTracker < size/wordLength){
@@ -188,7 +188,7 @@ function keyPress(selectedLetter){
                 gamesPlayed += 1;
                 setCookie("gamesPlayed", gamesPlayed.toString());
                 document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
-                document.getElementById("gamesWon").innerHTML = "<br>Won: " + gamesWon.toString();
+                document.getElementById("gamesWon").innerHTML = "Won: " + gamesWon.toString();
             }
         }
         currentGuess = "";
