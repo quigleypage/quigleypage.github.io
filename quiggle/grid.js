@@ -8,7 +8,7 @@ var rowTracker = 1;
 var currentGuess = "";
 var won = false;
 
-//save data
+//load saved data
 if(getCookie("gamesPlayed") != ""){
     var gamesPlayed = parseInt(getCookie("gamesPlayed"));
 }
@@ -23,6 +23,20 @@ else{
     var gamesWon = 0;
 }
 document.getElementById("gamesWon").innerHTML = "Won: " + gamesWon.toString();
+if(getCookie("currentStreak") != ""){
+    var currentStreak = parseInt(getCookie("currentStreak"));
+}
+else{
+    var currentStreak = 0;
+}
+document.getElementById("currentStreak").innerHTML = "Current Streak: " + currentStreak.toString();
+if(getCookie("maxStreak") != ""){
+    var maxStreak = parseInt(getCookie("maxStreak"));
+}
+else{
+    var maxStreak = 0;
+}
+document.getElementById("maxStreak").innerHTML = "Max Streak: " + maxStreak.toString();
 
 
 function loadBoard(){
@@ -100,7 +114,7 @@ function keyPress(selectedLetter){
     else if(selectedLetter == "enter" && guessArray.length == wordLength*rowTracker && won == false){
         for(var l = wordLength*(rowTracker-1); l < guessArray.length; l++){
             currentGuess += guessArray[l];
-            console.log(guessArray[l] + " : " + targetWord[l-(wordLength*(rowTracker-1))]);
+            //console.log(guessArray[l] + " : " + targetWord[l-(wordLength*(rowTracker-1))]);
             if(guessArray[l] == targetWord[l-(wordLength*(rowTracker-1))]){
                 document.getElementById(l).style.outlineColor = "#A6ECA8";
                 document.getElementById(l).style.background = "#A6ECA8";
@@ -173,6 +187,12 @@ function keyPress(selectedLetter){
             gamesWon += 1;
             setCookie("gamesWon", gamesWon.toString());
             document.getElementById("gamesWon").innerHTML = "Won: " + gamesWon.toString();
+            currentStreak += 1;
+            setCookie("currentStreak", currentStreak.toString());
+            document.getElementById("currentStreak").innerHTML = "Current Streak: " + currentStreak.toString();
+            if(currentStreak > maxStreak){maxStreak = currentStreak;}
+            setCookie("maxStreak", maxStreak.toString());
+            document.getElementById("maxStreak").innerHTML = "Max Streak: " + maxStreak.toString();
         }
         else{
             if(rowTracker < size/wordLength){
@@ -189,6 +209,9 @@ function keyPress(selectedLetter){
                 setCookie("gamesPlayed", gamesPlayed.toString());
                 document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
                 document.getElementById("gamesWon").innerHTML = "Won: " + gamesWon.toString();
+                currentStreak = 0;
+                setCookie("currentStreak", currentStreak.toString());
+                document.getElementById("currentStreak").innerHTML = "Current Streak: " + currentStreak.toString();
             }
         }
         currentGuess = "";
