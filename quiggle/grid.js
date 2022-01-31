@@ -251,7 +251,7 @@ function keyPress(selectedLetter){
             else{
                 document.getElementById("winorlose").innerHTML = "<br>You won after " + rowTracker.toString() + " guesses in " + currentDisplayTime + "!<br>";
             }
-            document.getElementById("playAgain").innerHTML = "<button class='playAgain' onclick='window.location.reload();'><b>Play Again</b></button>";
+            document.getElementById("playAgain").innerHTML = "<button class='playAgain' onclick='window.location.reload();'><b>Save & Play Again</b></button>";
             modal.style.display = "block";
 
         }
