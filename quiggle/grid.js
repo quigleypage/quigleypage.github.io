@@ -263,7 +263,7 @@ function keyPress(selectedLetter){
                 //you lose
                 console.log("You lose!");
                 document.getElementById("winorlose").innerHTML = "<br>You lost, the word was " + targetWord.toUpperCase() + "!<br>";
-                document.getElementById("playAgain").innerHTML = "<button class='playAgain' onclick='window.location.reload();'><b>Play Again</b></button>";
+                document.getElementById("playAgain").innerHTML = "<button class='playAgain' onclick='window.location.reload();'><b>Save & Play Again</b></button>";
                 modal.style.display = "block";
                 
                 //save the lost stats
@@ -325,7 +325,6 @@ span2.onclick = function() {
 }
 
 function setCookie(cname, cvalue) {
-    getCookie(cname);
     var exdays = 36525;
     const d = new Date();
     d.setTime(d.getTime() + (exdays*24*60*60*1000));
