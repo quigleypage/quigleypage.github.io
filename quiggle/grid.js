@@ -325,7 +325,11 @@ span2.onclick = function() {
 }
 
 function setCookie(cname, cvalue) {
-    document.cookie = cname + "=" + cvalue + ";path=/";
+    var exdays = 36525;
+    const d = new Date();
+    d.setTime(d.getTime() + (exdays*24*60*60*1000));
+    let expires = "expires="+ d.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 }
 
 function getCookie(cname) {
