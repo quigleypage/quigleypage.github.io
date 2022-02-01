@@ -10,7 +10,7 @@ var guessArray = [];
 var rowTracker = 1;
 var currentGuess = "";
 var won = false;
-var startDateTime = new Date();
+var startDateTime;
 
 //load saved data
 if(getCookie("gamesPlayed") != ""){
@@ -124,6 +124,11 @@ function loadBoard(){
 
 function keyPress(selectedLetter){
     
+    if(startDateTime == undefined){ //start the timer after the first letter is played
+        startDateTime = new Date();
+        //console.log(startDateTime);
+    }
+
     if(nextSpace < wordLength*rowTracker && selectedLetter != "backspace" && selectedLetter != "enter" && won == false){
         document.getElementById("Space" + nextSpace.toString()).innerHTML = selectedLetter;
         document.getElementById(nextSpace.toString()).style.outlineColor = "#404040";
@@ -376,9 +381,11 @@ function plotDist(){
                 family: 'Roboto, sans-serif',
                 size: 28,
             },
+            fixedrange: true,
         },
         xaxis:{
             showgrid: false,
+            fixedrange: true,
         },
         margin: {
             l: 40,
