@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="grid.css">
+    <meta name="viewport" content="width=device-width,initial-scale=0.6,maximum-scale=1,user-scalable=no"/>
+    <meta name="author" content="Kevin Quigley">
+    <meta name="description" content="Guess the heterogram in 6 tries!">
+    <!-- Font Awesome icons (free version)-->
+    <script src="https://use.fontawesome.com/releases/v5.15.4/js/all.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-E74W6QR6L1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-E74W6QR6L1');
+    </script>
+
+    <title>septle</title>
+</head>
+
+<body onload="loadBoard()">
+  
+    <div id="title" class = "title"><button class="settingsButton" id="myBtn2"><i class="fas fa-info-circle"></i></button> septle <button id="myBtn" class="settingsButton"><i class="fas fa-chart-bar"></i></button></div>  
+
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <div class="modal-header">
+            <span class="close">&times;</span>
+            <h2>Statistics</h2>
+            </div>
+            <div class="modal-body">
+                <div id="winorlose"></div>
+                <div id="gamesPlayed"><br>Played: </div>
+                <div id="gamesWon">Won: </div>
+                <div id="currentStreak">Current Streak: </div>
+                <div id="maxStreak">Max Streak: </div>
+                <div id="avgDuration">Average Time: </div>
+                <div id="avgGuesses">Average Guesses: </div>
+                <div id="distrbutionChart"></div>
+            </div>
+            <div class="modal-footer">
+            <h3 style="color:white; text-align: center;" id="playAgain">Modal Footer</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- The Modal -->
+    <div id="myModal2" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <div class="modal-header">
+            <span class="close">&times;</span>
+            <h2>Rules</h2>
+            </div>
+            <div class="modal-body">
+                <div><br>You have 6 chances to guess the heterogram.<br><br></div>
+                <div>A heterogram is a word (or phrase) with no repeat letters.<br><br></div>
+                <div>As such, each letter can only be used once per guess.<br><br></div>
+                <div>Incorrect letters cannot be reused on subsequent guesses.<br><br></div>
+                <div>Guesses must be valid words.</div>
+            </div>
+            <div class="modal-footer">
+            <h3 style="color:white;">Modal Footer</h3>
+            <div>Made by Kevin Quigley. Inspired by <a href="https://www.powerlanguage.co.uk/wordle/" target="_blank">Wordle</a><br><br></div>
+            </div>
+        </div>
+    </div>
+
+    <p>.</p>
+    <div id="boardSpace"></div>
+    <p>.</p>
+    <div id="keyboard"></div>
+
+</body>
+
+<script src="grid.js"></script>
+</html>
