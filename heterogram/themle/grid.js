@@ -13,43 +13,43 @@ var won = false;
 var startDateTime;
 
 //load saved data
-if(getCookie("gamesPlayed") != ""){
-    var gamesPlayed = parseInt(getCookie("gamesPlayed"));
+if(getCookie("themle_gamesPlayed") != ""){
+    var gamesPlayed = parseInt(getCookie("themle_gamesPlayed"));
 }
 else{
     var gamesPlayed = 0;
 }
 document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
-if(getCookie("gamesWon") != ""){
-    var gamesWon = parseInt(getCookie("gamesWon"));
+if(getCookie("themle_gamesWon") != ""){
+    var gamesWon = parseInt(getCookie("themle_gamesWon"));
 }
 else{
     var gamesWon = 0;
 }
 document.getElementById("gamesWon").innerHTML = "Won: " + gamesWon.toString() + " (" + Math.round((gamesWon/gamesPlayed)*100).toString() + "%)";
-if(getCookie("currentStreak") != ""){
-    var currentStreak = parseInt(getCookie("currentStreak"));
+if(getCookie("themle_currentStreak") != ""){
+    var currentStreak = parseInt(getCookie("themle_currentStreak"));
 }
 else{
     var currentStreak = 0;
 }
 document.getElementById("currentStreak").innerHTML = "Current Streak: " + currentStreak.toString();
-if(getCookie("maxStreak") != ""){
-    var maxStreak = parseInt(getCookie("maxStreak"));
+if(getCookie("themle_maxStreak") != ""){
+    var maxStreak = parseInt(getCookie("themle_maxStreak"));
 }
 else{
     var maxStreak = 0;
 }
 document.getElementById("maxStreak").innerHTML = "Max Streak: " + maxStreak.toString();
-if(getCookie("sumOfWonGuesses") != ""){
-    var sumOfWonGuesses = parseInt(getCookie("sumOfWonGuesses"));
+if(getCookie("themle_sumOfWonGuesses") != ""){
+    var sumOfWonGuesses = parseInt(getCookie("themle_sumOfWonGuesses"));
 }
 else{
     var sumOfWonGuesses = 0;
 }
 document.getElementById("avgGuesses").innerHTML = "Average Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString();
-if(getCookie("sumOfWonDurations") != ""){
-    var sumOfWonDurations = parseFloat(getCookie("sumOfWonDurations")); // read in sumOfWonDurations in minutes
+if(getCookie("themle_sumOfWonDurations") != ""){
+    var sumOfWonDurations = parseFloat(getCookie("themle_sumOfWonDurations")); // read in sumOfWonDurations in minutes
 }
 else{
     var sumOfWonDurations = 0;
@@ -61,8 +61,8 @@ var distributionOfWonGuesses = [];
 var distributionYData = [];
 var showHistoricPlot = false;
 for(var m = 1; m <= chances; m++){
-    if(getCookie("distributionOfWonGuesses" + m.toString()) != ""){
-        distributionOfWonGuesses[m] = parseInt(getCookie("distributionOfWonGuesses" + m.toString())); // this is indexed at 1-6
+    if(getCookie("themle_distributionOfWonGuesses" + m.toString()) != ""){
+        distributionOfWonGuesses[m] = parseInt(getCookie("themle_distributionOfWonGuesses" + m.toString())); // this is indexed at 1-6
         showHistoricPlot = true;
     }
     else{
@@ -228,23 +228,23 @@ function keyPress(selectedLetter){
 
                 //save the win stats
                 gamesPlayed += 1; // # games played
-                setCookie("gamesPlayed", gamesPlayed.toString());
+                setCookie("themle_gamesPlayed", gamesPlayed.toString());
                 document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
                 // # games won
                 gamesWon += 1; 
-                setCookie("gamesWon", gamesWon.toString());
+                setCookie("themle_gamesWon", gamesWon.toString());
                 document.getElementById("gamesWon").innerHTML = "Won: " + gamesWon.toString() + " (" + Math.round((gamesWon/gamesPlayed)*100).toString() + "%)";
                 // current streak
                 currentStreak += 1; 
-                setCookie("currentStreak", currentStreak.toString());
+                setCookie("themle_currentStreak", currentStreak.toString());
                 document.getElementById("currentStreak").innerHTML = "Current Streak: " + currentStreak.toString();
                 // max streak
                 if(currentStreak > maxStreak){maxStreak = currentStreak;} 
-                setCookie("maxStreak", maxStreak.toString());
+                setCookie("themle_maxStreak", maxStreak.toString());
                 document.getElementById("maxStreak").innerHTML = "Max Streak: " + maxStreak.toString();
                 // sum of won guesses and average guesses
                 sumOfWonGuesses += rowTracker; 
-                setCookie("sumOfWonGuesses", sumOfWonGuesses.toString());
+                setCookie("themle_sumOfWonGuesses", sumOfWonGuesses.toString());
                 document.getElementById("avgGuesses").innerHTML = "Average Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString();
                 // current time, sum of won durations and average duration
                 var endDateTime = new Date();
@@ -252,14 +252,14 @@ function keyPress(selectedLetter){
                 diff /= 60;
                 var currentTime = Math.abs(diff); // difference between start and end time in minutes
                 sumOfWonDurations += currentTime;
-                setCookie("sumOfWonDurations", sumOfWonDurations.toString());
+                setCookie("themle_sumOfWonDurations", sumOfWonDurations.toString());
                 var currentDisplayTime = (Math.floor(currentTime)).toString() + "m " + (Math.round(((currentTime - Math.floor(currentTime))*60))).toString() + "s";
                 avgTime = sumOfWonDurations / gamesWon;
                 avgDisplayTime = (Math.floor(avgTime)).toString() + "m " + (Math.round(((avgTime - Math.floor(avgTime))*60))).toString() + "s"; // convert from minutes to minutes and seconds
                 document.getElementById("avgDuration").innerHTML = "Average Time: " + avgDisplayTime;
                 // allocate guess distribution
                 distributionOfWonGuesses[rowTracker] += 1;
-                setCookie("distributionOfWonGuesses" + rowTracker.toString(), distributionOfWonGuesses[rowTracker].toString());
+                setCookie("themle_distributionOfWonGuesses" + rowTracker.toString(), distributionOfWonGuesses[rowTracker].toString());
                 plotDist();
                 
                 //show win stats
@@ -288,11 +288,11 @@ function keyPress(selectedLetter){
                     
                     //save the lost stats
                     gamesPlayed += 1;
-                    setCookie("gamesPlayed", gamesPlayed.toString());
+                    setCookie("themle_gamesPlayed", gamesPlayed.toString());
                     document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
                     document.getElementById("gamesWon").innerHTML = "Won: " + gamesWon.toString() + " (" + Math.round((gamesWon/gamesPlayed)*100).toString() + "%)";
                     currentStreak = 0;
-                    setCookie("currentStreak", currentStreak.toString());
+                    setCookie("themle_currentStreak", currentStreak.toString());
                     document.getElementById("currentStreak").innerHTML = "Current Streak: " + currentStreak.toString();
                 }
             }
