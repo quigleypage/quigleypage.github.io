@@ -1,5 +1,13 @@
-var dice = Math.floor(Math.random() * dictionaryArray.length);
-var targetWord = dictionaryArray[dice];
+var pathSearch = window.location.search; // check for a make my own link
+if(pathSearch == ""){
+    var dice = Math.floor(Math.random() * dictionaryArray.length);
+    var targetWord = dictionaryArray[dice];
+}
+else{
+    makeMyOwnCode = pathSearch.split("=")[1];
+    targetWord = decryptMakeYourOwn(makeMyOwnCode);
+    //console.log(makeMyOwnCode);
+}
 //console.log(dice.toString() + ": " + targetWord);
 var wordLength = 5;
 var chances = 6;
@@ -161,7 +169,7 @@ function keyPress(selectedLetter){
             currentGuess += guessArray[v];
         }
         console.log(currentGuess);
-        if(dictionaryArray.includes(currentGuess) || validWordList.includes(currentGuess)){ // if the current guess is a valid word in the dictionary
+        if(dictionaryArray.includes(currentGuess) || validWordList.includes(currentGuess) || currentGuess == targetWord){ // if the current guess is a valid word in the dictionary
             
             console.log("valid word");
         
@@ -270,7 +278,7 @@ function keyPress(selectedLetter){
                 else{
                     document.getElementById("winorlose").innerHTML = "<br>You won after " + rowTracker.toString() + " guesses in " + currentDisplayTime + "!<br>";
                 }
-                document.getElementById("playAgain").innerHTML = "<button class='playAgain' onclick='window.location.reload();'><b>Save & Play Again</b></button>";
+                document.getElementById("playAgain").innerHTML = "<button class='playAgain' onclick='loadNewGame()'><b>Save & Play Again</b></button>";
                 modal.style.display = "block";
 
             }
@@ -282,7 +290,7 @@ function keyPress(selectedLetter){
                     //you lose
                     console.log("You lose!");
                     document.getElementById("winorlose").innerHTML = "<br>You lost, the word was " + targetWord.toUpperCase() + "!<br>";
-                    document.getElementById("playAgain").innerHTML = "<button class='playAgain' onclick='window.location.reload();'><b>Save & Play Again</b></button>";
+                    document.getElementById("playAgain").innerHTML = "<button class='playAgain' onclick='loadNewGame()'><b>Save & Play Again</b></button>";
                     modal.style.display = "block";
                     
                     //save the lost stats
@@ -422,4 +430,8 @@ function plotDist(){
     };
       
     Plotly.newPlot('distrbutionChart', distChartData, layout, config);
+}
+
+function loadNewGame(){
+    window.location = window.location.href.split("?")[0];
 }

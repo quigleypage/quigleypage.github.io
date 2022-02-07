@@ -126,6 +126,11 @@ p{
     font-family: 'Roboto', sans-serif;
 }
 
+.makeYourOwnPrompts{
+  text-align: center;
+  font-size: 6vw;
+  font-family: 'Roboto', sans-serif;
+}
 
 .settingsButton{
     background-color: white; /* used for stats and info */
