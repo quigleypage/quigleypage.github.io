@@ -451,7 +451,7 @@ function generateEmojiShare(){
             emojiString += "⬜";
         }
 
-        if((w+1)%wordLength == 0 && w < guessArray.length-1){
+        if((w+1)%wordLength == 0){
             emojiString += "\n";
         }
     }
