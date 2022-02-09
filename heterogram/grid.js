@@ -438,7 +438,7 @@ function loadNewGame(){
 }
 
 function generateEmojiShare(){
-    var emojiString = "heterogram<br><br>Played: " + gamesPlayed.toString() + "<br>Won: " + gamesWon.toString() + " (" + Math.round((gamesWon/gamesPlayed)*100).toString() + "%)<br>Current Streak: " + currentStreak.toString() + "<br>Max Streak: " + maxStreak.toString() + "<br>Average Time: " + avgDisplayTime + "<br>Average Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString() + "<br><br>";
+    var emojiString = "heterogram\n\nPlayed: " + gamesPlayed.toString() + "\nWon: " + gamesWon.toString() + " (" + Math.round((gamesWon/gamesPlayed)*100).toString() + "%)\nCurrent Streak: " + currentStreak.toString() + "\nMax Streak: " + maxStreak.toString() + "\nAverage Time: " + avgDisplayTime + "\nAverage Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString() + "\n\n";
     for(var w = 0; w < guessArray.length; w++){
         if(document.getElementById(w).style.background == "rgb(166, 236, 168)"){
             emojiString += "🟩";
@@ -451,7 +451,7 @@ function generateEmojiShare(){
         }
 
         if((w+1)%wordLength == 0 && w < guessArray.length-1){
-            emojiString += "<br>";
+            emojiString += "\n";
         }
     }
     console.log(emojiString);
