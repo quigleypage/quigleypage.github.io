@@ -438,7 +438,8 @@ function loadNewGame(){
 }
 
 function generateEmojiShare(){
-    var emojiString = "heterogram\n\nPlayed: " + gamesPlayed.toString() + "\nWon: " + gamesWon.toString() + " (" + Math.round((gamesWon/gamesPlayed)*100).toString() + "%)\nCurrent Streak: " + currentStreak.toString() + "\nMax Streak: " + maxStreak.toString() + "\nAverage Time: " + avgDisplayTime + "\nAverage Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString() + "\n\n";
+    var emojiString = "Check out this heterogram!\nHere's how I did:\n\nPlayed: " + gamesPlayed.toString() + "\nWon: " + gamesWon.toString() + " (" + Math.round((gamesWon/gamesPlayed)*100).toString() + "%)\nCurrent Streak: " + currentStreak.toString() + "\nMax Streak: " + maxStreak.toString() + "\nAverage Time: " + avgDisplayTime + "\nAverage Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString() + "\n\n";
+    var shareLink = "https://quigley.page/heterogram/?s=" + encryptMakeYourOwn(targetWord);
     for(var w = 0; w < guessArray.length; w++){
         if(document.getElementById(w).style.background == "rgb(166, 236, 168)"){
             emojiString += "🟩";
@@ -458,6 +459,7 @@ function generateEmojiShare(){
     const shareData = {
         title: 'heterogram',
         text: emojiString,
+        url: shareLink
     }
     navigator.share(shareData);
 }
