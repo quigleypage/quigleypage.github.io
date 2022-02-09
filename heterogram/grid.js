@@ -278,9 +278,9 @@ function keyPress(selectedLetter){
                 else{
                     document.getElementById("winorlose").innerHTML = "<br>You won after " + rowTracker.toString() + " guesses in " + currentDisplayTime + "!<br>";
                 }
-                document.getElementById("playAgain").innerHTML = "<button class='playAgain' onclick='loadNewGame()'><b>Save & Play Again</b></button>";
+                document.getElementById("playAgain").innerHTML = "<button class='playAgain' onclick='loadNewGame()'><b>Save & Play Again</b></button>   <button class='playAgain' onclick='generateEmojiShare()'><b>Share</b></button>";
                 modal.style.display = "block";
-
+                //generateEmojiShare();
             }
             else{ //if they did not win yet
                 if(rowTracker < size/wordLength){ //let them keep playing
@@ -290,8 +290,9 @@ function keyPress(selectedLetter){
                     //you lose
                     console.log("You lose!");
                     document.getElementById("winorlose").innerHTML = "<br>You lost, the word was " + targetWord.toUpperCase() + "!<br>";
-                    document.getElementById("playAgain").innerHTML = "<button class='playAgain' onclick='loadNewGame()'><b>Save & Play Again</b></button>";
+                    document.getElementById("playAgain").innerHTML = "<button class='playAgain' onclick='loadNewGame()'><b>Save & Play Again</b></button>   <button class='playAgain' onclick='generateEmojiShare()'><b>Share</b></button>";
                     modal.style.display = "block";
+                    //generateEmojiShare();
                     
                     //save the lost stats
                     gamesPlayed += 1;
@@ -434,4 +435,29 @@ function plotDist(){
 
 function loadNewGame(){
     window.location = window.location.href.split("?")[0];
+}
+
+function generateEmojiShare(){
+    var emojiString = "heterogram<br><br>Played: " + gamesPlayed.toString() + "<br>Won: " + gamesWon.toString() + " (" + Math.round((gamesWon/gamesPlayed)*100).toString() + "%)<br>Current Streak: " + currentStreak.toString() + "<br>Max Streak: " + maxStreak.toString() + "<br>Average Time: " + avgDisplayTime + "<br>Average Guesses: " + (sumOfWonGuesses / gamesWon).toFixed(1).toString() + "<br><br>";
+    for(var w = 0; w < guessArray.length; w++){
+        if(document.getElementById(w).style.background == "rgb(166, 236, 168)"){
+            emojiString += "🟩";
+        }
+        else if(document.getElementById(w).style.background == "rgb(234, 228, 166)"){
+            emojiString += "🟨";
+        }
+        else{
+            emojiString += "⬜";
+        }
+
+        if((w+1)%wordLength == 0 && w < guessArray.length-1){
+            emojiString += "<br>";
+        }
+    }
+    console.log(emojiString);
+    const shareData = {
+        title: 'heterogram',
+        text: emojiString,
+    }
+    navigator.share(shareData);
 }
