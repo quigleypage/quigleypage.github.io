@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
-
+    <meta name="viewport" content="width=device-width,initial-scale=0.9,maximum-scale=0.9"/>
     <meta name="author" content="Kevin Quigley">
     <meta name="description" content="Calculate potential return on investment.">
     <meta charset="UTF-8">
@@ -13,32 +13,38 @@
     <title>Return Calculator</title>
 </head>
 
-<h1>Resale Calculator</h1>
+<style>.all{font-family: 'Roboto', sans-serif;}</style>
 
-<label for="TicketPrice">Tag Price: $</label>
-<input type="number" id="TicketPrice" name="TicketPrice" min="0" onclick="recalculate()">
-<br><br>
-<label for="Discount">Discount %: </label>
-<input type="number" id="Discount" name="Discount" min="0" max="100" value="0" onclick="recalculate()">
-<br><br>
-<label for="tax">Sales Tax (assumed 6.625%)? </label>
-<input type="checkbox" id="tax" name="tax" value="taxable" onclick="recalculate()">
-<br><br>
-<label for="SalePrice">Estimated Sale Price: $</label>
-<input type="number" id="SalePrice" name="SalePrice" min="0" onclick="recalculate()">
-<br><br>
-<label for="Fees">Estimated Fees: $</label>
-<input type="number" id="Fees" name="Fees" min="0" onclick="recalculate()">
-<br><br>
-<label for="Shipping">Estimated Shipping Cost: $</label>
-<input type="number" id="Shipping" name="Shipping" min="0" onclick="recalculate()">
-<br><br>
-<button onclick="recalculate()">Calculate</button>
+<span class="all">
+
+    <h1>Resale Calculator</h1>
+
+    <label for="TicketPrice">Tag Price: $</label>
+    <input type="number" id="TicketPrice" name="TicketPrice" min="0" onclick="recalculate()">
+    <br><br>
+    <label for="Discount">Discount %: </label>
+    <input type="number" id="Discount" name="Discount" min="0" max="100" value="0" onclick="recalculate()">
+    <br><br>
+    <label for="tax">Sales Tax (assumed 6.625%)? </label>
+    <input type="checkbox" id="tax" name="tax" value="taxable" onclick="recalculate()">
+    <br><br>
+    <label for="SalePrice">Estimated Sale Price: $</label>
+    <input type="number" id="SalePrice" name="SalePrice" min="0" onclick="recalculate()">
+    <br><br>
+    <label for="Fees">Estimated Fees: $</label>
+    <input type="number" id="Fees" name="Fees" min="0" onclick="recalculate()">
+    <br><br>
+    <label for="Shipping">Estimated Shipping Cost: $</label>
+    <input type="number" id="Shipping" name="Shipping" min="0" onclick="recalculate()">
+    <br><br>
+    <button style="width:100%;padding-top: 3%; padding-bottom: 3%;" onclick="recalculate()">Calculate</button>
 
 
-<br><br><br>
-<div id="ProjectedReturn">Projected Return: </div>
-<br>
-<div id="ProjectedMargin">Projected Margin: </div>
+    <br><br><br>
+    <div id="ProjectedReturn">Projected Return: </div>
+    <br>
+    <div id="ProjectedMargin">Projected Margin: </div>
+
+</span>
 
 </html>
