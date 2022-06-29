@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Great+Vibes&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="grid.css">
     <meta name="viewport" content="width=device-width,initial-scale=0.6,maximum-scale=1,user-scalable=no"/>
@@ -19,12 +23,12 @@
         gtag('config', 'G-S047CWNXKL');
     </script>
 
-    <title>slotle</title>
+    <title>SLOTLE</title>
 </head>
 
 <body>
   
-    <div id="title" class = "title"><button class="settingsButton" id="myBtn2"><i class="fas fa-info-circle"></i></button> slotle <button id="myBtn" class="settingsButton"><i class="fas fa-chart-bar"></i></button></div>  
+    <div id="title" class = "title"><button class="settingsButton" id="myBtn2"><i class="fas fa-info-circle"></i></button> SLOTLE <button id="myBtn" class="settingsButton"><i class="fas fa-chart-bar"></i></button></div>  
 
     <!-- The Modal -->
     <div id="myModal" class="modal">
@@ -35,14 +39,8 @@
             <h2>Statistics</h2>
             </div>
             <div class="modal-body">
-                <div id="winorlose"></div>
                 <div id="gamesPlayed"><br>Played: </div>
                 <div id="gamesWon">Won: </div>
-                <div id="currentStreak">Current Streak: </div>
-                <div id="maxStreak">Max Streak: </div>
-                <div id="avgDuration">Average Time: </div>
-                <div id="avgGuesses">Average Guesses: </div>
-                <div id="distrbutionChart"></div>
             </div>
             <div class="modal-footer">
             <h3 style="color:white; text-align: center;" id="playAgain">Modal Footer</h3>
@@ -59,12 +57,9 @@
             <h2>Rules</h2>
             </div>
             <div class="modal-body">
-                <div><br>You have 6 chances to guess the heterogram.<br><br></div>
-                <div>A heterogram is a word (or phrase) with no repeat letters.<br><br></div>
-                <div>As such, each letter can only be used once per guess.<br><br></div>
-                <div>Incorrect letters cannot be reused on subsequent guesses.<br><br></div>
-                <div>Guesses must be valid words.<br><br></div>
-                <div>You can also <a href="https://quigley.page/heterogram/makeyourown/">make your own heterogram</a>!</div>
+                <div><br>Every day, we'll give you a $6.00 complimentary credit.<br><br></div>
+                <div>Decide how much to risk with each play; greater risk will lead to greater reward.<br><br></div>
+                <div>You can cash out for the day at any time.<br><br></div>
             </div>
             <div class="modal-footer">
             <h3 style="color:white;">Modal Footer</h3>
@@ -74,6 +69,11 @@
     </div>
 
     <div id="app">
+
+        <div class="credit" id="credit">CREDIT: $6.00</div>
+
+        <br><br><br><br>
+
         <div class="doors">
           <div class="door">
             <div class="boxes">
@@ -108,7 +108,7 @@
         </div>
       
         <div class="buttons">
-          <button id="spinner">Play</button>
+          <button id="spinner">BET 50</button>
           <button id="reseter">Reset</button>
         </div>
       </div>
