@@ -14,10 +14,10 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
 
 // slot functionality
 (function () {
-    const items = ['🍭','❌','⛄️','🦄','🍌','👻','😻','💵','🤡','🦖','🍎','🔥','😭','😂','🥺','🤣','❤️','✨','🙏','🐃','7️⃣','💯','🐉','🔔','🍺','⭐'];
+    const items = ['🍭','❌','⛄️','🦄','🍌','👻','😻','💵','🤡','🦖','🍎','🔥','😭','😂','🥺','🤣','❤️','✨','🙏','🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅'];
     const doors = document.querySelectorAll('.door');
     
-    document.querySelector('#spinner').addEventListener('click', spin);
+    document.querySelector('#spinner50').addEventListener('click', spin);
     document.querySelector('#reseter').addEventListener('click', init);
   
     function init(firstInit = true, groups = 1, duration = 1) {
@@ -76,26 +76,31 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
         door.replaceChild(boxesClone, boxes);
       }
     }
-  
+    
     async function spin() {
-      init(false, 1, 2);
+        if(todaysCredit >=0.5){ // only proceed with the spin if there is credit left
+            init(false, 1, 2);
 
-      //Beginning of spin variable updates
-      todaysCredit -= 0.5;
-      document.getElementById("credit").innerHTML = "CREDIT: $" + todaysCredit.toFixed(2).toString();
-      
-      for (const door of doors) {
-        const boxes = door.querySelector('.boxes');
-        const duration = parseInt(boxes.style.transitionDuration);
-        boxes.style.transform = 'translateY(0)';
-        await new Promise((resolve) => setTimeout(resolve, duration * 100));
-      }
-      
-      //update saved statistics
-      gamesPlayed += 1; // # games played
-      setCookie("slotle_gamesPlayed", gamesPlayed.toString());
-      document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
-
+            //Beginning of spin variable updates
+            todaysCredit -= 0.5;
+            document.getElementById("credit").innerHTML = "CREDIT: $" + todaysCredit.toFixed(2).toString();
+            
+            for (const door of doors) {
+                const boxes = door.querySelector('.boxes');
+                const duration = parseInt(boxes.style.transitionDuration);
+                boxes.style.transform = 'translateY(0)';
+                await new Promise((resolve) => setTimeout(resolve, duration * 100));
+            }
+            
+            //update saved statistics
+            gamesPlayed += 1; // # games played
+            setCookie("slotle_gamesPlayed", gamesPlayed.toString());
+            document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
+        }
+        else{ // if the player is out of credit, disable the buttons
+            document.getElementById("spinner50").disabled = true;
+            document.getElementById("reseter").disabled = true;
+        }
     }
   
     function shuffle([...arr]) {
