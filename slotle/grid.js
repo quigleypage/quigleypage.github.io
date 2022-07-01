@@ -18,7 +18,7 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
     const doors = document.querySelectorAll('.door');
     
     document.querySelector('#spinner50').addEventListener('click', spin);
-    document.querySelector('#reseter').addEventListener('click', init);
+    //document.querySelector('#reseter').addEventListener('click', init);
   
     function init(firstInit = true, groups = 1, duration = 1) {
       for (const door of doors) {
@@ -78,28 +78,31 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
     }
     
     async function spin() {
-        if(todaysCredit >=0.5){ // only proceed with the spin if there is credit left
-            init(false, 1, 2);
+        
+        document.getElementById("spinner50").disabled = true; // disable the button while spinning so we do not click twice
+        
+        init(); // run this extra call of init() instead of using the reset button
 
-            //Beginning of spin variable updates
-            todaysCredit -= 0.5;
-            document.getElementById("credit").innerHTML = "CREDIT: $" + todaysCredit.toFixed(2).toString();
-            
-            for (const door of doors) {
-                const boxes = door.querySelector('.boxes');
-                const duration = parseInt(boxes.style.transitionDuration);
-                boxes.style.transform = 'translateY(0)';
-                await new Promise((resolve) => setTimeout(resolve, duration * 100));
-            }
-            
-            //update saved statistics
-            gamesPlayed += 1; // # games played
-            setCookie("slotle_gamesPlayed", gamesPlayed.toString());
-            document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
+        init(false, 1, 2);
+
+        //Beginning of spin variable updates
+        todaysCredit -= 0.5;
+        document.getElementById("credit").innerHTML = "CREDIT: $" + todaysCredit.toFixed(2).toString();
+        
+        for (const door of doors) {
+            const boxes = door.querySelector('.boxes');
+            const duration = parseInt(boxes.style.transitionDuration);
+            boxes.style.transform = 'translateY(0)';
+            await new Promise((resolve) => setTimeout(resolve, duration * 100));
         }
-        else{ // if the player is out of credit, disable the buttons
-            document.getElementById("spinner50").disabled = true;
-            document.getElementById("reseter").disabled = true;
+        
+        //update saved statistics
+        gamesPlayed += 1; // # games played
+        setCookie("slotle_gamesPlayed", gamesPlayed.toString());
+        document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
+
+        if(todaysCredit >=0.5){ // if the player has enough credit left for another spin, then reenable the button
+            document.getElementById("spinner50").disabled = false;
         }
     }
   
