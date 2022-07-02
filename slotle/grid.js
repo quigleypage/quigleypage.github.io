@@ -14,7 +14,7 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
 
 // slot functionality
 (function () {
-    const items = ['🍭','❌','⛄️','🦄','🍌','👻','😻','💵','🤡','🦖','🍎','🔥','😭','😂','🥺','🤣','❤️','✨','🙏','🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅'];
+    const items = ['🍭','❌','⛄️','🦄','🍌','👻','😻','💵','🤡','🦖','🍎','🔥','😭','😂','🥺','🤣','❤️','✨','🙏','🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑'];
     const doors = document.querySelectorAll('.door');
     
     document.querySelector('#spinner50').addEventListener('click', spin);
@@ -80,6 +80,10 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
     async function spin() {
         
         document.getElementById("spinner50").disabled = true; // disable the button while spinning so we do not click twice
+        document.getElementById("spinner100").disabled = true;
+        document.getElementById("spinner200").disabled = true;
+        document.getElementById("spinner300").disabled = true;
+        document.getElementById("spinner600").disabled = true;
         
         init(); // run this extra call of init() instead of using the reset button
 
@@ -104,6 +108,20 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
         if(todaysCredit >=0.5){ // if the player has enough credit left for another spin, then reenable the button
             document.getElementById("spinner50").disabled = false;
         }
+        if(todaysCredit >= 1){
+            document.getElementById("spinner100").disabled = false;
+        }
+        if(todaysCredit >= 2){
+            document.getElementById("spinner200").disabled = false;
+        }
+        if(todaysCredit >= 3){
+            document.getElementById("spinner300").disabled = false;
+        }
+        if(todaysCredit >= 6){
+            document.getElementById("spinner600").disabled = false;
+        }
+        
+
     }
   
     function shuffle([...arr]) {
