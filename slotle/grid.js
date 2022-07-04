@@ -2,6 +2,7 @@
 var resultArray = [];
 var todaysPlayCount = 0;
 var todaysCredit = 6.00;
+var bet = 0.5;
 
 //load saved data
 if(getCookie("slotle_gamesPlayed") != ""){
@@ -14,10 +15,11 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
 
 // slot functionality
 (function () {
-    const items = ['🍭','❌','⛄️','🦄','🍌','👻','😻','💵','🤡','🦖','🍎','🔥','😭','😂','🥺','🤣','❤️','✨','🙏','🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑'];
+    const items = ['🍭','❌','⛄️','🦄','🍌','👻','😻','💵','🤡','🦖','🍎','🔥','😭','😂','🥺','🤣','❤️','✨','🙏','🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑','🍀'];
     const doors = document.querySelectorAll('.door');
     
     document.querySelector('#spinner50').addEventListener('click', spin);
+    //document.querySelector('#spinner100').addEventListener('click', spin);
     //document.querySelector('#reseter').addEventListener('click', init);
   
     function init(firstInit = true, groups = 1, duration = 1) {
@@ -90,7 +92,7 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
         init(false, 1, 2);
 
         //Beginning of spin variable updates
-        todaysCredit -= 0.5;
+        todaysCredit -= bet;
         document.getElementById("credit").innerHTML = "CREDIT: $" + todaysCredit.toFixed(2).toString();
         
         for (const door of doors) {
