@@ -18,9 +18,33 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
     const items = ['🍭','❌','⛄️','🦄','🍌','👻','😻','💵','🤡','🦖','🍎','🔥','😭','😂','🥺','🤣','❤️','✨','🙏','🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑','🍀'];
     const doors = document.querySelectorAll('.door');
     
+    document.querySelector('#spinner50').addEventListener('click', set50);
     document.querySelector('#spinner50').addEventListener('click', spin);
-    //document.querySelector('#spinner100').addEventListener('click', spin);
+    document.querySelector('#spinner100').addEventListener('click', set100);
+    document.querySelector('#spinner100').addEventListener('click', spin);
+    document.querySelector('#spinner200').addEventListener('click', set200);
+    document.querySelector('#spinner200').addEventListener('click', spin);
+    document.querySelector('#spinner300').addEventListener('click', set300);
+    document.querySelector('#spinner300').addEventListener('click', spin);
+    document.querySelector('#spinner600').addEventListener('click', set600);
+    document.querySelector('#spinner600').addEventListener('click', spin);
     //document.querySelector('#reseter').addEventListener('click', init);
+
+    function set50(){
+        bet = 0.5;
+    }
+    function set100(){
+        bet = 1;
+    }
+    function set200(){
+        bet = 2;
+    }
+    function set300(){
+        bet = 3;
+    }
+    function set600(){
+        bet = 6;
+    }
   
     function init(firstInit = true, groups = 1, duration = 1) {
       for (const door of doors) {
