@@ -15,7 +15,8 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
 
 // slot functionality
 (function () {
-    const items = ['🍭','❌','⛄️','🦄','🍌','👻','😻','💵','🤡','🦖','🍎','🔥','😭','😂','🥺','🤣','❤️','✨','🙏','🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑','🍀'];
+    //const items = ['🍭','❌','⛄️','🦄','🍌','👻','😻','💵','🤡','🦖','🍎','🔥','😭','😂','🥺','🤣','❤️','✨','🙏','🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑','🍀'];
+    const items = ['🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑','🍀'];
     const doors = document.querySelectorAll('.door');
     
     document.querySelector('#spinner50').addEventListener('click', set50);
@@ -64,7 +65,8 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
             arr.push(...items);
           }
           pool.push(...shuffle(arr));
-          console.log(pool[pool.length-1]); // this is where we can append the result - KEVIN LOOK AT THIS LINE OF CODE
+          //console.log(pool[pool.length-1]); // this is where we can append the result - KEVIN LOOK AT THIS LINE OF CODE
+          resultArray.push(pool[pool.length-1]); // add each result to arrary
 
           boxesClone.addEventListener(
             'transitionstart',
@@ -105,6 +107,12 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
     
     async function spin() {
         
+        resultArray = []; // reset the results befor writing
+        document.getElementById("box0").style.backgroundColor = "#FFFFFF";
+        document.getElementById("box1").style.backgroundColor = "#FFFFFF";
+        document.getElementById("box2").style.backgroundColor = "#FFFFFF";
+        document.getElementById("box3").style.backgroundColor = "#FFFFFF";
+        document.getElementById("box4").style.backgroundColor = "#FFFFFF";
         document.getElementById("spinner50").disabled = true; // disable the button while spinning so we do not click twice
         document.getElementById("spinner100").disabled = true;
         document.getElementById("spinner200").disabled = true;
@@ -147,6 +155,11 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
             document.getElementById("spinner600").disabled = false;
         }
         
+        console.log(resultArray); // show results after completing spin
+        if(resultArray[0] == resultArray[1]){
+            document.getElementById("box0").style.backgroundColor = "#A6ECA8";
+            document.getElementById("box1").style.backgroundColor = "#A6ECA8";
+        }
 
     }
   
