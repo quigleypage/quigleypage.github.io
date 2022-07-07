@@ -139,28 +139,7 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
         setCookie("slotle_gamesPlayed", gamesPlayed.toString());
         document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
 
-        if(todaysCredit >=0.5){ // if the player has enough credit left for another spin, then reenable the button
-            document.getElementById("spinner50").disabled = false;
-        }
-        if(todaysCredit >= 1){
-            document.getElementById("spinner100").disabled = false;
-        }
-        if(todaysCredit >= 2){
-            document.getElementById("spinner200").disabled = false;
-        }
-        if(todaysCredit >= 3){
-            document.getElementById("spinner300").disabled = false;
-        }
-        if(todaysCredit >= 6){
-            document.getElementById("spinner600").disabled = false;
-        }
-        
-        console.log(resultArray); // show results after completing spin
-        if(resultArray[0] == resultArray[1]){
-            document.getElementById("box0").style.backgroundColor = "#A6ECA8";
-            document.getElementById("box1").style.backgroundColor = "#A6ECA8";
-        }
-
+        postSpinUpdates();
     }
   
     function shuffle([...arr]) {
@@ -170,6 +149,42 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
         [arr[m], arr[i]] = [arr[i], arr[m]];
       }
       return arr;
+    }
+
+    function postSpinUpdates(){
+
+        setTimeout(function(){ // use set timeout to add an artificial delay that causes the ui to pause until after the spin - NOT GOOD BUT WORKS
+
+            if(todaysCredit >=0.5){ // if the player has enough credit left for another spin, then reenable the button
+                document.getElementById("spinner50").disabled = false;
+            }
+            if(todaysCredit >= 1){
+                document.getElementById("spinner100").disabled = false;
+            }
+            if(todaysCredit >= 2){
+                document.getElementById("spinner200").disabled = false;
+            }
+            if(todaysCredit >= 3){
+                document.getElementById("spinner300").disabled = false;
+            }
+            if(todaysCredit >= 6){
+                document.getElementById("spinner600").disabled = false;
+            }
+            
+            for(var checki = 0; checki < resultArray.length; checki++){ // go through each box and compare it to each other box. if it has a match, turn both green
+                for(var checkj = 0; checkj < resultArray.length; checkj++){ // THIS SHOULD BE REPLACED BY WIN CONDITIONS AND PAYOUT LOGIC
+                    if(checki != checkj){
+                        if(resultArray[checki] == resultArray[checkj]){
+                            document.getElementById("box"+checki.toString()).style.backgroundColor = "#A6ECA8";
+                            document.getElementById("box"+checkj.toString()).style.backgroundColor = "#A6ECA8";
+                        }
+                    }
+                }
+            }
+
+            console.log(resultArray); // show results after completing spin
+
+        }, 1800);
     }
   
     init();
