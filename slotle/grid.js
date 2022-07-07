@@ -177,6 +177,8 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
                         if(resultArray[checki] == resultArray[checkj]){
                             document.getElementById("box"+checki.toString()).style.backgroundColor = "#A6ECA8";
                             document.getElementById("box"+checkj.toString()).style.backgroundColor = "#A6ECA8";
+                            todaysCredit += 0.25; // pay out 25c as a test
+                            document.getElementById("credit").innerHTML = "CREDIT: $" + todaysCredit.toFixed(2).toString();
                         }
                     }
                 }
