@@ -155,6 +155,19 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
 
         setTimeout(function(){ // use set timeout to add an artificial delay that causes the ui to pause until after the spin - NOT GOOD BUT WORKS
 
+            for(var checki = 0; checki < resultArray.length; checki++){ // go through each box and compare it to each other box. if it has a match, turn both green
+                for(var checkj = 0; checkj < resultArray.length; checkj++){ // THIS SHOULD BE REPLACED BY WIN CONDITIONS AND PAYOUT LOGIC
+                    if(checki != checkj){
+                        if(resultArray[checki] == resultArray[checkj]){
+                            document.getElementById("box"+checki.toString()).style.backgroundColor = "#A6ECA8";
+                            document.getElementById("box"+checkj.toString()).style.backgroundColor = "#A6ECA8";
+                            todaysCredit += (0.5*bet); // pay out 25c as a test
+                            document.getElementById("credit").innerHTML = "CREDIT: $" + todaysCredit.toFixed(2).toString();
+                        }
+                    }
+                }
+            }
+
             if(todaysCredit >=0.5){ // if the player has enough credit left for another spin, then reenable the button
                 document.getElementById("spinner50").disabled = false;
             }
@@ -169,19 +182,6 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
             }
             if(todaysCredit >= 6){
                 document.getElementById("spinner600").disabled = false;
-            }
-            
-            for(var checki = 0; checki < resultArray.length; checki++){ // go through each box and compare it to each other box. if it has a match, turn both green
-                for(var checkj = 0; checkj < resultArray.length; checkj++){ // THIS SHOULD BE REPLACED BY WIN CONDITIONS AND PAYOUT LOGIC
-                    if(checki != checkj){
-                        if(resultArray[checki] == resultArray[checkj]){
-                            document.getElementById("box"+checki.toString()).style.backgroundColor = "#A6ECA8";
-                            document.getElementById("box"+checkj.toString()).style.backgroundColor = "#A6ECA8";
-                            todaysCredit += (0.5*bet); // pay out 25c as a test
-                            document.getElementById("credit").innerHTML = "CREDIT: $" + todaysCredit.toFixed(2).toString();
-                        }
-                    }
-                }
             }
 
             console.log(resultArray); // show results after completing spin
