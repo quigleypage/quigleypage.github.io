@@ -19,7 +19,12 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
 // slot functionality
 (function () {
     //const items = ['🍭','❌','⛄️','🦄','🍌','👻','😻','💵','🤡','🦖','🍎','🔥','😭','😂','🥺','🤣','❤️','✨','🙏','🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑','🍀'];
-    const items = ['🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑','🍀'];
+    //const items = ['🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑','🍀'];
+
+    //beer theme
+    //const items = ['🍺','👱‍♀️','👨','❤️','♠️','♦️','♣️','🏠','📯','🎩','🥨','🍻','🍈']; // accordion does not appear on chrome
+    const items = ['🍺','👱‍♀️','👨','❤️','🏠','📯','🎩','🥨','🍻','🍈'];
+
     const doors = document.querySelectorAll('.door');
     
     document.querySelector('#spinner50').addEventListener('click', set50);
@@ -175,7 +180,14 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
                 }
             }
 
-            if(todaysCredit >=0.5){ // if the player has enough credit left for another spin, then reenable the button
+            //update stats and UI
+            todaysPlayCount += 1;
+            document.getElementById("todaysPlayCount").innerHTML = "<br>Today's Spins: " + todaysPlayCount.toString();
+            todaysProfit = todaysWon - todaysBet;
+            document.getElementById("todaysProfit").innerHTML = "Today's Profit: $" + todaysProfit.toFixed(2).toString();
+
+            // if the player has enough credit left for another spin, then reenable the button
+            if(todaysCredit >=0.5){ 
                 document.getElementById("spinner50").disabled = false;
             }
             if(todaysCredit >= 1){
@@ -191,10 +203,6 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
                 document.getElementById("spinner600").disabled = false;
             }
 
-            todaysPlayCount += 1;
-            document.getElementById("todaysPlayCount").innerHTML = "<br>Today's Spins: " + todaysPlayCount.toString();
-            todaysProfit = todaysWon - todaysBet;
-            document.getElementById("todaysProfit").innerHTML = "Today's Profit: $" + todaysProfit.toFixed(2).toString();
             console.log(resultArray); // show results after completing spin
 
         }, 1800);
