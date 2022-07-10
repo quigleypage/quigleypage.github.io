@@ -6,6 +6,7 @@ var bet = 0.5;
 var todaysBet = 0;
 var todaysWon = 0;
 var todaysProfit = 0;
+var theme = "beer";
 
 //load saved data
 if(getCookie("slotle_gamesPlayed") != ""){
@@ -19,11 +20,13 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
 // slot functionality
 (function () {
     //const items = ['🍭','❌','⛄️','🦄','🍌','👻','😻','💵','🤡','🦖','🍎','🔥','😭','😂','🥺','🤣','❤️','✨','🙏','🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑','🍀'];
-    //const items = ['🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑','🍀'];
+    var items = ['🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑','🍀'];
 
     //beer theme
-    //const items = ['🍺','👱‍♀️','👨','❤️','♠️','♦️','♣️','🏠','📯','🎩','🥨','🍻','🍈']; // accordion does not appear on chrome
-    const items = ['🍺','👱‍♀️','👨','❤️','🏠','📯','🎩','🥨','🍻','🍈'];
+    if(theme == "beer"){
+        //const items = ['🍺','👱‍♀️','👨','❤️','♠️','♦️','♣️','🏠','📯','🎩','🥨','🍻','🍈']; // accordion does not appear on chrome
+        items = ['🍺','👱‍♀️','👨','❤️','🏠','📯','🎩','🥨','🍻','🍈'];  
+    }
 
     const doors = document.querySelectorAll('.door');
     
