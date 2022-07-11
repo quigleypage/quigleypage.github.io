@@ -6,7 +6,8 @@ var bet = 0.5;
 var todaysBet = 0;
 var todaysWon = 0;
 var todaysProfit = 0;
-var theme = "beer";
+var theme = "initial value";
+var items = ['🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑','🍀'];
 
 //load saved data
 if(getCookie("slotle_gamesPlayed") != ""){
@@ -20,13 +21,9 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
 // slot functionality
 (function () {
     //const items = ['🍭','❌','⛄️','🦄','🍌','👻','😻','💵','🤡','🦖','🍎','🔥','😭','😂','🥺','🤣','❤️','✨','🙏','🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑','🍀'];
-    var items = ['🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑','🍀'];
 
-    //beer theme
-    if(theme == "beer"){
-        //const items = ['🍺','👱‍♀️','👨','❤️','♠️','♦️','♣️','🏠','📯','🎩','🥨','🍻','🍈']; // accordion does not appear on chrome
-        items = ['🍺','👱‍♀️','👨','❤️','🏠','📯','🎩','🥨','🍻','🍈'];  
-    }
+    //check the theme setting to map emojis
+    mapTheme();
 
     const doors = document.querySelectorAll('.door');
     
@@ -308,4 +305,18 @@ function generateEmojiShare(){
         url: shareLink
     }
     navigator.share(shareData);
+}
+
+//theme selection
+function mapTheme(){
+    theme = document.querySelector('input[name="theme"]:checked').value;
+    console.log(theme);
+    //beer theme
+    if(theme == "beer"){
+        // items = ['🍺','👱‍♀️','👨','❤️','♠️','♦️','♣️','🏠','📯','🎩','🥨','🍻','🍈']; // accordion does not appear on chrome
+        items = ['🍺','👱‍♀️','👨','❤️','🏠','📯','🎩','🥨','🍻','🍈'];  
+    }
+    else{
+        items = ['🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑','🍀'];
+    }
 }
