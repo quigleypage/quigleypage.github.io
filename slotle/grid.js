@@ -2,6 +2,7 @@
 var resultArray = [];
 var todaysPlayCount = 0;
 var todaysCredit = 6.00;
+var todaysMaxCredit = 6.00;
 var bet = 0.5;
 var todaysBet = 0;
 var todaysWon = 0;
@@ -175,10 +176,16 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
                             document.getElementById("credit").innerHTML = "CREDIT: $" + todaysCredit.toFixed(2).toString();
                             todaysWon += (0.5*bet); // pay out 25c as a test
                             document.getElementById("todaysWon").innerHTML = "Today's Won: $" + todaysWon.toFixed(2).toString();
+                            if(todaysCredit > todaysMaxCredit){
+                              todaysMaxCredit = todaysCredit;
+                            }
                         }
                     }
                 }
             }
+
+            //don't update the UI until the win calculations are complete
+            document.getElementById("todaysMaxCredit").innerHTML = "Today's Max Credit: $" + todaysMaxCredit.toFixed(2).toString();
 
             //update stats and UI
             todaysPlayCount += 1;
