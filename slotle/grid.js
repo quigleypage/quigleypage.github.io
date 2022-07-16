@@ -209,6 +209,9 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
             if(todaysCredit >= 6){
                 document.getElementById("spinner600").disabled = false;
             }
+            if(todaysCredit <= 0){
+              modal.style.display = "block";
+            }
 
             console.log(resultArray); // show results after completing spin
 
