@@ -8,6 +8,7 @@ var todaysBet = 0;
 var todaysWon = 0;
 var todaysProfit = 0;
 var theme = "initial value";
+//var bonusActive = false;
 var items = ['🐃','7️⃣','💯','🐉','🔔','🍺','⭐','🦅','👑','🍀'];
 
 //load saved data
@@ -212,6 +213,11 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
             if(todaysCredit <= 0){
               modal.style.display = "block";
             }
+            
+            // test condition to trigger bonus mode
+            if(resultArray.includes("🎁")){
+              bonusMode();
+            }
 
             console.log(resultArray); // show results after completing spin
 
@@ -324,19 +330,36 @@ function mapTheme(){
     //beer theme
     if(theme == "beer"){
         // items = ['🍺','👱‍♀️','👱‍♂️','❤️','♠️','♦️','♣️','🏠','📯','🎩','🥨','🍻','🍈']; // accordion does not appear on chrome
-        items = ['🍺','👱‍♀️','👱‍♂️','❤️','🏠','📯','🎩','🥨','🍻','🍈'];  
+        items = ['🍺','👱‍♀️','👱‍♂️','🍟','🏠','📯','🥒','🥨','🍻','🌭'];  
     }
     else if(theme == "bison"){
         items = ['🐃','🦌','🐺','🐆','🌄','💰','🦅','🤴','👸','👑'];  
     }
     else if(theme == "classic"){
-        items = ['⬜','🟩','🟨','7️⃣','♠️','♦️','♣️','♥️','📊','🍫'];
+        items = ['⬜','🟩','🟨','7️⃣','♠️','♦️','♣️','♥️','💲','🍫'];
     }
     else if(theme == "sea"){
         items = ['🌊','🐟','🐠','🐡','🐋','🐢','🗝️','🐳','🐬','🦈'];
     }
+    else if(theme == "fruit"){
+      items = ['🍒','🍑','🍉','🍓','🥥','🍌','🍎','🍍','🍊','🍇'];
+    }
     else{
         //items = ['🍭','❌','⛄️','🍌','👻','😻','🤡','🦖','🍎','😭','😂','🥺','🤣'];
-        items = ['💯','🐉','🔔','⭐','🍀','🔥','💵','🙏','🦄','✨'];
+        items = ['💯','🐉','🔔','⭐','🍀','🔥','💵','🙏','🦄','✨']; // add 11th symbol for bonus mode testing ,'🎁'
     }
+}
+
+//BONUS MODE FUNCTION
+function bonusMode(){
+  var tempArrayofDoors = document.getElementsByClassName("doors");
+  for(var checkd = 0; checkd < tempArrayofDoors.length; checkd++){
+    tempArrayofDoors[checkd].style.display = "none";
+  }
+  document.getElementById("spinner50").style.display = "none";
+  document.getElementById("spinner100").style.display = "none";
+  document.getElementById("spinner200").style.display = "none";
+  document.getElementById("spinner300").style.display = "none";
+  document.getElementById("spinner600").style.display = "none";
+  document.getElementById("bonusDiv").style.display = "block";
 }
