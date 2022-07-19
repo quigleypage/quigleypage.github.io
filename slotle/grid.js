@@ -216,7 +216,7 @@ document.getElementById("gamesPlayed").innerHTML = "<br>Played: " + gamesPlayed;
             
             // test condition to trigger bonus mode
             if(resultArray.includes("🎁")){
-              bonusMode();
+              startBonusMode();
             }
 
             console.log(resultArray); // show results after completing spin
@@ -350,9 +350,9 @@ function mapTheme(){
     }
 }
 
-//BONUS MODE FUNCTION
-function bonusMode(){
-  var tempArrayofDoors = document.getElementsByClassName("doors");
+//BONUS MODE FUNCTIONS
+function startBonusMode(){
+  /*var tempArrayofDoors = document.getElementsByClassName("doors");
   for(var checkd = 0; checkd < tempArrayofDoors.length; checkd++){
     tempArrayofDoors[checkd].style.display = "none";
   }
@@ -360,6 +360,11 @@ function bonusMode(){
   document.getElementById("spinner100").style.display = "none";
   document.getElementById("spinner200").style.display = "none";
   document.getElementById("spinner300").style.display = "none";
-  document.getElementById("spinner600").style.display = "none";
-  document.getElementById("bonusDiv").style.display = "block";
+  document.getElementById("spinner600").style.display = "none";*/
+  document.getElementById("spinner50").disabled = true;
+  document.getElementById("spinner100").disabled = true;
+  document.getElementById("spinner200").disabled = true;
+  document.getElementById("spinner300").disabled = true;
+  document.getElementById("spinner600").disabled = true;
+  document.getElementById("bonusDiv").style.visibility = "visible";
 }

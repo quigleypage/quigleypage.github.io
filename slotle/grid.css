@@ -244,8 +244,8 @@ p{
   animation-timing-function: ease-in-out;
   justify-content: center;
   align-items: center;
-  font-size: 3rem;
-  display:none;
+  font-size: 4rem;
+  visibility: hidden;
 }
 
 @keyframes floating {
