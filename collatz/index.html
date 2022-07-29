@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width,initial-scale=0.9,maximum-scale=0.9"/>
+    <meta name="author" content="Kevin Quigley">
+    <meta name="description" content="Watch Collatz conjecture in action.">
+    <meta charset="UTF-8">
+    <!-- Font Awesome icons (free version)-->
+    <script src="https://use.fontawesome.com/releases/v5.15.4/js/all.js" crossorigin="anonymous"></script>
+    <script src="coll.js"></script>
+
+    <title>Collatz' Conjecture</title>
+</head>
+
+<style>
+.center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Roboto', sans-serif;
+}
+.number{
+    font-size: 10vw;
+}
+</style>
+
+
+
+
+<span class="center">
+    <div id="initialPrompt">
+        <div>Test the Collatz Conjecture:<br><br></div>
+        <input type="number" id="pickanumber" name="pickanumber" min="5" max="1000000000000000"> <button onclick="Collatz(document.getElementById('pickanumber').value)">Go</button>
+    </div>
+    <div id="number" class="number"></div>
+</span>
+
+</html>
