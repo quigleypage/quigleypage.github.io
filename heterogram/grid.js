@@ -385,7 +385,7 @@ function getCookie(cname) {
 
 function plotDist(){
     var distributionXData = [];
-    for(var n = 1; n <= chances; n++){
+    for(var n = 1; n <= 6; n++){
         distributionXData.push(distributionOfWonGuesses[n]);
     }
     var distChartData = [
