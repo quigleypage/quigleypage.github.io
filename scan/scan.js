@@ -25,8 +25,8 @@ window.addEventListener('load', function () {
         document.getElementById('startButton').addEventListener('click', () => {
           codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
             if (result) {
-              console.log(result)
-              document.getElementById('result').textContent = result.text
+              console.log(result);
+              document.getElementById('result').textContent = result.text;
               document.getElementById('targetLink').innerHTML = "<a href='https://www.target.com/s?searchTerm=" + result.text + "' target='_blank'>Target</a>";
               document.getElementById('googleLink').innerHTML = "<a href='https://www.google.com/search?q=" + result.text + "&tbm=shop' target='_blank'>Google</a>";
               document.getElementById('walmartLink').innerHTML = "<a href='https://www.walmart.com/search?q=" + result.text + "' target='_blank'>Walmart</a>";
