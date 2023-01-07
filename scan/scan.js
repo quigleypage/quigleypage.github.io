@@ -34,7 +34,7 @@ window.addEventListener('load', function () {
               document.getElementById('hobbyLink').innerHTML = "<a href='https://www.hobbylobby.com/search/?text=" + result.text + "' target='_blank'>Hobby Lobby</a>";
               document.getElementById('michaelsLink').innerHTML = "<a href='https://www.michaels.com/search?q=" + result.text + "' target='_blank'>Michaels</a>";
               document.getElementById('costcoLink').innerHTML = "<a href='https://www.costco.com/CatalogSearch?dept=All&keyword=" + result.text + "' target='_blank'>Costco</a>";
-              document.getElementById('bedLink').innerHTML = "<a href='https://www.bedbathandbeyond.com/store/s/" + result.text + "' target='_blank'>Bed Bath & Beyond</a>";
+              document.getElementById('bedLink').innerHTML = "<a href='https://www.bedbathandbeyond.com/store/s/" + result.text + "/' target='_blank'>Bed Bath & Beyond</a>";
             }
             if (err && !(err instanceof ZXing.NotFoundException)) {
               console.error(err)
