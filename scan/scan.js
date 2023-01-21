@@ -31,6 +31,8 @@ window.addEventListener('load', function () {
               document.getElementById('googleLink').innerHTML = "<a href='https://www.google.com/search?q=" + result.text + "&tbm=shop' target='_blank'>Google</a>";
               document.getElementById('walmartLink').innerHTML = "<a href='https://www.walmart.com/search?q=" + result.text + "' target='_blank'>Walmart</a>";
               document.getElementById('amazonLink').innerHTML = "<a href='https://www.amazon.com/s?k=" + result.text + "' target='_blank'>Amazon</a>";
+              document.getElementById('ebaySaleLink').innerHTML = "<a href='https://www.ebay.com/sch/i.html?_nkw=" + result.text + "' target='_blank'>Ebay - for Sale</a>";
+              document.getElementById('ebaySoldsLink').innerHTML = "<a href='https://www.ebay.com/sch/i.html?_nkw=" + result.text + "&LH_Sold=1&LH_Complete=1' target='_blank'>Ebay - Solds</a>";
               /*document.getElementById('hobbyLink').innerHTML = "<a href='https://www.hobbylobby.com/search/?text=" + result.text + "' target='_blank'>Hobby Lobby</a>";
               document.getElementById('michaelsLink').innerHTML = "<a href='https://www.michaels.com/search?q=" + result.text + "' target='_blank'>Michaels</a>";
               document.getElementById('costcoLink').innerHTML = "<a href='https://www.costco.com/CatalogSearch?dept=All&keyword=" + result.text + "' target='_blank'>Costco</a>";
