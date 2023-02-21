@@ -1,0 +1,9 @@
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="gptapi.js"></script>
+
+<h1>Type your prompt for the AI:</h1>
+<textarea id="userInput" rows="5" cols="100"></textarea><br><br>
+<button onclick="generateText(document.getElementById('userInput').value)">Get AI Response</button>
+<br><br>
+<h1>Response:</h1>
+<div id="AIResponse"></div>
