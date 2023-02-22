@@ -1,5 +1,6 @@
 async function generateText(descPrompt, stylePrompt) {
-    document.getElementById("AIResponse").innerHTML = "Loading...";
+    document.getElementById("loading-wheel").style.display = "block";
+    document.getElementById("AIResponse").innerHTML = "";
     fullPrompt = "Write some HTML, including style tags, for the following web component:\n\nDescription:\n" + descPrompt + "\n\nAesthetic Guidelines:\n" + stylePrompt;
     try {
         encodedPrompt = { promptText: fullPrompt };
@@ -10,6 +11,7 @@ async function generateText(descPrompt, stylePrompt) {
         });
         console.log(response.data.text);
         //document.getElementById("AIResponseHTML").innerHTML = '<code>' + response.data.text + '</code>';
+        document.getElementById("loading-wheel").style.display = "none";
         document.getElementById("AIResponse").innerHTML = response.data.text;
     } catch (error) {
         console.error(error);
