@@ -1,0 +1,16 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="gptapi.js"></script>
+
+<h1>UI Buddy</h1>
+<h2>Mock-up your vision with AI</h2>
+<hr>
+<h3>What is the feature you want to design?</h3>
+<textarea id="userInput" style="width:100%"></textarea><br><br>
+<h3>What should it look like?</h3>
+<textarea id="userInput2" style="width:100%"></textarea><br><br>
+<button onclick="generateText(document.getElementById('userInput').value, document.getElementById('userInput2').value)">Design</button>
+<br><br><hr><br><br>
+<!-- <div id="AIResponseHTML"></div><br><br> -->
+<div id="AIResponse"></div>
