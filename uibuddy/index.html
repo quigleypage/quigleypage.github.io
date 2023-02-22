@@ -1,4 +1,4 @@
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script src="gptapi.js"></script>
@@ -12,5 +12,86 @@
 <textarea id="userInput2" style="width:100%"></textarea><br><br>
 <button onclick="generateText(document.getElementById('userInput').value, document.getElementById('userInput2').value)">Design</button>
 <br><br><hr><br><br>
-<!-- <div id="AIResponseHTML"></div><br><br> -->
-<div id="AIResponse"></div>
+<div id="AIResponseHTML"></div><br><br> 
+<div id="AIResponse"></div> -->
+
+<html>
+  <head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="gptapi.js"></script>
+    <style>
+      body {
+        font-family: sans-serif;
+        background-color: #f2f2f2;
+      }
+
+      .container {
+        width: 90%;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+      }
+
+      .title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .input-container {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
+      }
+
+      .input-container label {
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 5px;
+      }
+
+      .input-container input {
+        font-size: 16px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      .button {
+        font-size: 16px;
+        font-weight: bold;
+        color: #fff;
+        background-color: #0099ff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="title">UI Buddy</h1>
+      <div class="input-container">
+        <label>Describe your web component:</label>
+        <input type="text" id="userInput" />
+      </div>
+      <div class="input-container">
+        <label>Describe the aesthetic you're looking for:</label>
+        <input type="text" id="userInput2" />
+      </div>
+      <button class="button" onclick="generateText(document.getElementById('userInput').value, document.getElementById('userInput2').value)">Suggest Design</button>
+      <br><br>
+      <hr>
+      <br><br>
+      <div id="AIResponse"></div>
+    </div>
+  </body>
+</html>
