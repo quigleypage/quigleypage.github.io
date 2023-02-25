@@ -1,8 +1,12 @@
+headerVerbiage = "header (may include a banner, navbar, or search box, as appropriate)";
+bodyVerbiage = "body content (without headers or footers)";
+footerVerbiage = "footer";
+
 async function generateText(descPrompt, tag) {
-    if(tag == "header"){
+    if(tag == headerVerbiage){
         document.getElementById("loading-wheel").style.display = "block";
     }
-    fullPrompt = "Generate HTML, including style tags, for the site " + tag + " of the below described website:\n\n" + descPrompt;
+    fullPrompt = "Generate HTML, including style tags, for the homepage " + tag + " of the below described website:\n\n" + descPrompt;
     try {
         encodedPrompt = { promptText: fullPrompt };
         const response = await axios.post('https://gpt-test-app.herokuapp.com/generate-text', encodedPrompt, {
@@ -11,12 +15,12 @@ async function generateText(descPrompt, tag) {
             }
         });
         console.log(response.data.text);
-        document.getElementById(tag + "Tag").innerHTML = response.data.text;
-        if(tag == "header"){
-            generateText(descPrompt, "footer");
+        document.getElementById(tag).innerHTML = response.data.text;
+        if(tag == headerVerbiage){
+            generateText(descPrompt, footerVerbiage);
         }
-        else if(tag == "footer"){
-            generateText(descPrompt, "body");
+        else if(tag == footerVerbiage){
+            generateText(descPrompt, bodyVerbiage);
         }
         else{
             document.getElementById("initialSite").innerHTML = "";
@@ -24,7 +28,7 @@ async function generateText(descPrompt, tag) {
 
     } catch (error) {
         console.error(error);
-        document.getElementById(tag + "Tag").innerHTML = "Error: " + error;
+        document.getElementById(tag).innerHTML = "Error: " + error;
     }
 
 }
