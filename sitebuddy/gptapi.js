@@ -6,7 +6,8 @@ async function generateText(descPrompt, tag) {
     if(tag == headerVerbiage){
         document.getElementById("loading-wheel").style.display = "block";
     }
-    fullPrompt = "Generate HTML, including style tags, script tags (if appropriate), but not img tags, for the homepage " + tag + " of the below described website:\n\n" + descPrompt;
+    //fullPrompt = "Generate HTML, including style tags, script tags (if appropriate), but not img tags, for the homepage " + tag + " of the below described website:\n\n" + descPrompt;
+    fullPrompt = "Generate HTML, including style tags, script tags (if appropriate), but not img tags, for the homepage of the below described website:\n\n" + descPrompt;
     try {
         encodedPrompt = { promptText: fullPrompt };
         const response = await axios.post('https://gpt-test-app.herokuapp.com/generate-text', encodedPrompt, {
@@ -16,15 +17,15 @@ async function generateText(descPrompt, tag) {
         });
         console.log(response.data.text);
         document.getElementById(tag).innerHTML = response.data.text;
-        if(tag == headerVerbiage){
+        /*if(tag == headerVerbiage){
             generateText(descPrompt, footerVerbiage);
         }
         else if(tag == footerVerbiage){
             generateText(descPrompt, bodyVerbiage);
         }
-        else{
+        else{*/
             document.getElementById("initialSite").innerHTML = "";
-        }
+        //}
 
     } catch (error) {
         console.error(error);
