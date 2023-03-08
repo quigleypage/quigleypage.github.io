@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Happy Birthday!</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background-color: skyblue;
+      overflow: hidden;
+    }
+
+    .balloon {
+      position: absolute;
+      width: 100px;
+      height: 150px;
+      background-color: red;
+      border-radius: 50%;
+      animation-name: float;
+      animation-duration: 5s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .string {
+      position: absolute;
+      width: 2px;
+      height: 150px;
+      background-color: black;
+      bottom: -150px;
+      left: 49%;
+      z-index: -1;
+    }
+
+    .text {
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      text-shadow: 2px 2px #000000;
+    }
+
+
+    @keyframes float {
+      0% {
+        transform: translate(0, 0);
+      }
+      50% {
+        transform: translate(0, -20px);
+      }
+      100% {
+        transform: translate(0, 0);
+      }
+    }
+
+
+  </style>
+</head>
+<body>
+    <img src="PTX Ticket.png" width="100%">
+  <script>
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('balloon')) {
+        var balloon = e.target;
+        balloon.parentElement.removeChild(balloon);
+      }
+    });
+
+    for (var i = 0; i < 28; i++) {
+      var balloon = document.createElement('div');
+      balloon.classList.add('balloon');
+      balloon.style.left = Math.floor(Math.random() * 90) + 'vw';
+      balloon.style.top = Math.floor(Math.random() * 70) + 'vh';
+      balloon.style.animationDelay = Math.floor(Math.random() * 5) + 's';
+      balloon.style.backgroundColor = "#" + Math.floor(Math.random()*16777215).toString(16);
+
+      var string = document.createElement('div');
+      string.classList.add('string');
+
+      var text = document.createElement('div');
+      text.classList.add('text');
+      text.innerText = '28!';
+
+      balloon.appendChild(string);
+      balloon.appendChild(text);
+
+      document.body.appendChild(balloon);
+    }
+  </script>
+</body>
+</html>
