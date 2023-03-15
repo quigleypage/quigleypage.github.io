@@ -1,27 +1,30 @@
 <html>
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="chat.css">
+
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <script src="gptapi.js"></script>
     </head>
 
-    <style>
-        #fixed-input {
-			position: fixed;
-			bottom: 12px;
-			left: 12px;
-			right: 12px;
-		}
-    </style>
-
-    <h1 style="text-align: center;">QChat</h1>
+    <h1>quigchat</h1>
+    <h2>Yes, this is basically ChatGPT.</h2>
     <hr>
+
+    <br>
+    <div id="AIResponse" class="chatContainer"></div>
+    <br>
+    <div id="LoadingDots" style="display:none;">...</div>
+
     <div id="fixed-input">
         <hr>
-        <textarea id="userInput" placeholder="Type your message here..." style="width:100%; height: 100px"></textarea><br><br>
-        <button style="float: right;padding:8px;" onclick="generateText(document.getElementById('userInput').value)">Send</button>
+        <textarea id="userInput" placeholder="Chat with the bot..."></textarea>
+        <button onclick="generateText(document.getElementById('userInput').value)"><img src="send.png" height="50px"></button>
     </div>
-    <br>
-    <div id="AIResponse" style="height: 60%; overflow-y:auto;"></div>
+    
 
 </html>
