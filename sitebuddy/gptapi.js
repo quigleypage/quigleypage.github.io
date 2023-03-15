@@ -1,9 +1,12 @@
+messageArray = [];
+
 async function generateText(descPrompt) {
     document.getElementById("loading-wheel").style.display = "block";
     fullPrompt = "Generate HTML, including style tags, script tags (if appropriate), but not img tags, for the homepage of the below described website:\n\n" + descPrompt;
+    messageArray.push({role: "user", content: fullPrompt})
     try {
-        encodedPrompt = { promptText: fullPrompt };
-        const response = await axios.post('https://gpt-test-app.herokuapp.com/generate-text', encodedPrompt, {
+        encodedMessageArray = { promptText: messageArray };
+        const response = await axios.post('https://gpt-test-app.herokuapp.com/generate-text', encodedMessageArray, {
             headers: {
               'Content-Type': 'application/json'
             }
