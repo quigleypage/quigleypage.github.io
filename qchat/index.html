@@ -1,9 +1,27 @@
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-<script src="gptapi.js"></script>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script src="gptapi.js"></script>
+    </head>
 
-<h1>Type your prompt for the AI:</h1>
-<textarea id="userInput"></textarea><br><br>
-<button onclick="generateText(document.getElementById('userInput').value)">Get AI Response</button>
-<br><br>
-<h1>Response:</h1>
-<div id="AIResponse"></div>
+    <style>
+        #fixed-input {
+			position: fixed;
+			bottom: 12px;
+			left: 12px;
+			right: 12px;
+		}
+    </style>
+
+    <h1 style="text-align: center;">QChat</h1>
+    <hr>
+    <div id="fixed-input">
+        <hr>
+        <textarea id="userInput" placeholder="Type your message here..." style="width:100%; height: 100px"></textarea><br><br>
+        <button style="float: right;padding:8px;" onclick="generateText(document.getElementById('userInput').value)">Send</button>
+    </div>
+    <br>
+    <div id="AIResponse"></div>
+
+</html>

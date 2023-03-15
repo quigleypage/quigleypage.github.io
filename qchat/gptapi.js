@@ -1,7 +1,8 @@
 messageArray = [];
 
 async function generateText(prompt) {
-    document.getElementById("AIResponse").innerHTML = "Loading...";
+    document.getElementById('userInput').value = "";
+    document.getElementById("AIResponse").innerHTML += "User: " + prompt + "<br><br>";
     messageArray.push({role: "user", content: prompt})
     try {
         encodedMessageArray = { promptText: messageArray };
@@ -10,8 +11,10 @@ async function generateText(prompt) {
               'Content-Type': 'application/json'
             }
         });
-        console.log(response.data.text);
-        document.getElementById("AIResponse").innerHTML = response.data.text;
+        botResponse = response.data.text;
+        console.log(botResponse);
+        messageArray.push({role: "assistant", content: botResponse})
+        document.getElementById("AIResponse").innerHTML += "Bot: " + botResponse + "<br><br>";
     } catch (error) {
         console.error(error);
         document.getElementById("AIResponse").innerHTML = "Error: " + error;
