@@ -6,7 +6,7 @@
 }
 
 h1{
-    text-align: left;
+    text-align: center;
     font-family: 'Roboto', sans-serif;
 }
 h2{
@@ -60,8 +60,8 @@ textarea{
     color: #010101;
 }
 
-.row {
+/*.row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-  }
+}/*
