@@ -23,3 +23,7 @@ async function generateText(prompt) {
         document.getElementById("AIResponse").innerHTML = "Error: " + error;
     }
 }
+
+function assignPersona(persona){
+    messageArray.push({role: "system", content: persona})
+}
