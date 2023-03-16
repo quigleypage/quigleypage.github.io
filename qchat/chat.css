@@ -6,7 +6,7 @@
 }
 
 h1{
-    text-align: center;
+    text-align: left;
     font-family: 'Roboto', sans-serif;
 }
 h2{
@@ -37,7 +37,7 @@ textarea{
 
 .user-message-card{
     padding: 8px;
-    background-color: #D9F3FF;
+    /*background-color: #D9F3FF;*/
     border-radius: 4px;
     text-align: right;
 }
@@ -56,6 +56,12 @@ textarea{
 
 .message{
     font-family: 'Roboto', sans-serif;
-    font-size: 10pt;
+    font-size: 12pt;
     color: #010101;
 }
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
