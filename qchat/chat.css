@@ -21,15 +21,41 @@ button{
     padding: 4px;
     background-color: #FFFFFF;
     border-radius: 4px;
-    border-width: 1px;
+    border-width: 0px;
+    height: 54px;
 }
 
 textarea{
-    width:80%;
-    height: 60px
+    width:86%;
+    height: 54px;
 }
 
 .chatContainer{
-    height: 60%;
+    height: 76%;
     overflow-y:auto;
+}
+
+.user-message-card{
+    padding: 8px;
+    background-color: #D9F3FF;
+    border-radius: 4px;
+    text-align: right;
+}
+
+.bot-message-card{
+    padding: 8px;
+    background-color: #F1F4F4;
+    border-radius: 4px;
+}
+
+.sender-name{
+    font-family: 'Roboto', sans-serif;
+    font-size: 8pt;
+    color: #AAAAAA;
+}
+
+.message{
+    font-family: 'Roboto', sans-serif;
+    font-size: 10pt;
+    color: #010101;
 }
