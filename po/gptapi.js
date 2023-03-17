@@ -2,6 +2,7 @@ messageArray = [];
 
 async function generateText(prompt, section) {
     if(section == "userstory"){
+        //document.getElementById("spinner").style.display = "block";
         document.getElementById("AIResponse").innerHTML += '<div class="desc-message-card"><div class="sender-name">Description</div><div class="message">' + document.getElementById('userInput').value + '</div></div>';
         document.getElementById('userInput').value = "";
     }
@@ -18,14 +19,16 @@ async function generateText(prompt, section) {
         messageArray.push({role: "assistant", content: botResponse})
         if(section == "userstory"){
             document.getElementById("AIResponse").innerHTML += '<div class="story-message-card"><div class="sender-name">User Story</div><div class="message">' + botResponse + '</div></div>';
-            generateText("Now write the Acceptance Criteria for the feature.", "acceptancecriteria");
+            generateText("Write the Acceptance Criteria for the feature.", "acceptancecriteria");
         }
         else if(section == "acceptancecriteria"){
             document.getElementById("AIResponse").innerHTML += '<div class="story-message-card"><div class="sender-name">Acceptance Criteria</div><div class="message">' + botResponse + '</div></div>';
-            generateText("Write some HTML code for the feature.", "mockup");
+            generateText("Write example HTML code for the feature, including style tags, and respond with only the code (no commentary).", "mockup");
         }
         else if(section == "mockup"){
             document.getElementById("AIResponse").innerHTML += '<div class="mock-message-card"><div class="sender-name">Mock-up</div><div class="message">' + botResponse + '</div></div>';
+            //document.getElementById("spinner").style.display = "none";
+            //document.getElementById("AIResponse").style.display = "block";
         }
         document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
     } catch (error) {
