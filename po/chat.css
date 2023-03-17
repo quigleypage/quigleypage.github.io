@@ -19,6 +19,11 @@
     border-width: 0px;
     height: 54px;
 }
+.copyButton{
+    float: right;
+    border-width: 0px;
+    height: 12px;
+}
 
 .descInput{
     width:86%;
