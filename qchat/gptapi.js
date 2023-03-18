@@ -6,7 +6,7 @@ async function generateText(prompt) {
     document.getElementById("AIResponse").innerHTML += '<div class="user-message-card"><div class="sender-name">You</div><div class="message">' + prompt + '</div></div>';
     messageArray.push({role: "user", content: prompt})
     try {
-        encodedMessageArray = { promptText: messageArray };
+        encodedMessageArray = { promptText: messageArray, version: 3 };
         const response = await axios.post('https://gpt-test-app.herokuapp.com/generate-text', encodedMessageArray, {
             headers: {
               'Content-Type': 'application/json'
