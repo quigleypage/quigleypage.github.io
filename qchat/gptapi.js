@@ -2,7 +2,7 @@ messageArray = [];
 
 async function generateText(prompt) {
     document.getElementById('userInput').value = "";
-    document.getElementById('userInput').disabled = true;
+    //document.getElementById('userInput').disabled = true;
     document.getElementById("AIResponse").innerHTML += '<div class="user-message-card"><div class="sender-name">You</div><div class="message">' + prompt + '</div></div>';
     messageArray.push({role: "user", content: prompt})
     try {
@@ -17,7 +17,7 @@ async function generateText(prompt) {
         messageArray.push({role: "assistant", content: botResponse})
         document.getElementById("AIResponse").innerHTML += '<div class="bot-message-card"><div class="sender-name">Bot</div><div class="message">' + botResponse + '</div></div>';
         document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
-        document.getElementById('userInput').disabled = false;
+        //document.getElementById('userInput').disabled = false;
     } catch (error) {
         console.error(error);
         document.getElementById("AIResponse").innerHTML = "Error: " + error;
