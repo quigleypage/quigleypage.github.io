@@ -3,6 +3,7 @@ messageArray = [];
 async function generateText(prompt) {
     document.getElementById('userInput').value = "";
     document.getElementById("AIResponse").innerHTML += '<div class="user-message-card"><div class="sender-name">You</div><div class="message">' + prompt + '</div></div>';
+    document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
     messageArray.push({role: "user", content: prompt})
     try {
         encodedMessageArray = { promptText: messageArray, version: 4 };

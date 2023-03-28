@@ -4,6 +4,7 @@ async function generateText(prompt, section) {
     if(section == "userstory"){
         //document.getElementById("spinner").style.display = "block";
         document.getElementById("AIResponse").innerHTML += '<div class="desc-message-card"><div class="sender-name">Description</div><div class="message">' + document.getElementById('userInput').value + '</div></div>';
+        document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
         //<button class="copyButton"><img src="copy.png" height="12px;"></button>
         document.getElementById('userInput').value = "";
     }
