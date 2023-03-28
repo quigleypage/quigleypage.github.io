@@ -1,9 +1,26 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script src="gptapi.js"></script>
 
-<h1>Type your prompt for the AI:</h1>
-<textarea id="userInput"></textarea><br><br>
+<p><b>Pick a Model:</b></p>
+
+<input type="radio" id="GPT3.5" name="model" checked>
+    <label for="GPT3.5">GPT-3.5</label><br>
+<input type="radio" id="GPT4" name="model">
+    <label for="GPT4">GPT-4</label><br>
+<input type="radio" id="DALLE" name="model">
+    <label for="DALLE">DALL-E</label>
+<br><br>
+
+<p><b>Type your prompt:</b></p>
+<textarea id="userInput" style="width:100%;height:128px"></textarea>
+<br><br>
+
 <button onclick="generateText(document.getElementById('userInput').value)">Get AI Response</button>
 <br><br>
-<h1>Response:</h1>
+
+<p><b>Response:</b></p>
 <div id="AIResponse"></div>
+<br>
+<img id="DALLEResponse">
