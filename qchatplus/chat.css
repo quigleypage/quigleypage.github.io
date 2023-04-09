@@ -67,4 +67,20 @@ textarea{
     display: flex;
     justify-content: space-between;
     align-items: center;
-}/*
+}*/
+
+.logo {
+  animation-name: spin-and-expand;
+  animation-duration: 0.8s;
+  animation-timing-function: ease-out;
+  animation-iteration-count: 1;
+}
+
+@keyframes spin-and-expand {
+  0% {
+    transform: rotate(0deg) scale(0);
+  }
+  100% {
+    transform: rotate(1440deg) scale(1);
+  }
+}
