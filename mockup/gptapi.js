@@ -26,7 +26,7 @@ async function generateText(prompt) {
         
         messageArray.push({role: "assistant", content: botResponse})
         document.getElementById("botCanvas").innerHTML = botResponse;
-        document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
+        document.getElementById("AIResponse").scrollTop = 0;
     } catch (error) {
         console.error(error);
         document.getElementById("AIResponse").innerHTML = "Error: " + error;
