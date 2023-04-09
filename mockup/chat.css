@@ -19,7 +19,6 @@ h2{
 button{
     float: right;
     padding: 4px;
-    /*background-color: #FFFFFF;*/
     background-color: #0D0B0E;
     border-radius: 4px;
     border-width: 0px;
@@ -46,7 +45,7 @@ textarea{
 
 .bot-message-card{
     padding: 8px;
-    background-color: #F1F4F4;
+    background-color: #FEFEFE;
     border-radius: 4px;
     margin-bottom: 8px;
 }
@@ -63,24 +62,19 @@ textarea{
     color: #010101;
 }
 
-/*.row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}*/
-
 .logo {
-  animation-name: spin-and-expand;
-  animation-duration: 0.8s;
-  animation-timing-function: ease-out;
-  animation-iteration-count: 1;
-}
-
-@keyframes spin-and-expand {
-  0% {
-    transform: rotate(0deg) scale(0);
+    animation-name: spin-and-expand;
+    animation-duration: 0.8s;
+    animation-timing-function: ease-out;
+    animation-iteration-count: 1;
   }
-  100% {
-    transform: rotate(1440deg) scale(1);
+  
+  @keyframes spin-and-expand {
+    0% {
+      transform: rotate(0deg) scale(0);
+    }
+    100% {
+      transform: rotate(1440deg) scale(1);
+    }
   }
-}
+  
