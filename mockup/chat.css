@@ -48,6 +48,7 @@ textarea{
     background-color: #FEFEFE;
     border-radius: 4px;
     margin-bottom: 8px;
+    overflow: auto;
 }
 
 .sender-name{
