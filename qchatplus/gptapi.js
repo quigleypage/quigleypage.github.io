@@ -52,7 +52,8 @@ async function generateText(ver, prompt) {
             document.getElementById("AIResponse").innerHTML += '<div class="bot-message-card"><div class="sender-name">Bot</div><div class="message"><img src="' + botResponse + '"></div></div>';
         }
         else{
-            document.getElementById("AIResponse").innerHTML += '<div class="bot-message-card"><div class="sender-name">Bot</div><div class="message">' + botResponse + '</div></div>';
+            botResponseCleaned = botResponse.replace(/\n/g, "<br />");
+            document.getElementById("AIResponse").innerHTML += '<div class="bot-message-card"><div class="sender-name">Bot</div><div class="message">' + botResponseCleaned + '</div></div>';
         }
         document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
 
