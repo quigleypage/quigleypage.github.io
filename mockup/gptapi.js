@@ -6,6 +6,7 @@ async function generateText(prompt) {
     document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
     if(messageArray.length == 0){
         messageArray.push({role: "user", content: "Generate HTML code, including style tags, for the below described component. In your response, only provide the code. Do not include any commentary or explanations of the code.\n\n" + prompt})
+        document.getElementById("canvasParent").style.display = "block";
         document.getElementById("userInput").placeholder = "Describe desired adjustments...";
     }
     else{
