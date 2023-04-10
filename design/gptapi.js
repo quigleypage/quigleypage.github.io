@@ -4,6 +4,7 @@ async function generateText(prompt) {
     document.getElementById('userInput').value = "";
     document.getElementById("AIResponse").innerHTML += '<div class="user-message-card"><div class="message">' + prompt + '</div></div>';
     document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
+    document.getElementById("logo").style.animation = "load 0.5s linear infinite";
     if(messageArray.length == 1){
         //messageArray.push({role: "user", content: "Generate HTML code, including style tags, for the below described component. In your response, only provide the code. Do not include any commentary or explanations at any point in the conversation.\n\n" + prompt});
         document.getElementById("userInput").placeholder = "Describe desired adjustments...";
@@ -27,6 +28,7 @@ async function generateText(prompt) {
         document.getElementById("botCanvas").innerHTML = botResponse;
         document.getElementById("canvasParent").style.display = "block";
         document.getElementById("AIResponse").scrollTop = 0;
+        document.getElementById("logo").style.animation = "none";
     } 
     catch (error) {
         console.error(error);
