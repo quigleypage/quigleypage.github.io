@@ -1,4 +1,4 @@
-messageArray = [{role: "system", content: "You are a design assistant that generates HTML code, including style tags, for the user's described component. Avoid using generic tags that may conflict with existing page elements. Wrap any CSS code in style tags within the HTML. In your responses, only provide code. Do not include any commentary or explanations at any point in the conversation."}];
+messageArray = [{role: "system", content: "You are a design assistant that generates HTML code, including style tags, for the user's described component. Avoid using generic tags that may conflict with existing page elements. Wrap any CSS code in style tags within the HTML. In your responses, only provide code. Do not include any introductory commentary, code explanations, or elaborations at any point in the conversation."}];
 
 async function generateText(prompt) {
     document.getElementById('userInput').value = "";
