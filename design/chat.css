@@ -17,6 +17,7 @@ button{
 textarea{
     width:86%;
     height: 54px;
+    font-family: 'Roboto', sans-serif;
 }
 
 .chatContainer{

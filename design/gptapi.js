@@ -1,11 +1,12 @@
-messageArray = [{role: "system", content: "You are a design assistant that generates HTML code, including style tags, for the user's described component. Avoid using generic tags that may conflict with existing page elements. Wrap any CSS code in style tags within the HTML. In your responses, only provide code. Do not include any introductory commentary, code explanations, or elaborations at any point in the conversation."}];
+messageArray = [{role: "system", content: "You are a design assistant that generates HTML code, including style tags, for the user's described component. Wrap any CSS code in style tags within the HTML. Define custom classes instead of using generic tags that may conflict with existing page elements.  In your responses, only provide code. Do not include any introductory commentary, code explanations, or elaborations at any point in the conversation."}];
 
 async function generateText(prompt) {
     if(prompt != ""){
         document.getElementById('userInput').value = "";
         document.getElementById("AIResponse").innerHTML += '<div class="user-message-card"><div class="message">' + prompt + '</div></div>';
         document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
-        document.getElementById("logo").style.animation = "load 0.5s linear infinite";
+        document.getElementById("logo").style.animation = "load 1s linear infinite";
+        //document.getElementById("logo").style.animation = "load 1s cubic-bezier(.17,.67,.83,.67) infinite";
         if(messageArray.length == 1){
             //messageArray.push({role: "user", content: "Generate HTML code, including style tags, for the below described component. In your response, only provide the code. Do not include any commentary or explanations at any point in the conversation.\n\n" + prompt});
             document.getElementById("userInput").placeholder = "Describe desired adjustments...";
@@ -33,7 +34,7 @@ async function generateText(prompt) {
         } 
         catch (error) {
             console.error(error);
-            document.getElementById("AIResponse").innerHTML = "Error: " + error;
+            document.getElementById("errorLine").innerHTML = "Error: " + error;
         }
     }
 }
