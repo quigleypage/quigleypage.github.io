@@ -6,7 +6,7 @@ async function generateText(prompt) {
         document.getElementById('userInput').value = "";
         document.getElementById('sendButton').disabled = true;
         //document.getElementById("AIResponse").innerHTML += '<div class="user-message-card"><div class="message">' + prompt + '</div></div>';
-        document.getElementById("AIResponse").innerHTML += '<button id="' + htmlArray.length + '" name="' + htmlArray.length + '" class="accordion">' + prompt + '</button><div class="panel"><button name="' + htmlArray.length + '" class="card-buttons" onclick="viewVersion(name)"><i class="material-icons">visibility</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="copyCode(name)"><i class="material-icons">content_copy</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="downloadCode(name)"><i class="material-icons">file_download</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="shareCode(name)"><i class="material-icons">share</i></button></div>';
+        document.getElementById("AIResponse").innerHTML += '<button id="' + htmlArray.length + '" name="' + htmlArray.length + '" class="accordion" disabled>' + prompt + '</button><div class="panel"><button name="' + htmlArray.length + '" class="card-buttons" onclick="viewVersion(name)"><i class="material-icons">visibility</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="copyCode(name)"><i class="material-icons">content_copy</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="downloadCode(name)"><i class="material-icons">file_download</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="shareCode(name)"><i class="material-icons">share</i></button></div>';
         document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
         document.getElementById("logo").style.animation = "load 1s linear infinite";
         //document.getElementById("logo").style.animation = "load 1s cubic-bezier(.17,.67,.83,.67) infinite";
@@ -28,10 +28,12 @@ async function generateText(prompt) {
             botResponse = botResponse.replaceAll("```", "");
             console.log("Cleaned Response:");
             console.log(botResponse);
+            document.getElementById(String(htmlArray.length)).disabled = false; // this has to go here before the length increments; this means it will still disabled if errors occur
             htmlArray.push(botResponse);
             
             messageArray.push({role: "assistant", content: botResponse})
             document.getElementById("botCanvas").innerHTML = botResponse;
+            document.getElementById("errorLine").innerHTML = "";
 
             //accordion handler needs to activate listener retroactively
             var acc = document.getElementsByClassName("accordion");
@@ -53,6 +55,7 @@ async function generateText(prompt) {
         catch (error) {
             console.error(error);
             document.getElementById("errorLine").innerHTML = "Error: " + error;
+            htmlArray.push(error); // push errors even though they are inaccessible to keep index sequencing in line
         }
         document.getElementById("canvasParent").style.display = "block";
         document.getElementById("AIResponse").scrollTop = 0;

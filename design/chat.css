@@ -113,6 +113,9 @@
     background-color: #D0E0E8;
     border-radius: 4px;
   }
+  .accordion:disabled{
+    opacity: 0.8;
+  }
   
   .accordion:hover {
     background-color: #B7D6E5;
