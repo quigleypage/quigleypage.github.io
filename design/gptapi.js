@@ -31,9 +31,6 @@ async function generateText(prompt) {
             
             messageArray.push({role: "assistant", content: botResponse})
             document.getElementById("botCanvas").innerHTML = botResponse;
-            document.getElementById("canvasParent").style.display = "block";
-            document.getElementById("AIResponse").scrollTop = 0;
-            document.getElementById("logo").style.animation = "none";
 
             //accordion handler needs to activate listener retroactively
             var acc = document.getElementsByClassName("accordion");
@@ -55,10 +52,10 @@ async function generateText(prompt) {
         catch (error) {
             console.error(error);
             document.getElementById("errorLine").innerHTML = "Error: " + error;
-            document.getElementById("canvasParent").style.display = "block";
-            document.getElementById("AIResponse").scrollTop = 0;
-            document.getElementById("logo").style.animation = "none";
         }
+        document.getElementById("canvasParent").style.display = "block";
+        document.getElementById("AIResponse").scrollTop = 0;
+        document.getElementById("logo").style.animation = "none";
     }
 }
 
