@@ -56,6 +56,8 @@ async function generateText(prompt) {
             console.error(error);
             document.getElementById("errorLine").innerHTML = "Error: " + error;
             document.getElementById("canvasParent").style.display = "block";
+            document.getElementById("AIResponse").scrollTop = 0;
+            document.getElementById("logo").style.animation = "none";
         }
     }
 }
