@@ -4,6 +4,7 @@ htmlArray = [];
 async function generateText(prompt) {
     if(prompt != ""){
         document.getElementById('userInput').value = "";
+        document.getElementById('sendButton').disabled = true;
         //document.getElementById("AIResponse").innerHTML += '<div class="user-message-card"><div class="message">' + prompt + '</div></div>';
         document.getElementById("AIResponse").innerHTML += '<button id="' + htmlArray.length + '" name="' + htmlArray.length + '" class="accordion">' + prompt + '</button><div class="panel"><button name="' + htmlArray.length + '" class="card-buttons" onclick="viewVersion(name)"><i class="material-icons">visibility</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="copyCode(name)"><i class="material-icons">content_copy</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="downloadCode(name)"><i class="material-icons">file_download</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="shareCode(name)"><i class="material-icons">share</i></button></div>';
         document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
@@ -56,6 +57,7 @@ async function generateText(prompt) {
         document.getElementById("canvasParent").style.display = "block";
         document.getElementById("AIResponse").scrollTop = 0;
         document.getElementById("logo").style.animation = "none";
+        document.getElementById('sendButton').disabled = false;
     }
 }
 

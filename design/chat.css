@@ -13,6 +13,10 @@
     border-width: 0px;
     height: 54px;
 }
+.q-message-send-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 
 .q-message-textarea{
     width:86%;
