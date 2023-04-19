@@ -89,7 +89,7 @@ function shareCode(name){
     version = parseInt(name);
     const shareData = {
         title: 'Q Design Assistant',
-        text: 'Check out the code I generated using Q Design Assistant:\n\n' + htmlArray[version],
+        text: 'Check out the code I generated using Q Design Assistant:\n\n' + htmlArray[version] + '\n\n',
         url: 'https://quigley.page/design/'
     }
     navigator.share(shareData);
