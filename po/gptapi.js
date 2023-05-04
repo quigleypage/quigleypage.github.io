@@ -19,11 +19,18 @@ async function generateText(prompt, section) {
         botResponse = response.data.text;
         console.log(botResponse);
         messageArray.push({role: "assistant", content: botResponse})
+
         if(section == "userstory"){
+            botResponse = botResponse.replace(/\n/g, "<br />");
+            console.log(botResponse);
+            
             document.getElementById("AIResponse").innerHTML += '<div class="story-message-card"><div class="sender-name">User Story</div><div class="message">' + botResponse + '</div></div>';
             generateText("Write the Acceptance Criteria for the feature.", "acceptancecriteria");
         }
         else if(section == "acceptancecriteria"){
+            botResponse = botResponse.replace(/\n/g, "<br />");
+            console.log(botResponse);
+            
             document.getElementById("AIResponse").innerHTML += '<div class="story-message-card"><div class="sender-name">Acceptance Criteria</div><div class="message">' + botResponse + '</div></div>';
             generateText("Write example HTML code for the feature, including style tags, and respond with only the code (no commentary).", "mockup");
         }
