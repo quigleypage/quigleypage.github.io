@@ -14,6 +14,14 @@ async function generateText(prompt) {
         encodedMessageArray = { promptText: prompt, version: -1 };
         isImage = true;
     }
+    else if(document.getElementById("DALLE512").checked){
+        encodedMessageArray = { promptText: prompt, version: -2 };
+        isImage = true;
+    }
+    else if(document.getElementById("DALLE1024").checked){
+        encodedMessageArray = { promptText: prompt, version: -3 };
+        isImage = true;
+    }
 
     try {
         const response = await axios.post('https://gpt-test-app.herokuapp.com/generate-text', encodedMessageArray, {
