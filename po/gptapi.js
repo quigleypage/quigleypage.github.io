@@ -1,12 +1,15 @@
 messageArray = [];
+outputText = "";
 
 async function generateText(prompt, section) {
     if(section == "userstory"){
-        //document.getElementById("spinner").style.display = "block";
+        document.getElementById("userInput").style.display = "none";
+        document.getElementById("sendButton").style.display = "none";
+        document.getElementById("spinner").style.display = "block";
         document.getElementById("AIResponse").innerHTML += '<div class="desc-message-card"><div class="sender-name">Description</div><div class="message">' + document.getElementById('userInput').value + '</div></div>';
         document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
-        //<button class="copyButton"><img src="copy.png" height="12px;"></button>
-        document.getElementById('userInput').value = "";
+        outputText += "Description:\n" + document.getElementById('userInput').value + "\n\n";
+        //document.getElementById('userInput').value = "";
     }
     messageArray.push({role: "user", content: prompt});
     try {
@@ -21,6 +24,7 @@ async function generateText(prompt, section) {
         messageArray.push({role: "assistant", content: botResponse})
 
         if(section == "userstory"){
+            outputText += "User Story:\n" + botResponse + "\n\n";
             botResponse = botResponse.replace(/\n/g, "<br />");
             console.log(botResponse);
             
@@ -28,6 +32,7 @@ async function generateText(prompt, section) {
             generateText("Write the Acceptance Criteria for the feature.", "acceptancecriteria");
         }
         else if(section == "acceptancecriteria"){
+            outputText += "Acceptance Criteria:\n" + botResponse + "\n\n";
             botResponse = botResponse.replace(/\n/g, "<br />");
             console.log(botResponse);
             
@@ -40,8 +45,9 @@ async function generateText(prompt, section) {
                 console.log(botResponse);
             }
             document.getElementById("AIResponse").innerHTML += '<div class="mock-message-card"><div class="sender-name">Mock-up</div><div class="message">' + botResponse + '</div></div>';
-            //document.getElementById("spinner").style.display = "none";
-            //document.getElementById("AIResponse").style.display = "block";
+            outputText += "Mock-up Code:\n" + botResponse;
+            document.getElementById("spinner").style.display = "none";
+            document.getElementById("doneButtons").style.display = "block";
         }
         document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
     } catch (error) {
@@ -50,10 +56,29 @@ async function generateText(prompt, section) {
     }
 }
 
-function copyText(textToCopy) {
-    var copyText = textToCopy;
-  
-    copyText.select();
-    copyText.setSelectionRange(0, 99999); // For mobile devices
-    navigator.clipboard.writeText(copyText.value);
-  }
+function copyText() {
+    navigator.clipboard.writeText(outputText);
+}
+
+function downloadText(){
+    const data = outputText;
+    const blob = new Blob([data], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'userstory.txt';
+    a.click();
+
+    // Cleanup: release the object URL after the download has started
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function shareText(){
+    const shareData = {
+        title: 'Q Product Owner',
+        text: 'Check out the feature documentation I generated using Q Product Owner:\n\n' + outputText + '\n\n',
+        url: 'https://quigley.page/po/'
+    }
+    navigator.share(shareData);
+}
