@@ -109,6 +109,15 @@
     animation-iteration-count: 1;
   }
 
+@keyframes spin-and-expand {
+    0% {
+        transform: rotate(0deg) scale(0);
+    }
+    100% {
+        transform: rotate(1440deg) scale(1);
+    }
+}
+
 .q-ai-navbar{
     display: flex;
     align-items: center;

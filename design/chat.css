@@ -54,7 +54,8 @@
 
 .logo {
     display: block;
-    margin: 0 auto;
+    /*margin: 0 auto;*/
+    margin-right: 12px;
     height: 64px;
     animation-name: spin-and-expand;
     animation-duration: 0.8s;
@@ -148,3 +149,16 @@
     margin-bottom: 8px;
     float: right;
   }
+
+  .q-ai-navbar{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .q-ai-pageTitle{
+    text-align: center;
+    font-family: 'Roboto', sans-serif;
+    font-size: 18pt;
+    color: white;
+}
