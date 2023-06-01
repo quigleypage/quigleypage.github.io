@@ -12,25 +12,25 @@
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <script src="gptapi.js"></script>
     </head>
-
-    <h1 class="pageTitle">Q Product Owner</h1>
-    <hr>
-
-    <!-- <div id="spinner" class="spinner" style="display: none;"></div> -->
-    <div id="AIResponse" class="chatContainer"></div>
-
-    <div id="fixed-input">
-        <hr>
-        <textarea class="descInput" id="userInput" placeholder="Describe your feature..."></textarea>
-        <!-- <button class="sendButton" onclick="generateText('Write a User Story for the below described feature:\n\n' + document.getElementById('userInput').value, 'userstory')"><img src="send.png" height="28px"></button> -->
-        <button id="sendButton" class="q-message-send-button" onclick="generateText('Write a User Story for the below described feature:\n\n' + document.getElementById('userInput').value, 'userstory')"><i class="material-icons right">send</i></button>
-        <div id="spinner" class="spinner" style="display: none;"></div>
-        <div id="doneButtons" style="display:none">
-            <button id="shareButton" class="q-post-button" onclick="shareText()"><i class="material-icons">share</i></button>
-            <button id="downloadButton" class="q-post-button" onclick="downloadText()"><i class="material-icons">file_download</i></button>
-            <button id="copyButton" class="q-post-button" onclick="copyText()"><i class="material-icons">content_copy</i></button>
+    <body style="background-color: #0D0B0E;">
+        <div class="q-ai-navbar">
+            <img id="logo" class="logo" src="QAI3.png"><h1 class="pageTitle">Product Owner</h1>
         </div>
-    </div>
-    
+        <hr>
+
+        <div id="AIResponse" class="chatContainer"></div>
+
+        <div id="fixed-input">
+            <hr>
+            <textarea class="descInput" id="userInput" placeholder="Describe your feature..."></textarea>
+            <button id="sendButton" class="q-message-send-button" onclick="generateText('Write a User Story for the below described feature:\n\n' + document.getElementById('userInput').value, 'userstory')"><i class="material-icons right">send</i></button>
+            <div id="spinner" class="spinner" style="display: none;"></div>
+            <div id="doneButtons" style="display:none">
+                <button id="shareButton" class="q-post-button" onclick="shareText()"><i class="material-icons">share</i></button>
+                <button id="downloadButton" class="q-post-button" onclick="downloadText()"><i class="material-icons">file_download</i></button>
+                <button id="copyButton" class="q-post-button" onclick="copyText()"><i class="material-icons">content_copy</i></button>
+            </div>
+        </div>
+    </body>
 
 </html>
