@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Kevin Quigley">
 
-  <title>Scan</title>
+  <title>Q Scan</title>
 
   <link rel="stylesheet" rel="preload" as="style" onload="this.rel='stylesheet';this.onload=null"
     href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
@@ -21,10 +21,10 @@
   <main class="wrapper" style="padding-top:2em">
 
     <section class="container" id="demo-content">
-      <h1 class="title">Scan a Barcode</h1>
+      <h1 class="title">Scan Barcode</h1>
 
       <div id="sourceSelectPanel" style="display:none">
-        <label for="sourceSelect">Change video source:</label>
+        <label for="sourceSelect">Select Camera:</label>
         <select id="sourceSelect" style="max-width:400px">
         </select>
       </div>
@@ -38,8 +38,6 @@
         <video id="video" width="300" height="200" style="border: 1px solid gray"></video>
       </div>
 
-
-      <label>Code:</label>
       <pre><code id="result"></code></pre>
 
       <table>
