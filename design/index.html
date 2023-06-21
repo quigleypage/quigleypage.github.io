@@ -50,3 +50,12 @@
     </body>
 
 </html>
+
+<script>
+    pathSearch = location.search;
+    if(pathSearch != ""){
+        urlPrompt = pathSearch.split("=")[1];
+        urlPrompt = urlPrompt.replaceAll("_", " ")
+        generateText(urlPrompt);
+    }
+</script>

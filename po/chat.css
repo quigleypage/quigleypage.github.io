@@ -123,3 +123,17 @@
     align-items: center;
     justify-content: center;
   }
+
+.q-design-session-link{
+    float: left;
+    color: white;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14pt;
+}
+
+a:link{
+    color: #77BEFA;
+}
+a:visited{
+    color: #77BEFA;
+}

@@ -25,6 +25,7 @@
             <textarea class="q-message-textarea" id="userInput" placeholder="Describe your feature..."></textarea>
             <button id="sendButton" class="q-message-send-button" onclick="generateText('Write a User Story for the below described feature:\n\n' + document.getElementById('userInput').value, 'userstory')"><i class="material-icons right">send</i></button>
             <div id="spinner" class="spinner" style="display: none;"></div>
+            <div id="designSessionLink" class="q-design-session-link"></div>
             <div id="doneButtons" style="display:none">
                 <button id="shareButton" class="q-post-button" onclick="shareText()"><i class="material-icons">share</i></button>
                 <button id="downloadButton" class="q-post-button" onclick="downloadText()"><i class="material-icons">file_download</i></button>

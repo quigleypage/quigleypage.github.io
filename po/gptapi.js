@@ -1,5 +1,6 @@
 messageArray = [];
 outputText = "";
+featureDescriptionForDesignURL = "";
 
 async function generateText(prompt, section) {
     if(section == "userstory"){
@@ -10,6 +11,10 @@ async function generateText(prompt, section) {
         document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
         outputText += "Description:\n" + document.getElementById('userInput').value + "\n\n";
         //document.getElementById('userInput').value = "";
+
+        featureDescriptionForDesignURL =  document.getElementById('userInput').value;
+        featureDescriptionForDesignURL = featureDescriptionForDesignURL.replaceAll(/[^\w\s]/gi, '_').replaceAll(/\s+/g, '_');
+        console.log(featureDescriptionForDesignURL);
     }
     messageArray.push({role: "user", content: prompt});
     try {
@@ -47,6 +52,7 @@ async function generateText(prompt, section) {
             document.getElementById("AIResponse").innerHTML += '<div class="mock-message-card"><div class="sender-name">Mock-up</div><div class="message">' + botResponse + '</div></div>';
             outputText += "Mock-up Code:\n" + botResponse;
             document.getElementById("spinner").style.display = "none";
+            document.getElementById("designSessionLink").innerHTML = "Need UI help? Try <b><a href='https://quigley.page/design?s=" + featureDescriptionForDesignURL + "'>Q Design</a></b>";
             document.getElementById("doneButtons").style.display = "block";
         }
         document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
