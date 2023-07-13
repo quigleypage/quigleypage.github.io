@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Guess the population!">
+  <meta name="author" content="Kevin Quigley">
+
+  <title>Popul</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Custom fonts for this template -->
+  <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
+  <link href="vendor/simple-line-icons/css/simple-line-icons.css" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic,700italic" rel="stylesheet" type="text/css">
+
+  <!-- Custom styles for this template -->
+  <link href="css/landing-page.min.css" rel="stylesheet">
+
+  <!--Google Font-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <link href="css/tweetle.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="./jquery.form.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+</head>
+
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar navbar-light bg-light static-top">
+    <div class="container">
+      Popul<button id="myBtn2" type="button" class="btn btn-light"><i class="fas fa-info-circle"></i></button>
+    </div>
+  </nav>
+
+  <!-- The Modal -->
+  <div id="myModal2" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+        <div class="modal-header">
+          <div id="modalTitle">Welcome to Popul</div>
+        </div>
+        <div class="modal-body">
+            <div id="results"><br>In this nation-themed guess-the-number, you have 6 attempts to figure out the population (in millions) of the country.<br><br><span style="background-color: #EAE4A6;">Yellow</span> means your guess was too low.<span style="background-color: #E8A4A4;"><br>Red</span> means your guess was too high.<br><br>You can also <a href="./generate/">play Tweetle using tweets from a specific user's account.</a></div>
+            <div id="gamesPlayed"></div>
+            <div id="gamesWon"></div>
+            <div id="currentStreak"></div>
+            <div id="maxStreak"></div>
+            <div id="avgLossAmount"></div>
+            <div id="goodLuck"><br>Good luck!<br><br></div>
+            <div id="distrbutionChart"></div>
+        </div>
+        <div class="modal-footer">
+          <br><br>
+          <div>Made by <a href="https://kevinquigley.net/" target="_blank">Kevin Quigley</a><br></div>
+        </div>
+    </div>
+</div>
+
+  <!-- Masthead -->
+
+    <div class="overlay"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-10 col-lg-8 col-xl-7 mx-auto">
+
+          <br>
+          <!-- <div style="font-family:Arial, Helvetica, sans-serif;text-align:left;background-color:#F6F6F6;color:black;border-radius:8px;padding-top:24px;padding-right:24px;padding-bottom:24px;padding-left:24px"> -->
+          <div style="font-family:Arial, Helvetica, sans-serif;outline-color:lightgrey;outline-style:solid;outline-width:0px;color:black;border-radius:8px;padding-top:14px;padding-right:14px;padding-bottom:14px;padding-left:14px">
+            <div id="searchResults"></div>
+          </div>
+          <br>
+
+          <div id="guess1bar" class="input-group mb-3">
+            <input class="form-control form-control-lg" type="number" min="0" id="guess1" placeholder="Guess the population..." disabled="true">
+          </div>
+
+          <div id="guess2bar" class="input-group mb-3">
+            <input class="form-control form-control-lg" type="number" min="0" id="guess2" placeholder="" disabled="true">
+          </div>
+
+          <div id="guess3bar" class="input-group mb-3">
+            <input class="form-control form-control-lg" type="number" min="0" id="guess3" placeholder="" disabled="true">
+          </div>
+
+          <div id="guess4bar" class="input-group mb-3">
+            <input class="form-control form-control-lg" type="number" min="0" id="guess4" placeholder="" disabled="true">
+          </div>
+
+          <div id="guess5bar" class="input-group mb-3">
+            <input class="form-control form-control-lg" type="number" min="0" id="guess5" placeholder="" disabled="true">
+          </div>
+
+          <div id="guess6bar" class="input-group mb-3">
+            <input class="form-control form-control-lg" type="number" min="0" id="guess6" placeholder="" disabled="true">
+          </div>
+
+          <!--dummy input that exists only to manipulate broken CSS transitions-->
+          <div id="guess7bar" class="input-group mb-3" style="display: none;">
+            <input class="form-control form-control-lg" type="number" min="0" id="guess7" placeholder="" disabled="true">
+          </div>
+
+          <button id="sendGuess" class="block" onclick="checkGuess()"><i class="fas fa-paper-plane"></i></button>
+          <br><br>
+
+        </div>
+      </div>
+    </div>
+
+  </body>
+
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="vendor/jquery/jquery.min.js"></script>
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  
+  <script src="./popul.js"></script>
+
+</html>
