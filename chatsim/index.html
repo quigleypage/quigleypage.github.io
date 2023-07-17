@@ -1,0 +1,41 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Q Chat Sim</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="chat.css">
+
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script src="gptapi.js"></script>
+    </head>
+    <body style="background-color: #0D0B0E;">
+        <div class="q-ai-navbar">
+            <img id="logo" class="logo" src="QAI3.png"><h1 class="pageTitle">Chat Sim</h1>
+        </div>
+        <hr>
+        
+        <div id="parameterForm" class="q-form-input-container">
+            <div style="text-align: center;">Simulate a text conversation<br>Famous people work best<br>Avoid controversial figures</div><br>
+            
+            <label for="CharA" class="q-form-labels">Character A:<br></label>
+            <input type="text" id="CharA" name="CharA" class="q-form-inputs"><br>
+
+            <label for="CharB" class="q-form-labels">Character B:<br></label>
+            <input type="text" id="CharB" name="CharB" class="q-form-inputs"><br>
+
+            <label for="textLength" class="q-form-labels"># of Messages:<br></label>
+            <input type="number" id="textLength" name="textLength" class="q-form-inputs" min="1" max="10"><br>
+
+            <button class="q-run-button" onclick="setParamaters()"><b>Run</b></button>
+
+        </div>
+
+        <div id="AIResponse" class="chatContainer"></div>
+
+    </body>
+
+</html>

@@ -1,0 +1,126 @@
+.pageTitle{
+    text-align: center;
+    font-family: 'Roboto', sans-serif;
+    font-size: 18pt;
+    color: white;
+}
+
+.chatContainer{
+    overflow-y: auto;
+    height: auto;
+}
+
+.logo {
+    display: block;
+    /*margin: 0 auto;*/
+    margin-right: 12px;
+    height: 64px;
+    animation-name: spin-and-expand;
+    animation-duration: 0.8s;
+    animation-timing-function: ease-out;
+    animation-iteration-count: 1;
+  }
+
+@keyframes spin-and-expand {
+    0% {
+        transform: rotate(0deg) scale(0);
+    }
+    100% {
+        transform: rotate(1440deg) scale(1);
+    }
+}
+
+@keyframes load {
+    0% {
+        transform: rotate(0deg) scale(0.5);
+    }
+    100% {
+        transform: rotate(360deg) scale(0.5);
+    }
+}
+
+.q-ai-navbar{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+.q-form-input-container{
+    font-family: 'Roboto', sans-serif;
+    font-size: 16pt;
+    display: flex; 
+    justify-content: center;
+    flex-direction: column;
+    padding: 4px;
+    color: white;
+}
+
+.q-form-labels{
+    padding-bottom: 4px;
+}
+
+.q-form-inputs{
+    font-size: 16pt;
+    font-family: 'Roboto', sans-serif;
+    padding: 8px;
+    border-radius: 4px;
+    border-width: 0px;
+}
+
+.q-run-button{
+    border-radius: 4px;
+    border-width: 0px;
+    background-color: #5858D0;
+    padding: 8px;
+    font-size: 16pt;
+    font-family: 'Roboto', sans-serif;
+    color: white;
+}
+
+.q-run-button:active{
+    opacity: 50%;
+}
+
+.message-bubble {
+    display: flex;
+    padding: 10px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.message-content {
+    background-color: #f0f0f0;
+    padding: 8px;
+    border-radius: 10px;
+    color: black;
+}
+
+.sender-name {
+    font-weight: bold;
+    padding-top: 8px;
+}
+
+.message-text {
+    padding-bottom: 8px;
+    padding-top: 4px;
+}
+
+.avatarB {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    margin-left: 10px;
+}
+
+.message-contentB {
+    background-color: #516894;
+    color: white;
+    padding: 8px;
+    border-radius: 10px;
+}
