@@ -124,3 +124,33 @@
     padding: 8px;
     border-radius: 10px;
 }
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background-color: lightgray;
+    border-radius: 10px;
+    position: relative;
+  }
+
+  .milestone {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background-color: #97cf8a;
+    border-radius: 10px;
+    transition: width 1s ease;
+  }
+  
+  .milestone:nth-child(1) {
+    width: 33.33%;
+  }
+
+  .milestone:nth-child(2) {
+    width: 66.66%;
+  }
+
+  .milestone:nth-child(3) {
+    width: 100%;
+  }

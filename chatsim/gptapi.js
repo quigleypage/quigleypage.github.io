@@ -20,6 +20,7 @@ function setParamaters(){
 
         document.getElementById("parameterForm").style.display = "none";
         document.getElementById("logo").style.animation = "load 1s linear infinite";
+        document.getElementById("loadProgress").style.display = "block";
 
         generateAvatarA();
     }
@@ -36,6 +37,7 @@ async function generateAvatarA() {
         console.log(response.data.text);
         personaAAvatarURL = response.data.text;
 
+        document.getElementById("loadProgress").innerHTML += "<div class='milestone'></div>";
         generateAvatarB();
     } 
     catch (error) {
@@ -55,6 +57,7 @@ async function generateAvatarB() {
         console.log(response.data.text);
         personaBAvatarURL = response.data.text;
 
+        document.getElementById("loadProgress").innerHTML += "<div class='milestone'></div>";
         generateText();
     } 
     catch (error) {
@@ -76,7 +79,10 @@ async function generateText() {
                       'Content-Type': 'application/json'
                     }
                 });
+                document.getElementById("loadProgress").innerHTML += "<div class='milestone'></div>";
                 botResponse = response.data.text;
+                document.getElementById("loadProgress").style.display = "none";
+                
                 document.getElementById("AIResponse").innerHTML += "<div class='message-bubble'><img class='avatar' src='" + personaAAvatarURL + "'><div class='message-content'><div class='sender-name'>" + personaAName + "</div><div class='message-text'>" + botResponse + "</div></div></div>";
                 personaAMessageArray.push({role: "assistant", content: botResponse});
                 personaBMessageArray.push({role: "user", content: botResponse});
