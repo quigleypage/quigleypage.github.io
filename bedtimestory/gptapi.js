@@ -2,12 +2,13 @@ pageTracker = 1;
 pageText = [];
 pageImageURL = [];
 MessageArray = [];
+pageLimit = 4;
 
 function setParamaters(){
     topic = document.getElementById("topic").value;
 
     if(topic != ""){
-        MessageArray.push({role: "system", content: "You are a children's bedtime story generator. You are going to generate a 5-page story. Each page should only be 1-2 sentences. You will generate a story about " + topic + "."});
+        MessageArray.push({role: "system", content: "You are a children's bedtime story generator. You are going to generate a " + toString(pageLimit) + "-page story. Each page should only be 1-2 sentences. You will generate a story about " + topic + "."});
         MessageArray.push({role: "user", content: "Generate the first page of the story now."});
 
         document.getElementById("parameterForm").style.display = "none";
@@ -45,7 +46,7 @@ async function generateImage() {
 
 async function generatePageText() {
     
-    if(pageTracker < 6){
+    if(pageTracker < pageLimit + 1){
 
         try {
             encodedMessageArray = { promptText: MessageArray, version: 3 };
