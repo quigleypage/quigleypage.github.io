@@ -2,7 +2,7 @@ pageTracker = 1;
 pageText = [];
 pageImageURL = [];
 MessageArray = [];
-pageLimit = 4;
+pageLimit = 5;
 
 function setParamaters(){
     topic = document.getElementById("topic").value;
