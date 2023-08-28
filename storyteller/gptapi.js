@@ -32,7 +32,7 @@ async function generateImage() {
         encodedImageRequest = { promptText: "A watercolor painting illustrating the following children's book scene: " + pageText[pageTracker], version: -1 };
     }
     else{
-        encodedImageRequest = { promptText: "A comicbook-style illustration for the following comic book panel: " + pageText[pageTracker], version: -1 };
+        encodedImageRequest = { promptText: "A pop art illustration, without any words, for the following comic book panel: " + pageText[pageTracker], version: -1 };
     }
     try {
         const response = await axios.post('https://gpt-test-app.herokuapp.com/generate-text', encodedImageRequest, {
