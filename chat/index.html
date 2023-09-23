@@ -1,0 +1,49 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Karla&family=Roboto:wght@300&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="chat.css">
+
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script src="gptapi.js"></script>
+
+        <title>Q Chat</title>
+
+    </head>
+
+    <body style="background-color: #0D0B0E;">
+
+    <div class="q-ai-navbar">
+        <img id="logo" class="logo" src="QAI3.png"><h1 class="q-ai-pageTitle">Chat</h1>
+    </div>
+    <hr>
+
+    <div id="AIResponse" class="chatContainer"></div>
+
+    <div id="fixed-input">
+        <hr>
+
+        <div id="initialSelections" class="q-model-selector">
+            Model: 
+            <input type="radio" id="GPT3.5" name="model" value="GPT3.5" checked />
+            <label for="GPT3.5">GPT-3.5</label>
+            <input type="radio" id="GPT4" name="model" value="GPT4" />
+            <label for="GPT4">GPT-4</label>
+
+            <br><br>
+            <label for="systemPrompt">System Prompt:</label>
+            <input type="text" id="systemPrompt" name="systemPrompt" style="font-size:14pt;width: 100%;" placeholder="Optional">
+            <br><br>
+        </div>
+
+        <textarea id="userInput" class="q-message-textarea" placeholder="Send a message..."></textarea>
+        <button id="sendButton" class="q-message-send-button" onclick="generateText(document.getElementById('userInput').value)"><i style="color:white;" class="material-icons right">send</i></button>
+    </div>
+    
+    </body>
+
+</html>

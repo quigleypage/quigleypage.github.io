@@ -1,0 +1,105 @@
+#fixed-input {
+    position: fixed;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+}
+
+.q-message-send-button{
+    float: right;
+    padding: 4px;
+    background-color: #0D0B0E;
+    border-radius: 4px;
+    border-width: 0px;
+    height: 54px;
+}
+.q-message-send-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+.chatContainer{
+    height: 76%;
+    overflow-y:auto;
+}
+
+.user-message-card{
+    padding: 8px;
+    background-color: #D0E0E8;
+    border-radius: 4px;
+    text-align: right;
+    margin-bottom: 8px;
+}
+
+.bot-message-card{
+    padding: 8px;
+    background-color: #F1F4F4;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.sender-name{
+    font-family: 'Roboto', sans-serif;
+    font-size: 8pt;
+    color: #888888;
+}
+
+.message{
+    font-family: 'Roboto', sans-serif;
+    font-size: 12pt;
+    color: #010101;
+}
+
+.logo {
+    display: block;
+    margin-right: 12px;
+    height: 64px;
+    animation-name: spin-and-expand;
+    animation-duration: 0.8s;
+    animation-timing-function: ease-out;
+    animation-iteration-count: 1;
+  }
+
+@keyframes spin-and-expand {
+  0% {
+    transform: rotate(0deg) scale(0);
+  }
+  100% {
+    transform: rotate(1440deg) scale(1);
+  }
+}
+
+.q-ai-navbar{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .q-ai-pageTitle{
+    text-align: center;
+    font-family: 'Roboto', sans-serif;
+    font-size: 18pt;
+    color: white;
+}
+
+@keyframes load {
+    0% {
+        transform: rotate(0deg) scale(0.5);
+    }
+    100% {
+        transform: rotate(360deg) scale(0.5);
+    }
+}
+
+.q-message-textarea{
+    width:86%;
+    height: 54px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 12pt;
+}
+
+.q-model-selector{
+    color: white;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14pt;
+}
