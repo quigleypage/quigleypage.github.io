@@ -10,6 +10,9 @@ async function generateText(prompt) {
     if(document.getElementById("GPT4").checked){
         encodedMessageArray = { promptText: messageArray, version: 4 };
     }
+    else if(document.getElementById("GPT4TurboPreview").checked){
+        encodedMessageArray = { promptText: messageArray, version: 5 };
+    }
     else if(document.getElementById("DALLE").checked){
         encodedMessageArray = { promptText: prompt, version: -1 };
         isImage = true;

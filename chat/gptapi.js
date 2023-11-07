@@ -12,6 +12,9 @@ async function generateText(prompt) {
     if(document.getElementById("GPT4").checked == true){
         model = 4;
     }
+    else if(document.getElementById("GPT4T").checked == true){
+        model = 5;
+    }
     if(document.getElementById("systemPrompt").value != ""){
         messageArray.push({role: "system", content: document.getElementById("systemPrompt").value})
     }
