@@ -22,6 +22,30 @@ async function generateText(prompt) {
         encodedMessageArray = { promptText: prompt, version: -3 };
         isImage = true;
     }
+    else if(document.getElementById("DALLE3-1024x1024").checked){
+        encodedMessageArray = { promptText: prompt, version: -4 };
+        isImage = true;
+    }
+    else if(document.getElementById("DALLE3-1024x1792").checked){
+        encodedMessageArray = { promptText: prompt, version: -5 };
+        isImage = true;
+    }
+    else if(document.getElementById("DALLE3-1792x1024").checked){
+        encodedMessageArray = { promptText: prompt, version: -6 };
+        isImage = true;
+    }
+    else if(document.getElementById("DALLE3HD-1024x1024").checked){
+        encodedMessageArray = { promptText: prompt, version: -7 };
+        isImage = true;
+    }
+    else if(document.getElementById("DALLE3HD-1024x1792").checked){
+        encodedMessageArray = { promptText: prompt, version: -8 };
+        isImage = true;
+    }
+    else if(document.getElementById("DALLE3HD-1792x1024").checked){
+        encodedMessageArray = { promptText: prompt, version: -9 };
+        isImage = true;
+    }
 
     try {
         const response = await axios.post('https://gpt-test-app.herokuapp.com/generate-text', encodedMessageArray, {
