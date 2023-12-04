@@ -1,0 +1,40 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="chat.css">
+
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+        <title>Product Support</title>
+
+    </head>
+
+    <body class="all">
+
+        <input id="productName" placeholder="Product Name"><button id="submitButton" onclick="loadProduct(document.getElementById('productName').value)">Submit</button>
+
+        <div class="intro">
+            <h1 id="hi"></h1>
+        </div>
+        <br>
+
+        <div id="searchBar" class="search-bar" style="display:none;">
+            <input id="userInput" class="search-input" type="text" placeholder="Ask a question to get started..." autocomplete="off">
+            <button id="sendButton" class="search-button" type="button" onclick="generateText(document.getElementById('userInput').value)">
+              <i class="material-icons">send</i>
+            </button>
+        </div>
+        <br>
+
+        <div id="AIResponse" class="chatContainer"></div>
+
+       
+    </body>
+    <script src="chat.js"></script>
+
+</html>

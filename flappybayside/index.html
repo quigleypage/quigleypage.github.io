@@ -1,0 +1,146 @@
+<html>
+<head>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    #game {
+      width: 100%;
+      height: 100vh;
+      background: url no-repeat center;
+      background-size: cover;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #bird {
+      width: 50px;
+      height: 50px;
+      background: url no-repeat center;
+      background-size: contain;
+      position: absolute;
+      left: 10%;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    #pipe {
+      width: 50px;
+      height: 100%;
+      background: url repeat-y;
+      position: absolute;
+      right: 0;
+      top: 0;
+      animation: move 2s linear infinite;
+    }
+
+    #pipe:before {
+      content: "";
+      width: 50px;
+      height: 150px;
+      background: url no-repeat bottom;
+      position: absolute;
+      left: 0;
+      top: -150px;
+    }
+
+    #pipe:after {
+      content: "";
+      width: 50px;
+      height: 150px;
+      background: url no-repeat top;
+      position: absolute;
+      left: 0;
+      bottom: -150px;
+    }
+
+    @keyframes move {
+      0% {
+        right: 0;
+      }
+      100% {
+        right: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="bird"></div>
+    <div id="pipe"></div>
+  </div>
+  <script>
+    // Get the elements
+    var game = document.getElementById("game");
+    var bird = document.getElementById("bird");
+    var pipe = document.getElementById("pipe");
+
+    // Set some variables
+    var gravity = 0.5; // The force that pulls the bird down
+    var velocity = 0; // The speed of the bird
+    var jump = -10; // The force that pushes the bird up
+    var gap = 200; // The distance between the top and bottom pipes
+    var score = 0; // The number of pipes passed
+
+    // Add an event listener for key press
+    document.addEventListener("keydown", function(event) {
+      // If the space bar is pressed, make the bird jump
+      if (event.code == "Space") {
+        velocity = jump;
+      }
+    });
+
+    // Define a function to update the game
+    function update() {
+      // Update the velocity and the position of the bird
+      velocity += gravity;
+      bird.style.top = bird.offsetTop + velocity + "px";
+
+      // Check if the bird hits the ground or the sky
+      if (bird.offsetTop + bird.offsetHeight > game.offsetHeight || bird.offsetTop < 0) {
+        // Game over
+        alert("Game over! Your score is " + score + ".");
+        location.reload();
+      }
+
+      // Check if the pipe reaches the left edge of the game
+      if (pipe.offsetLeft + pipe.offsetWidth < 0) {
+        // Move the pipe to the right edge of the game
+        pipe.style.left = game.offsetWidth + "px";
+
+        // Randomize the height of the pipe
+        var pipeHeight = Math.random() * (game.offsetHeight - gap);
+
+        // Adjust the position of the pipe
+        pipe.style.height = pipeHeight + "px";
+        pipe.style.top = 0 + "px";
+
+        // Increase the score
+        score++;
+      }
+
+      // Check if the bird passes the pipe
+      if (pipe.offsetLeft == bird.offsetLeft + bird.offsetWidth) {
+        // Play a sound
+        var audio = new Audio;
+        audio.play();
+      }
+
+      // Check if the bird collides with the pipe
+      if (bird.offsetLeft + bird.offsetWidth > pipe.offsetLeft && bird.offsetLeft < pipe.offsetLeft + pipe.offsetWidth) {
+        if (bird.offsetTop < pipeHeight || bird.offsetTop + bird.offsetHeight > pipeHeight + gap) {
+          // Game over
+          alert("Game over! Your score is " + score + ".");
+          location.reload();
+        }
+      }
+    }
+
+    // Call the update function every 20 milliseconds
+    setInterval(update, 20);
+  </script>
+</body>
+</html>

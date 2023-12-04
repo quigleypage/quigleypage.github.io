@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        #game {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            background: url('testbackground.png') no-repeat center center / cover;
+        }
+
+        #player {
+            position: absolute;
+            left: 10%;
+            bottom: 20%;
+            width: 10%;
+            height: 20%;
+            background: url('testplayer.png') no-repeat center center / contain;
+            animation: run 0.5s infinite steps(8);
+        }
+
+        #score {
+            position: absolute;
+            top: 5%;
+            right: 5%;
+            font-size: 5vw;
+            color: white;
+        }
+
+        .hazard {
+            position: absolute;
+            right: 0;
+            bottom: 20%;
+            width: 10%;
+            height: 20%;
+            background: url('testhazard.png') no-repeat center center / contain;
+            animation: move 3s linear infinite;
+        }
+
+        @keyframes run {
+            from { background-position-x: 0; }
+            to { background-position-x: -100%; }
+        }
+
+        @keyframes move {
+            from { right: 0; }
+            to { right: 100%; }
+        }
+
+        @keyframes jump {
+            0% { bottom: 20%; }
+            50% { bottom: 40%; }
+            100% { bottom: 20%; }
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <div id="player"></div>
+        <div id="score">0</div>
+        <div class="hazard"></div>
+        <div class="hazard"></div>
+    </div>
+    <script>
+        // Get the game elements
+        const game = document.getElementById("game");
+        const player = document.getElementById("player");
+        const score = document.getElementById("score");
+        const hazards = document.getElementsByClassName("hazard");
+
+        // Set the game variables
+        let isJumping = false;
+        let isGameOver = false;
+        let points = 0;
+
+        // Add a tap event listener to the game
+        game.addEventListener("touchstart", function() {
+            // Make the player jump if not already jumping
+            if (!isJumping) {
+                isJumping = true;
+                player.style.animation = "jump 1s ease";
+                // Reset the jump animation after 1 second
+                setTimeout(function() {
+                    isJumping = false;
+                    player.style.animation = "run 0.5s infinite steps(8)";
+                }, 1000);
+            }
+        });
+
+        // Check for collisions every 50 milliseconds
+        setInterval(function() {
+            // Get the player's position and size
+            let playerRect = player.getBoundingClientRect();
+            let playerLeft = playerRect.left;
+            let playerRight = playerRect.right;
+            let playerTop = playerRect.top;
+            let playerBottom = playerRect.bottom;
+
+            // Loop through the hazards
+            for (let hazard of hazards) {
+                // Get the hazard's position and size
+                let hazardRect = hazard.getBoundingClientRect();
+                let hazardLeft = hazardRect.left;
+                let hazardRight = hazardRect.right;
+                let hazardTop = hazardRect.top;
+                let hazardBottom = hazardRect.bottom;
+
+                // Check if the player and the hazard are overlapping
+                // Check for horizontal overlap
+                let horizontalOverlap = !(playerLeft > hazardRight || playerRight < hazardLeft);
+                // Check for vertical overlap
+                let verticalOverlap = !(playerTop > hazardBottom || playerBottom < hazardTop);
+                if (horizontalOverlap && verticalOverlap) {
+                    // End the game
+                    isGameOver = true;
+
+                    console.log("Player:", playerLeft, playerRight, playerTop, playerBottom);
+                    console.log("Hazard:", hazardLeft, hazardRight, hazardTop, hazardBottom);
+
+
+                    // Stop the animations
+                    player.style.animation = "none";
+                    for (let hazard of hazards) {
+                        hazard.style.animation = "none";
+                    }
+                    // Show an alert message
+                    alert("Game Over! You scored " + points + " points.");
+                    // Reload the page
+                    location.reload();
+                }
+            }
+        }, 50);
+
+        // Update the score every second
+        setInterval(function() {
+            // Increase the points by 1
+            points++;
+            // Display the score
+            score.innerHTML = points;
+        }, 1000);
+    </script>
+</body>
+</html>
