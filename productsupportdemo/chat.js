@@ -12,7 +12,34 @@ function loadProduct(p){
   messageArray.push({role: "system", content: "You are a helpful live chat representative that supports " + productName + ". If you do not know the answer to a question, give it your best guess."});
   document.getElementById('searchBar').style.display = "flex";
   document.getElementById('trendingArticles').style.display = "block";
+  document.getElementById('pageLogo').innerHTML = "<b>" + productName + "</b>";
+  document.getElementById('navbar').style.display = "flex";
   typeWriter();
+}
+
+function clearConversation(){
+  messageArray = [{role: "system", content: "You are a helpful live chat representative that supports " + productName + ". If you do not know the answer to a question, give it your best guess."}];
+  document.getElementById('userInput').placeholder = "Ask a question to get started...";
+  document.getElementById('clearButton').style.display = "none";
+  fadeOut();
+}
+
+function fadeOut() {
+  let opacity = parseFloat(document.getElementById('AIResponse').style.opacity);
+  // If the opacity is not a valid number, assume it is 1
+  if (isNaN(opacity)) {
+    opacity = 1;
+  }
+  let timer = setInterval(function() {
+    opacity -= 0.05;
+    document.getElementById('AIResponse').style.opacity = opacity;
+    //console.log(opacity);
+    // If the opacity reaches 0 or below, stop the timer and clear the innerhtml
+    if (opacity <= 0) {
+      clearInterval(timer);
+      document.getElementById('AIResponse').innerHTML = "";
+    }
+  }, 25);
 }
 
 function typeWriter() {
@@ -27,11 +54,15 @@ async function generateText(prompt) {
     document.getElementById('sendButton').disabled = true;
     document.getElementById('sendButton').innerHTML = '<div id="spinner" class="lds-default"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>'
     document.getElementById('userInput').value = "";
+    document.getElementById('userInput').placeholder = "Follow-up or ask another question...";
+    document.getElementById('clearButton').style.display = "block";
+    document.getElementById('clearButton').disabled = true;
     if (navigator.userAgent.match(/(iPhone|Android|BlackBerry|Windows Phone)/)) {
       document.getElementById('userInput').blur();
     }
     
     //document.getElementById("AIResponse").innerHTML += '<div class="user-message-card"><div class="sender-name">You</div><div class="message">' + prompt + '</div></div>';    
+    document.getElementById('AIResponse').style.opacity = 1;
     document.getElementById("AIResponse").innerHTML = '<div class="user-message-card"><div class="sender-name">You</div><div class="message">' + prompt + '</div></div>' + document.getElementById("AIResponse").innerHTML;    
     //document.getElementById("AIResponse").innerHTML = '<div class="user-message-card"><div class="message">' + prompt + '</div></div>' + document.getElementById("AIResponse").innerHTML;    
 
@@ -55,6 +86,7 @@ async function generateText(prompt) {
         document.getElementById("AIResponse").innerHTML = '<div class="bot-message-card"><div class="sender-name">' + productName + ' Support Bot</div><div class="message">' + botResponseCleaned + '</div></div>' + document.getElementById("AIResponse").innerHTML;
         //document.getElementById("AIResponse").innerHTML = '<div class="bot-message-card"><div class="message">' + botResponseCleaned + '</div></div>' + document.getElementById("AIResponse").innerHTML;
         document.getElementById('sendButton').disabled = false;
+        document.getElementById('clearButton').disabled = false;
         document.getElementById('sendButton').innerHTML = '<i class="material-icons">send</i>'
 
     } catch (error) {

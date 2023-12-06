@@ -16,7 +16,12 @@
 
     <body class="all">
 
-        <input id="productName" placeholder="Product Name"><button id="submitButton" onclick="loadProduct(document.getElementById('productName').value)">Submit</button>
+        <input id="productName" placeholder="Product / Brand Name"><button id="submitButton" onclick="loadProduct(document.getElementById('productName').value)">Generate</button>
+
+        <nav id="navbar" class="chatContainer" style="display:none">
+            <div id="pageLogo" class="left-text"></div>
+            <div class="right-icon"><i class="material-icons">account_circle</i></div>
+        </nav>
 
         <div class="intro">
             <h1 id="hi"></h1>
@@ -28,6 +33,11 @@
             <button id="sendButton" class="search-button" type="button" onclick="generateText(document.getElementById('userInput').value)">
               <i class="material-icons">send</i>
             </button>
+        </div>
+        <br>
+
+        <div class="chatContainer">
+            <button id="clearButton" onclick="clearConversation()" style="margin-bottom:12px;color:#bdbdbd;background-color: white;border:none;float:right;font-size: 14px;display:none;">Clear</button>
         </div>
         <br>
 
