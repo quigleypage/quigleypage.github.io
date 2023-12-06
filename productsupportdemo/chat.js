@@ -11,6 +11,7 @@ function loadProduct(p){
   document.getElementById('submitButton').style.display = "none";
   messageArray.push({role: "system", content: "You are a helpful live chat representative that supports " + productName + ". If you do not know the answer to a question, give it your best guess."});
   document.getElementById('searchBar').style.display = "flex";
+  document.getElementById('trendingArticles').style.display = "block";
   typeWriter();
 }
 
