@@ -4,6 +4,12 @@ var speed = 50; /* The speed/duration of the effect in milliseconds */
 var hitxt = "Welcome to " + productName + " Support"; /* The text */
 messageArray = [];
 
+urlParams = new URL(window.location.toLocaleString()).searchParams;
+urlProduct = urlParams.get('p');
+if(urlProduct != null){
+  loadProduct(urlProduct);
+}
+
 function loadProduct(p){
   productName = p;
   hitxt = "Welcome to " + productName + " Support"; /* The text */
