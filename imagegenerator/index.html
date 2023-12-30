@@ -1,0 +1,47 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Karla&family=Roboto:wght@300&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="chat.css">
+
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+        <title>Kevin Quigley</title>
+
+    </head>
+
+    <body class="all" onload="typeWriter()">
+
+        <div class="intro">
+            <img class="profileimg" src="Q.jpeg"><div style="font-size:24px;padding-top:6px;" id="hi">I</div><br><br>
+            <button id="squareButton" class="orientation-buttons" onclick="squareSelected()" style="background-color:#C3B1E1"><i class="material-icons">crop_square</i></button>
+            <button id="portraitButton" class="orientation-buttons" onclick="portraitSelected()"><i class="material-icons">crop_portrait</i></button>
+            <button id="landscapeButton" class="orientation-buttons" onclick="landscapeSelected()"><i class="material-icons">crop_landscape</i></button>
+
+        </div>
+        <br>
+
+        <div class="search-bar">
+            <input id="userInput" class="search-input" type="text" placeholder="Describe the image you want to create..." autocomplete="off">
+            <button id="sendButton" class="search-button" type="button" onclick="generateText(document.getElementById('userInput').value)">
+              <i class="material-icons">send</i>
+            </button>
+        </div>
+        <br>
+
+        <div class="chatContainer" style="padding-bottom:6px;">
+            <button id="clearButton" onclick="clearConversation()" style="color:#bdbdbd;background-color: white;border:none;float:right;font-size: 14px;display:none;">Clear</button>
+        </div>
+        <br>
+
+        <div id="AIResponse" class="chatContainer"></div>
+
+       
+    </body>
+    <script src="chat.js"></script>
+
+</html>
