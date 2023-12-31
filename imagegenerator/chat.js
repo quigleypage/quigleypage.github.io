@@ -85,21 +85,100 @@ input.addEventListener("keypress", function(event) {
 });
 
 
-function squareSelected(){
-  document.getElementById("portraitButton").style.backgroundColor = "#DDDDDD";
-  document.getElementById("landscapeButton").style.backgroundColor = "#DDDDDD";
-  document.getElementById("squareButton").style.backgroundColor = "#C3B1E1";
-  option = -4;
+function updateGeneration(choice){
+  if(choice=='sd'){
+    document.getElementById("sdButton").style.backgroundColor = "#A7C7E7";
+    document.getElementById("hdButton").style.backgroundColor = "#DDDDDD";
+    document.getElementById("fhdButton").style.backgroundColor = "#DDDDDD";
+
+    document.getElementById("sdButtons").style.display = "block";
+    document.getElementById("hdButtons").style.display = "none";
+    document.getElementById("fhdButtons").style.display = "none";
+
+    option = -2;
+    document.getElementById("256Button").style.backgroundColor = "#DDDDDD";
+    document.getElementById("512Button").style.backgroundColor = "#C3B1E1";
+    document.getElementById("1024Button").style.backgroundColor = "#DDDDDD";
+  }
+  else if(choice=='hd'){
+    document.getElementById("sdButton").style.backgroundColor = "#DDDDDD";
+    document.getElementById("hdButton").style.backgroundColor = "#A7C7E7";
+    document.getElementById("fhdButton").style.backgroundColor = "#DDDDDD";
+
+    document.getElementById("sdButtons").style.display = "none";
+    document.getElementById("hdButtons").style.display = "inline-block";
+    document.getElementById("fhdButtons").style.display = "none";
+
+    option = -4;
+    document.getElementById("squareButton").style.backgroundColor = "#C3B1E1";
+    document.getElementById("portraitButton").style.backgroundColor = "#DDDDDD";
+    document.getElementById("landscapeButton").style.backgroundColor = "#DDDDDD";
+  }
+  else if(choice=='fhd'){
+    document.getElementById("sdButton").style.backgroundColor = "#DDDDDD";
+    document.getElementById("hdButton").style.backgroundColor = "#DDDDDD";
+    document.getElementById("fhdButton").style.backgroundColor = "#A7C7E7";
+
+    document.getElementById("sdButtons").style.display = "none";
+    document.getElementById("hdButtons").style.display = "none";
+    document.getElementById("fhdButtons").style.display = "inline-block";
+
+    option = -7;
+    document.getElementById("squareHDButton").style.backgroundColor = "#C3B1E1";
+    document.getElementById("portraitHDButton").style.backgroundColor = "#DDDDDD";
+    document.getElementById("landscapeHDButton").style.backgroundColor = "#DDDDDD";
+  }
+  console.log(option);
 }
-function portraitSelected(){
-  document.getElementById("squareButton").style.backgroundColor = "#DDDDDD";
-  document.getElementById("landscapeButton").style.backgroundColor = "#DDDDDD";
-  document.getElementById("portraitButton").style.backgroundColor = "#C3B1E1";
-  option = -5;
-}
-function landscapeSelected(){
-  document.getElementById("squareButton").style.backgroundColor = "#DDDDDD";
-  document.getElementById("portraitButton").style.backgroundColor = "#DDDDDD";
-  document.getElementById("landscapeButton").style.backgroundColor = "#C3B1E1";
-  option = -6;
+
+function updateModel(choice){
+  option = choice;
+  if(option == -1){
+    document.getElementById("256Button").style.backgroundColor = "#C3B1E1";
+    document.getElementById("512Button").style.backgroundColor = "#DDDDDD";
+    document.getElementById("1024Button").style.backgroundColor = "#DDDDDD";
+  }
+  else if(option == -2){
+    document.getElementById("256Button").style.backgroundColor = "#DDDDDD";
+    document.getElementById("512Button").style.backgroundColor = "#C3B1E1";
+    document.getElementById("1024Button").style.backgroundColor = "#DDDDDD";
+  }
+  else if(option == -3){
+    document.getElementById("256Button").style.backgroundColor = "#DDDDDD";
+    document.getElementById("512Button").style.backgroundColor = "#DDDDDD";
+    document.getElementById("1024Button").style.backgroundColor = "#C3B1E1";
+  }
+
+  else if(option == -4){
+    document.getElementById("squareButton").style.backgroundColor = "#C3B1E1";
+    document.getElementById("portraitButton").style.backgroundColor = "#DDDDDD";
+    document.getElementById("landscapeButton").style.backgroundColor = "#DDDDDD";
+  }
+  else if(option == -5){
+    document.getElementById("squareButton").style.backgroundColor = "#DDDDDD";
+    document.getElementById("portraitButton").style.backgroundColor = "#C3B1E1";
+    document.getElementById("landscapeButton").style.backgroundColor = "#DDDDDD";
+  }
+  else if(option == -6){
+    document.getElementById("squareButton").style.backgroundColor = "#DDDDDD";
+    document.getElementById("portraitButton").style.backgroundColor = "#DDDDDD";
+    document.getElementById("landscapeButton").style.backgroundColor = "#C3B1E1";
+  }
+
+  else if(option == -7){
+    document.getElementById("squareHDButton").style.backgroundColor = "#C3B1E1";
+    document.getElementById("portraitHDButton").style.backgroundColor = "#DDDDDD";
+    document.getElementById("landscapeHDButton").style.backgroundColor = "#DDDDDD";
+  }
+  else if(option == -8){
+    document.getElementById("squareHDButton").style.backgroundColor = "#DDDDDD";
+    document.getElementById("portraitHDButton").style.backgroundColor = "#C3B1E1";
+    document.getElementById("landscapeHDButton").style.backgroundColor = "#DDDDDD";
+  }
+  else if(option == -9){
+    document.getElementById("squareHDButton").style.backgroundColor = "#DDDDDD";
+    document.getElementById("portraitHDButton").style.backgroundColor = "#DDDDDD";
+    document.getElementById("landscapeHDButton").style.backgroundColor = "#C3B1E1";
+  }
+  console.log(option);
 }

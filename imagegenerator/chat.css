@@ -117,11 +117,22 @@ h2{
   color: #bdbdbd;
 }
 
-.orientation-buttons{
+.model-buttons{
   border: none;
   border-radius: 50%;
   padding: 8px;
   background-color: #DDDDDD;
+}
+.model-buttons:hover{
+  background-color: #CCCCCC;
+}
+
+.orientation-buttons{
+  border: none;
+  border-radius: 6px;
+  padding: 8px;
+  background-color: #DDDDDD;
+  font-size:14px;
 }
 .orientation-buttons:hover{
   background-color: #CCCCCC;
