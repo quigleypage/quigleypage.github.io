@@ -1,7 +1,7 @@
 productName = "Quigley+";
 var i = 0;
 var speed = 50; /* The speed/duration of the effect in milliseconds */
-var hitxt = "Welcome to " + productName + " Support"; /* The text */
+var hitxt = "elcome to " + productName + " Support"; /* The text */
 messageArray = [];
 
 urlParams = new URL(window.location.toLocaleString()).searchParams;
@@ -12,7 +12,7 @@ if(urlProduct != null){
 
 function loadProduct(p){
   productName = p;
-  hitxt = "Welcome to " + productName + " Support"; /* The text */
+  hitxt = "elcome to " + productName + " Support"; /* The text */
   document.getElementById('productName').style.display = "none";
   document.getElementById('submitButton').style.display = "none";
   messageArray.push({role: "system", content: "You are a helpful live chat representative that supports " + productName + ". If you do not know the answer to a question, give it your best guess."});
@@ -20,6 +20,7 @@ function loadProduct(p){
   document.getElementById('trendingArticles').style.display = "block";
   document.getElementById('pageLogo').innerHTML = "<b>" + productName + "</b>";
   document.getElementById('navbar').style.display = "flex";
+  document.getElementById("hi").style.display = "block";
   typeWriter();
 }
 

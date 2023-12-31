@@ -1,4 +1,4 @@
-option = -2;
+option = -4;
 
 var i = 0;
 var speed = 50; /* The speed/duration of the effect in milliseconds */
