@@ -22,9 +22,9 @@
         <div class="intro">
             <img class="profileimg" src="Q.jpeg"><div style="font-size:24px;padding-top:6px;" id="hi">I</div><br><br>
 
-            <button id="sdButton" class="model-buttons" onclick="updateGeneration('sd')"><i class="material-symbols-outlined">sd</i></button>
-            <button id="hdButton" class="model-buttons" onclick="updateGeneration('hd')" style="background-color:#A7C7E7"><i class="material-symbols-outlined">hd</i></button>
-            <button id="fhdButton" class="model-buttons" onclick="updateGeneration('fhd')"><i class="material-symbols-outlined">full_hd</i></button>
+            <button id="sdButton" class="model-buttons" onclick="updateGeneration('sd')"><i class="material-symbols-outlined">looks_two</i></button>
+            <button id="hdButton" class="model-buttons" onclick="updateGeneration('hd')" style="background-color:#A7C7E7"><i class="material-symbols-outlined">looks_3</i></button>
+            <button id="fhdButton" class="model-buttons" onclick="updateGeneration('fhd')"><i class="material-symbols-outlined">hd</i></button>
 
             <span id="hdButtons" style="display: inline-block;">
                 <button id="squareButton" class="orientation-buttons" onclick="updateModel(-4)" style="background-color:#C3B1E1"><i class="material-icons">crop_square</i></button>
@@ -38,8 +38,7 @@
                 <button id="landscapeHDButton" class="orientation-buttons" onclick="updateModel(-9)"><i class="material-icons">crop_landscape</i></button>
             </span>
 
-            <span id="sdButtons" style="display: none;">
-                <br>
+            <span id="sdButtons" style="display: none;padding-top: 8px;">
                 <button id="256Button" class="orientation-buttons" onclick="updateModel(-1)"><b>256</b></button>
                 <button id="512Button" class="orientation-buttons" onclick="updateModel(-2)" style="background-color:#C3B1E1"><b>512</b></button>
                 <button id="1024Button" class="orientation-buttons" onclick="updateModel(-3)"><b>1024</b></button>
