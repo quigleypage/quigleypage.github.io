@@ -37,7 +37,7 @@ function fadeOut() {
 
 async function generateText(prompt) {
     document.getElementById('sendButton').disabled = true;
-    document.getElementById('sendButton').innerHTML = '<div id="spinner" class="lds-default"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>'
+    document.getElementById('sendButton').innerHTML = '<div id="spinner" class="lds-default"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>';
     document.getElementById('userInput').disabled = true;
     document.getElementById('clearButton').disabled = true;
     if (navigator.userAgent.match(/(iPhone|Android|BlackBerry|Windows Phone)/)) {
@@ -62,7 +62,7 @@ async function generateText(prompt) {
         document.getElementById('userInput').disabled = false;
         document.getElementById('sendButton').disabled = false;
         document.getElementById('clearButton').disabled = false;
-        document.getElementById('sendButton').innerHTML = '<i class="material-icons">send</i>'
+        document.getElementById('sendButton').innerHTML = '<i class="material-icons">send</i>';
 
     } catch (error) {
         console.error(error);
