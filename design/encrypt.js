@@ -127,7 +127,7 @@ function decrypt(e){
             decryptedResult += inverseKeyboardMapping[code];
         } else {
             // Handle unmapped codes (e.g., "XX")
-            decryptedResult += "";
+            decryptedResult += " ";
         }
     }
     console.log("Decrypted term:", decryptedResult);
