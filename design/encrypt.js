@@ -93,6 +93,7 @@ const keyboardMapping = {
     "<": "92",
     "z": "93",
     "U": "94",
+    " ": "95",
 };
 
 // Create the inverse mapping for decryption
