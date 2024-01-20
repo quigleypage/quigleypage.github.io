@@ -7,7 +7,7 @@ async function generateText(prompt) {
         document.getElementById('userInput').disabled = true;
         document.getElementById('sendButton').disabled = true;
         document.getElementById('sendButton').innerHTML = '<div id="spinner" class="lds-default"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>';
-        document.getElementById("AIResponse").innerHTML += '<button id="' + htmlArray.length + '" name="' + htmlArray.length + '" class="accordion" disabled>' + prompt + '</button><div class="panel"><button name="' + htmlArray.length + '" class="card-buttons" onclick="viewVersion(name)"><i class="material-icons">visibility</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="popOut(name)"><i class="material-icons">open_in_new</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="copyCode(name)"><i class="material-icons">content_copy</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="downloadCode(name)"><i class="material-icons">file_download</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="shareCode(name)"><i class="material-icons">share</i></button></div>';
+        document.getElementById("AIResponse").innerHTML += '<button id="' + htmlArray.length + '" name="' + htmlArray.length + '" class="accordion" disabled>' + prompt + '</button><div class="panel"><button name="' + htmlArray.length + '" class="card-buttons" onclick="viewVersion(name)"><i class="material-icons">visibility</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="pinDesign(name)"><i class="material-icons">push_pin</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="popOut(name)"><i class="material-icons">open_in_new</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="copyCode(name)"><i class="material-icons">content_copy</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="downloadCode(name)"><i class="material-icons">file_download</i></button><button name="' + htmlArray.length + '" class="card-buttons" onclick="shareCode(name)"><i class="material-icons">share</i></button></div>';
         document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
         //document.getElementById("logo").style.animation = "load 1s linear infinite";
         //document.getElementById("logo").style.animation = "load 1s cubic-bezier(.17,.67,.83,.67) infinite";
@@ -31,7 +31,7 @@ async function generateText(prompt) {
             document.getElementById(String(htmlArray.length)).disabled = false; // this has to go here before the length increments; this means it will still disabled if errors occur
             htmlArray.push(botResponse);
             
-            messageArray.push({role: "assistant", content: botResponse})
+            messageArray.push({role: "assistant", content: botResponse});
             document.getElementById("botCanvas").innerHTML = botResponse;
             document.getElementById("errorLine").innerHTML = "";
 
@@ -69,6 +69,12 @@ async function generateText(prompt) {
 function viewVersion(name){
     version = parseInt(name);
     document.getElementById("botCanvas").innerHTML = htmlArray[version];
+}
+
+function pinDesign(name){
+    version = parseInt(name);
+    encryptedHTML = encrypt(htmlArray[version]);
+    window.open('https://quigley.page/design/?c=' + encryptedHTML, '_blank');
 }
 
 function popOut(name){

@@ -53,10 +53,25 @@
 </html>
 
 <script>
-    pathSearch = location.search;
+
+    const urlParams = new URL(window.location.toLocaleString()).searchParams;
+
+    pathSearch = "";
+    if(urlParams.get('s') != null)
+        pathSearch = urlParams.get('s');
     if(pathSearch != ""){
-        urlPrompt = pathSearch.split("=")[1];
-        urlPrompt = urlPrompt.replaceAll("_", " ")
+        urlPrompt = pathSearch.replaceAll("_", " ");
         generateText(urlPrompt);
+    }
+
+    text = "";
+    if(urlParams.get('c') != null)
+        text = urlParams.get('c');
+    if(text != ""){
+        decryptedText = decrypt(text);
+        document.getElementById("botCanvas").innerHTML = decryptedText;
+        document.getElementById("canvasParent").style.display = "block";
+        document.getElementById("userInput").placeholder = "Describe desired adjustments...";
+        messageArray.push({role: "system", content: "Here is the initial code that you will be adjusting:\n\n" + decryptedText});
     }
 </script>
