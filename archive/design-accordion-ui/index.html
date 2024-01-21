@@ -7,7 +7,6 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
         <link rel="stylesheet" href="chat.css">
 
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
@@ -17,27 +16,12 @@
 
     <body style="background-color: #05040A;">
         <div class="q-ai-navbar">
-            <img id="logo" class="q-design-logo" src="Q.png"><h1 class="q-ai-pageTitle">Web Designer</h1>
+            <img id="logo" class="logo" src="Q.png"><h1 class="q-ai-pageTitle">Web Designer</h1>
         </div>
         <hr>
 
         <div id="AIResponse" class="chatContainer">
-
-            <div id="optionsMenu" class="q-design-dropdown" style="display: none;">
-                <button class="q-design-optionsMenuButton" onclick="viewOptions()"><span class="material-symbols-outlined">more_horiz</span></button>
-                <div id="optionsMenuContent" class="q-design-dropdown-content">
-                  <button class="q-design-dropdown-buttons" onclick="pinDesign()">Pin for Later</button>
-                  <button class="q-design-dropdown-buttons" onclick="popOut()">Pop Out</button>
-                  <button class="q-design-dropdown-buttons" onclick="copyCode()">Copy Code</button>
-                  <button class="q-design-dropdown-buttons" onclick="downloadCode()">Download Code</button>
-                  <button class="q-design-dropdown-buttons" onclick="shareCode()">Share Code</button>
-                </div>
-            </div>
-            <br><br>
-            <div id="canvasParent" class="bot-message-card" style="display:none;">
-                <div class="message" id="errorLine" style="color:red;"></div>
-                <div class="message" id="botCanvas"></div>
-            </div>
+            <div id="canvasParent" class="bot-message-card" style="display:none;"><div class="message" id="errorLine" style="color:red;"></div><div class="message" id="botCanvas"></div></div>
             
             <!-- <button class="accordion">a submit button</button>
                 <div class="panel">

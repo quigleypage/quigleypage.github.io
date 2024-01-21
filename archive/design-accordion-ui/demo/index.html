@@ -1,0 +1,24 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Q Web Designer - Demo</title>
+    </head>
+
+    <body>
+        
+        <div id="insertCodeHere"></div>
+
+    </body>
+
+</html>
+
+<script src="../encrypt.js"></script>
+<script>
+    const urlParams = new URL(window.location.toLocaleString()).searchParams;
+    const text = urlParams.get('c');
+    //text = "`1234567890-=";
+    //encryptedText = encrypt(text);
+    //decryptedText = decrypt(encryptedText);
+    decryptedText = decrypt(text);
+    document.getElementById("insertCodeHere").innerHTML = decryptedText;
+</script>
