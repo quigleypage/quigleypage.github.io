@@ -15,8 +15,8 @@
   display: none;
   position: absolute;
   right: 0;
-  background-color: #e0e0e0;
-  width: 140px;
+  background-color: #f0f0f0;
+  width: 150px;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
   z-index: 1;
 }
@@ -30,9 +30,9 @@
   color: black;
   text-decoration: none;
   display: block;
-  width: 140px;
-  padding-top: 6px;
-  padding-bottom: 6px;
+  width: 150px;
+  padding-top: 8px;
+  padding-bottom: 8px;
   text-align: left;
   background: none;
 }
