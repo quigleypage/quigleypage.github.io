@@ -23,6 +23,11 @@
 
         <div id="AIResponse" class="chatContainer">
 
+            <div id="canvasParent" class="bot-message-card" style="display:none;">
+                <div class="message" id="errorLine" style="color:red;"></div>
+                <div class="message" id="botCanvas"></div>
+            </div>
+            
             <div id="optionsMenu" class="q-design-dropdown" style="display: none;">
                 <button class="q-design-optionsMenuButton" onclick="viewOptions()"><span class="material-symbols-outlined">more_horiz</span></button>
                 <div id="optionsMenuContent" class="q-design-dropdown-content">
@@ -33,12 +38,6 @@
                   <button class="q-design-dropdown-buttons" onclick="shareCode()">Share Code</button>
                 </div>
             </div>
-            <br><br>
-            <div id="canvasParent" class="bot-message-card" style="display:none;">
-                <div class="message" id="errorLine" style="color:red;"></div>
-                <div class="message" id="botCanvas"></div>
-            </div>
-            
 
         </div>
         
