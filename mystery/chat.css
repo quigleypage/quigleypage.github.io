@@ -18,6 +18,17 @@
     cursor: not-allowed;
   }
 
+.q-download-button{
+    margin-left: auto;
+    padding: 4px;
+    padding-left: 16px;
+    background-color: #05040A;
+    border-width: 0px;
+    height: 54px;
+    display: none;
+}
+
+
 .chatContainer{
     height: 76%;
     overflow-y:auto;
@@ -96,6 +107,23 @@
     100% {
         transform: rotate(360deg) scale(0.5);
     }
+}
+
+.q-suggested-themes{
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    border-radius: 24px;
+    border-width: 0px;
+    padding: 12px;
+    margin-right: 4px;
+    margin-bottom: 8px;
+    background-color: white;
+}
+.q-suggested-themes:hover{
+    background-color: #bdbdbd;
+}
+.q-suggested-themes:active{
+    background-color: #888888;
 }
 
 .q-message-textarea{

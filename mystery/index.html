@@ -19,6 +19,7 @@
 
     <div class="q-ai-navbar">
         <img id="logo" class="logo" src="QM.png"><h1 class="q-ai-pageTitle">Murder Mystery</h1>
+        <button id="downloadButton" class="q-download-button" onclick="downloadText()"><i style="color:white;" class="material-icons right">download_for_offline</i></button>
     </div>
     <hr>
 
@@ -28,10 +29,18 @@
     <div id="fixed-input">
         <hr>
 
-        <textarea id="userInput" class="q-message-textarea" placeholder="Enter a theme to get started"></textarea>
+        <div id="suggestedThemes">
+            <button id="buttonA" class="q-suggested-themes"><b>haunted mansion</b></button><button id="buttonB" class="q-suggested-themes"><b>haunted mansion</b></button><button id="buttonC" class="q-suggested-themes"><b>haunted mansion</b></button>
+        </div>
+
+        <textarea id="userInput" class="q-message-textarea" placeholder="Select or enter a theme to get started"></textarea>
         <button id="sendButton" class="q-message-send-button" onclick="generateText(document.getElementById('userInput').value)"><i style="color:white;" class="material-icons right">play_circle</i></button>
     </div>
     
     </body>
 
 </html>
+
+<script>
+    document.getElementById('suggestedThemes').innerHTML = '<button id="buttonA" class="q-suggested-themes" onclick="generateText(\'' + randomThemes[0] + '\')"><b>' + randomThemes[0] + '</b></button><button id="buttonB" class="q-suggested-themes" onclick="generateText(\'' + randomThemes[1] + '\')"><b>' + randomThemes[1] + '</b></button><button id="buttonC" class="q-suggested-themes" onclick="generateText(\'' + randomThemes[2] + '\')"><b>' + randomThemes[2] + '</b></button>';
+</script>
