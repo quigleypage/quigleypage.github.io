@@ -59,7 +59,7 @@ async function generateText(prompt) {
             document.getElementById('arrowDown').style.display = "block";
             setTimeout(function() {
                 document.getElementById('arrowDown').style.display = "none";
-              }, 4000);
+              }, 6000);
         }
 
     } catch (error) {

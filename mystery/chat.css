@@ -220,8 +220,8 @@
 
   .arrow-down {
     position: absolute;
-    top: calc(75vh);
-    left: calc(50% - 19px);
+    top: calc(70vh);
+    left: calc(50% - 31px);
     border: 1px solid;
     border-color: #E0E0E0;
     border-radius: 24px;
