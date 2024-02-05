@@ -220,16 +220,19 @@
 
   .arrow-down {
     position: absolute;
-    top: calc(70vh);
-    left: calc(50% - 18px);
-    border: 0px solid;
-    border-radius: 16px;
-    animation: jumpInfinite 1.5s infinite;
+    top: calc(75vh);
+    left: calc(50% - 19px);
+    border: 1px solid;
+    border-color: #E0E0E0;
+    border-radius: 24px;
+    animation: jumpInfinite 2s infinite;
     animation-timing-function: ease-in-out;
     color: black;
-    background-color: #ccb6ff;
+    background-color: #F0F0F0;
     text-align: center;
     display: none;
+    opacity: 100%;
+    box-shadow: 0px 4px 4px #010101;
   }
   
   @keyframes jumpInfinite {
@@ -237,7 +240,7 @@
       margin-top: 0;
     }
     50% {
-      margin-top: 20px;
+      margin-top: 12px;
     }
     100% {
       margin-top: 0;

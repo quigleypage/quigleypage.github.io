@@ -55,11 +55,11 @@ async function generateText(prompt) {
         document.getElementById('userInput').placeholder = "Respond";
         document.getElementById('userInput').disabled = false;
         document.getElementById('downloadButton').style.display = "block";
-        if(document.getElementById("AIResponse").scrollTop != document.getElementById("AIResponse").scrollHeight){
+        if(document.getElementById("AIResponse").scrollTop != document.getElementById("AIResponse").scrollHeight && messageArray.length > 2){
             document.getElementById('arrowDown').style.display = "block";
             setTimeout(function() {
                 document.getElementById('arrowDown').style.display = "none";
-              }, 3000);
+              }, 4000);
         }
 
     } catch (error) {
