@@ -64,7 +64,7 @@ async function generateText(prompt) {
 
 function downloadText(){
     const data = transcriptText;
-    const blob = new Blob([data], { type: 'text/html' });
+    const blob = new Blob([data], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
 
     // Get the current date and time

@@ -23,8 +23,9 @@
     </div>
     <hr>
 
-    <div id="introText" class="q-intro-text"><br><br><br>Thank goodness you're here.<br><br>There's just been a tragic crime, and you're the only one that can solve it.</div>
-    <div id="AIResponse" class="chatContainer"></div>
+    <div id="AIResponse" class="chatContainer">
+        <div id="introText" class="q-intro-text"><br><br><br>Thank goodness you're here.<br><br>There's just been a tragic crime, and you're the only one that can solve it.</div>
+    </div>
 
     <div id="fixed-input">
         <hr>
@@ -37,6 +38,8 @@
         <button id="sendButton" class="q-message-send-button" onclick="generateText(document.getElementById('userInput').value)"><i style="color:white;" class="material-icons right">play_circle</i></button>
     </div>
     
+    <i id="downArrow" class="arrow-down"></i>
+
     </body>
 
 </html>
