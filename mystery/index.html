@@ -46,4 +46,8 @@
 
 <script>
     document.getElementById('suggestedThemes').innerHTML = '<button id="buttonA" class="q-suggested-themes" onclick="generateText(\'' + randomThemes[0] + '\')"><b>' + randomThemes[0] + '</b></button><button id="buttonB" class="q-suggested-themes" onclick="generateText(\'' + randomThemes[1] + '\')"><b>' + randomThemes[1] + '</b></button><button id="buttonC" class="q-suggested-themes" onclick="generateText(\'' + randomThemes[2] + '\')"><b>' + randomThemes[2] + '</b></button>';
+    
+    const urlParams = new URL(window.location.toLocaleString()).searchParams;
+    if(urlParams.get('m') != null)
+        model = parseInt(urlParams.get('m'));
 </script>
