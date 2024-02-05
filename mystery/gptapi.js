@@ -55,6 +55,12 @@ async function generateText(prompt) {
         document.getElementById('userInput').placeholder = "Respond";
         document.getElementById('userInput').disabled = false;
         document.getElementById('downloadButton').style.display = "block";
+        if(document.getElementById("AIResponse").scrollTop != document.getElementById("AIResponse").scrollHeight){
+            document.getElementById('arrowDown').style.display = "block";
+            setTimeout(function() {
+                document.getElementById('arrowDown').style.display = "none";
+              }, 3000);
+        }
 
     } catch (error) {
         console.error(error);

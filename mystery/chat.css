@@ -221,30 +221,15 @@
   .arrow-down {
     position: absolute;
     top: calc(70vh);
-    left: calc(50% - 14px);
-    width: 0;
-    height: 30px;
-    border: 2px solid;
-    border-radius: 2px;
+    left: calc(50% - 18px);
+    border: 0px solid;
+    border-radius: 16px;
     animation: jumpInfinite 1.5s infinite;
     animation-timing-function: ease-in-out;
-    margin-left: 0px;
-    margin-top: 5px;
-    color: #664676;
+    color: black;
+    background-color: #ccb6ff;
+    text-align: center;
     display: none;
-  }
-  
-  .arrow-down:after {
-    content: " ";
-    position: absolute;
-    top: 12px;
-    left: -10px;
-    width: 16px;
-    height: 16px;
-    border-bottom: 4px solid;
-    border-right: 4px solid;
-    border-radius: 4px;
-    transform: rotateZ(45deg);
   }
   
   @keyframes jumpInfinite {
