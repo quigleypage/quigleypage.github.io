@@ -9,10 +9,7 @@ async function generateText(prompt) {
     document.getElementById("logo").style.animation = "load 1s linear infinite";
     document.getElementById("initialSelections").style.display = "none";
 
-    if(document.getElementById("GPT4").checked == true){
-        model = 4;
-    }
-    else if(document.getElementById("GPT4T").checked == true){
+    if(document.getElementById("GPT4T").checked == true){
         model = 5;
     }
     if(document.getElementById("systemPrompt").value != ""){
