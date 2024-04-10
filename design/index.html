@@ -73,4 +73,8 @@
         document.getElementById("userInput").placeholder = "Describe desired adjustments...";
         messageArray.push({role: "system", content: "Here is the initial code that you will be adjusting:\n\n" + decryptedText});
     }
+
+    if(urlParams.get('m') != null)
+        model = parseInt(urlParams.get('m'));
+
 </script>

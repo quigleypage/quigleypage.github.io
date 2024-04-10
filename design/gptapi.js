@@ -1,6 +1,7 @@
 messageArray = [{role: "system", content: "You are a design assistant that generates HTML code, including style tags, for the user's described component. Wrap any CSS code in style tags within the HTML. Define custom classes instead of using generic tags that may conflict with existing page elements.  In your responses, only provide code. Do not include any introductory commentary, code explanations, or elaborations at any point in the conversation."}];
 htmlArray = [];
 let currentView = 0;
+model = 3;
 
 async function generateText(prompt) {
     if(prompt != ""){
@@ -17,7 +18,7 @@ async function generateText(prompt) {
         }
         messageArray.push({role: "user", content: prompt});
         try {
-            encodedMessageArray = { promptText: messageArray, version: 3 };
+            encodedMessageArray = { promptText: messageArray, version: model };
             const response = await axios.post('https://gpt-test-app.herokuapp.com/generate-text', encodedMessageArray, {
                 headers: {
                 'Content-Type': 'application/json'
@@ -26,6 +27,7 @@ async function generateText(prompt) {
             botResponse = response.data.text;
             console.log("Raw Response:");
             console.log(botResponse);
+            botResponse = botResponse.replaceAll("```html", "");
             botResponse = botResponse.replaceAll("```", "");
             console.log("Cleaned Response:");
             console.log(botResponse);
