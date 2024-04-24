@@ -1,0 +1,69 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Karla&family=Roboto:wght@300&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="chat.css">
+
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script src="gptapi.js"></script>
+        <script src="encrypt.js"></script>
+
+        <title>Q Assistants</title>
+
+    </head>
+
+    <body style="background-color: #05040A;">
+
+    <div class="q-ai-navbar">
+        <img id="logo" class="logo" src="Q.png"><h1 id="assistantName" class="q-ai-pageTitle">Assistants</h1>
+        <button id="downloadButton" class="q-download-button" onclick="downloadText()"><i style="color:white;" class="material-icons right">download_for_offline</i></button>
+    </div>
+    <hr>
+
+    <div id="AIResponse" class="chatContainer">
+        <div id="introText" class="q-intro-text"></div>
+    </div>
+
+    <div id="fixed-input">
+        <hr>
+
+        <div id="suggestedThemes"></div>
+
+        <textarea id="userInput" class="q-message-textarea" placeholder="Send a message to get started"></textarea>
+        <button id="sendButton" class="q-message-send-button" onclick="generateText(document.getElementById('userInput').value)"><i style="color:white;" class="material-icons right">send</i></button>
+    </div>
+    
+    <button id="arrowDown" class="arrow-down" onclick="document.getElementById('AIResponse').scrollTop = scrollHeightTracker;document.getElementById('arrowDown').style.display = 'none';"><span class="material-icons">mark_unread_chat_alt</span><span class="material-icons">keyboard_arrow_down</span></button>
+
+    </body>
+
+</html>
+
+<script>
+   
+    const urlParams = new URL(window.location.toLocaleString()).searchParams;
+    if(urlParams.get('n') != null){
+        document.getElementById('assistantName').innerHTML = decrypt(urlParams.get('n'));
+        transcriptText += decrypt(urlParams.get('n')) + "\n====================\n-------\n\n";
+    }
+    if(urlParams.get('m') != null)
+        model = parseInt(urlParams.get('m'));
+    if(urlParams.get('i') != null)
+        document.getElementById('introText').innerHTML = "<br><br><br>" + decrypt(urlParams.get('i'));
+    if(urlParams.get('p') != null)
+        messageArray.push({role: "system", content: decrypt(urlParams.get('p'))});
+    if(urlParams.get('s') != null){
+        rawSuggestedPromptList = decrypt(urlParams.get('s'));
+        suggestedPromptArray = rawSuggestedPromptList.split(';');
+        for(var i = 0; i < suggestedPromptArray.length; i++){
+            if(i!=0)
+                document.getElementById('suggestedThemes').innerHTML += "<br>";
+            document.getElementById('suggestedThemes').innerHTML += '<button class="q-suggested-themes" onclick="updateMessageBox(\'' + suggestedPromptArray[i] + '\')"><b>' + suggestedPromptArray[i] + '</b></button>';
+        }
+    }
+
+</script>
