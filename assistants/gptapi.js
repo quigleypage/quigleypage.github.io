@@ -3,6 +3,7 @@ model = 3;
 transcriptText = "Q Assistants\n";
 suggestedThemes = ["haunted mansion", "ghosts", "paranormal", "cruise", "ship", "pirates", "treasure", "ski resort", "avalanche", "survival", "medieval castle", "knights", "betrayal", "space station", "aliens", "sabotage", "tropical island", "cult", "sacrifice", "train", "espionage", "assassination", "circus", "clowns", "museum", "art", "theft", "hospital", "doctors", "poison", "library", "books", "codes", "zoo", "animals", "escape", "school", "teachers", "blackmail", "casino", "gamblers", "debt", "farm", "crops", "arson", "aquarium", "shark", "bakery", "cupcakes", "forest", "camping", "hunting", "hotel", "wedding", "bride", "groom", "airport", "flight", "bomb", "airplane", "submarine", "mutiny", "lighthouse", "storm", "cooking", "rock and roll", "Europe", "cowboys", "dinosaurs", "time travel", "science fiction", "history"];
 scrollHeightTracker = 0;
+botName = "Q";
 
 let randomThemes = [];
 while (randomThemes.length < 3) {
@@ -44,9 +45,9 @@ async function generateText(prompt) {
         messageArray.push({role: "assistant", content: botResponse})
         botResponseCleaned = botResponse.replace(/\n/g, "<br />");
         scrollHeightTracker = document.getElementById("AIResponse").scrollHeight;
-        document.getElementById("AIResponse").innerHTML += '<div class="bot-message-card"><div class="sender-name">Q</div><div class="message">' + botResponseCleaned + '</div></div>';
+        document.getElementById("AIResponse").innerHTML += '<div class="bot-message-card"><div class="sender-name">' + botName + '</div><div class="message">' + botResponseCleaned + '</div></div>';
         //document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
-        transcriptText += "Q:\n" + botResponse + "\n\n-------\n\n";
+        transcriptText += botName + ":\n" + botResponse + "\n\n-------\n\n";
         document.getElementById('sendButton').innerHTML = '<i style="color:white;" class="material-icons right">send</i>';
         document.getElementById('sendButton').disabled = false;
         document.getElementById('userInput').placeholder = "Message";

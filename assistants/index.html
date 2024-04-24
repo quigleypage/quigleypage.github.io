@@ -47,9 +47,11 @@
    
     const urlParams = new URL(window.location.toLocaleString()).searchParams;
     if(urlParams.get('n') != null){
-        document.getElementById('assistantName').innerHTML = decrypt(urlParams.get('n'));
-        transcriptText += decrypt(urlParams.get('n')) + "\n====================\n-------\n\n";
+        botName = decrypt(urlParams.get('n'));
+        document.getElementById('assistantName').innerHTML = botName;
+        transcriptText += botName + "\n"; 
     }
+    transcriptText += "====================\n-------\n\n";
     if(urlParams.get('m') != null)
         model = parseInt(urlParams.get('m'));
     if(urlParams.get('i') != null)
