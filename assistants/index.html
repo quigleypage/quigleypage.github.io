@@ -49,7 +49,8 @@
     if(urlParams.get('n') != null){
         botName = decrypt(urlParams.get('n'));
         document.getElementById('assistantName').innerHTML = botName;
-        transcriptText += botName + "\n"; 
+        transcriptText += botName + "\n";
+        document.title = "Q - " + botName;
     }
     transcriptText += "====================\n-------\n\n";
     if(urlParams.get('m') != null)
