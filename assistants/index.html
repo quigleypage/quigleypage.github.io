@@ -20,7 +20,7 @@
 
     <div class="q-ai-navbar">
         <img id="logo" class="logo" src="Q.jpeg"><h1 id="assistantName" class="q-ai-pageTitle"></h1>
-        <button id="downloadButton" class="q-download-button" onclick="downloadText()"><i style="color: #C3B1E1;" class="material-icons right">download_for_offline</i></button>
+        <button id="downloadButton" class="q-download-button" onclick="downloadText()"><i style="color: #bdbdbd;" class="material-icons right">download_for_offline</i></button>
     </div>
     <hr>
 
@@ -40,38 +40,10 @@
         
     </div>
     
-    <button id="arrowDown" class="arrow-down" onclick="document.getElementById('AIResponse').scrollTop = scrollHeightTracker;document.getElementById('arrowDown').style.display = 'none';"><span class="material-icons">mark_unread_chat_alt</span><span class="material-icons">keyboard_arrow_down</span></button>
+    <button id="arrowDown" class="arrow-down" onclick="document.getElementById('AIResponse').scrollTop = scrollHeightTracker;document.getElementById('arrowDown').style.display = 'none';"><span class="material-icons">keyboard_arrow_down</span></button>
 
     </body>
 
 </html>
 
-<script>
-   
-    const urlParams = new URL(window.location.toLocaleString()).searchParams;
-    if(urlParams.get('n') != null){
-        botName = decrypt(urlParams.get('n'));
-        //document.getElementById('assistantName').innerHTML = botName;
-        transcriptText += botName + "\n";
-        document.title = "Q - " + botName;
-        hitxt = botName;
-        typeWriter();
-    }
-    transcriptText += "====================\n-------\n\n";
-    if(urlParams.get('m') != null)
-        model = parseInt(urlParams.get('m'));
-    if(urlParams.get('i') != null)
-        document.getElementById('introText').innerHTML = "<br><br><br>" + decrypt(urlParams.get('i'));
-    if(urlParams.get('p') != null)
-        messageArray.push({role: "system", content: decrypt(urlParams.get('p'))});
-    if(urlParams.get('s') != null){
-        rawSuggestedPromptList = decrypt(urlParams.get('s'));
-        suggestedPromptArray = rawSuggestedPromptList.split(';');
-        for(var i = 0; i < suggestedPromptArray.length; i++){
-            if(i!=0)
-                document.getElementById('suggestedThemes').innerHTML += "<br>";
-            document.getElementById('suggestedThemes').innerHTML += '<button class="q-suggested-themes" onclick="updateMessageBox(\'' + suggestedPromptArray[i] + '\')"><b>' + suggestedPromptArray[i] + '</b></button>';
-        }
-    }
-
-</script>
+<script src="postLoad.js"></script>
