@@ -22,7 +22,7 @@
     margin-left: auto;
     padding: 4px;
     padding-left: 16px;
-    background-color: #FFFFFF;
+    background-color: #05040A;
     border-width: 0px;
     height: 54px;
     display: none;
@@ -35,17 +35,17 @@
 }
 
 .user-message-card{
-    padding: 12px;
+    padding: 8px;
     background-color: #D0E0E8;
-    border-radius: 12px;
+    border-radius: 4px;
     text-align: right;
     margin-bottom: 8px;
 }
 
 .bot-message-card{
-    padding: 12px;
+    padding: 8px;
     background-color: #F1F4F4;
-    border-radius: 12px;
+    border-radius: 4px;
     margin-bottom: 8px;
     /*animation: fade-in 0.5s ease-in-out forwards;*/
 }
@@ -75,7 +75,6 @@
     display: block;
     margin-right: 12px;
     height: 48px;
-    border-radius: 50%;
     animation-name: spin-and-expand;
     animation-duration: 0.8s;
     animation-timing-function: ease-out;
@@ -101,14 +100,14 @@
     text-align: center;
     font-family: 'Roboto', sans-serif;
     font-size: 18pt;
-    color: #010101;
+    color: white;
 }
 
 .q-intro-text{
     text-align: center;
     font-family: 'Roboto', sans-serif;
     font-size: 24px;
-    color: #010101;
+    color: white;
 }
 
 @keyframes load {
@@ -129,7 +128,6 @@
     margin-right: 4px;
     margin-bottom: 8px;
     background-color: white;
-    border: 1px solid #bdbdbd;
 }
 .q-suggested-themes:hover{
     background-color: #bdbdbd;
@@ -259,45 +257,3 @@
     }
   }
   
-  .search-bar {
-    display: flex;
-    align-items: center;
-    border: 1px solid #bdbdbd;
-    /*border-radius: 4px;*/
-    border-radius: 24px;
-    overflow: hidden;
-    /*max-width: 750px;*/
-    margin: 0 auto;
-    padding: 4px;
-  }
-  
-  .search-input {
-    flex: 1;
-    border: none;
-    padding: 8px;
-    font-size: 16px;
-    font-family: 'Roboto', sans-serif;
-  }
-  
-  .search-input:focus{
-    outline: none;
-  }
-  .search-input:disabled{
-    background-color: white;
-  }
-  
-  .search-button {
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 8px;
-  }
-  
-  .search-button i {
-    color: #bdbdbd;
-  }
-
-  .search-button:active{
-    background-color: transparent;
-    opacity: 50%;
-  }

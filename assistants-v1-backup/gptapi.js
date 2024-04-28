@@ -21,17 +21,17 @@ async function generateText(prompt) {
     document.getElementById('userInput').placeholder = "One moment please...";
     document.getElementById('userInput').disabled = true;
 
+    if(messageArray.length == 1){
+        document.getElementById('introText').style.display = "none";
+        document.getElementById('suggestedThemes').style.display = "none";
+    }
+
     document.getElementById("AIResponse").innerHTML += '<div class="user-message-card"><div class="sender-name">You</div><div class="message">' + prompt + '</div></div>';
     messageArray.push({role: "user", content: prompt});
     transcriptText += "You:\n" + prompt + "\n\n-------\n\n";
     document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
     encodedMessageArray = { promptText: messageArray, version: model };
     console.log(encodedMessageArray);
-
-    if(messageArray.length >= 1){
-        document.getElementById('introText').style.display = "none";
-        document.getElementById('suggestedThemes').style.display = "none";
-    }
 
     try {
         const response = await axios.post('https://gpt-test-app.herokuapp.com/generate-text', encodedMessageArray, {
@@ -48,7 +48,7 @@ async function generateText(prompt) {
         document.getElementById("AIResponse").innerHTML += '<div class="bot-message-card"><div class="sender-name">' + botName + '</div><div class="message">' + botResponseCleaned + '</div></div>';
         //document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
         transcriptText += botName + ":\n" + botResponse + "\n\n-------\n\n";
-        document.getElementById('sendButton').innerHTML = '<i class="material-icons">send</i>';
+        document.getElementById('sendButton').innerHTML = '<i style="color:white;" class="material-icons right">send</i>';
         document.getElementById('sendButton').disabled = false;
         document.getElementById('userInput').placeholder = "Message";
         document.getElementById('userInput').disabled = false;
@@ -96,16 +96,4 @@ function downloadText(){
 
 function updateMessageBox(message){
     document.getElementById('userInput').value = message;
-}
-  
-
-var j = 0;
-var speed = 50; /* The speed/duration of the effect in milliseconds */
-var hitxt = ""; /* The text */
-function typeWriter() {
-if (j < hitxt.length) {
-    document.getElementById("assistantName").innerHTML += hitxt.charAt(j);
-    j++;
-    setTimeout(typeWriter, speed);
-}
 }

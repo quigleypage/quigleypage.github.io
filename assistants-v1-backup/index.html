@@ -16,11 +16,11 @@
 
     </head>
 
-    <body style="background-color: #FFFFFF;">
+    <body style="background-color: #05040A;">
 
     <div class="q-ai-navbar">
-        <img id="logo" class="logo" src="Q.jpeg"><h1 id="assistantName" class="q-ai-pageTitle"></h1>
-        <button id="downloadButton" class="q-download-button" onclick="downloadText()"><i style="color: #C3B1E1;" class="material-icons right">download_for_offline</i></button>
+        <img id="logo" class="logo" src="Q.png"><h1 id="assistantName" class="q-ai-pageTitle">Assistants</h1>
+        <button id="downloadButton" class="q-download-button" onclick="downloadText()"><i style="color:white;" class="material-icons right">download_for_offline</i></button>
     </div>
     <hr>
 
@@ -29,15 +29,12 @@
     </div>
 
     <div id="fixed-input">
+        <hr>
+
         <div id="suggestedThemes"></div>
-    
-        <div class="search-bar">
-            <textarea id="userInput" class="search-input" type="text" placeholder="Send a message to get started" autocomplete="off" rows="1"></textarea>
-            <button id="sendButton" class="search-button" type="button" onclick="generateText(document.getElementById('userInput').value)">
-              <i class="material-icons">send</i>
-            </button>
-        </div>
-        
+
+        <textarea id="userInput" class="q-message-textarea" placeholder="Send a message to get started"></textarea>
+        <button id="sendButton" class="q-message-send-button" onclick="generateText(document.getElementById('userInput').value)"><i style="color:white;" class="material-icons right">send</i></button>
     </div>
     
     <button id="arrowDown" class="arrow-down" onclick="document.getElementById('AIResponse').scrollTop = scrollHeightTracker;document.getElementById('arrowDown').style.display = 'none';"><span class="material-icons">mark_unread_chat_alt</span><span class="material-icons">keyboard_arrow_down</span></button>
@@ -51,11 +48,9 @@
     const urlParams = new URL(window.location.toLocaleString()).searchParams;
     if(urlParams.get('n') != null){
         botName = decrypt(urlParams.get('n'));
-        //document.getElementById('assistantName').innerHTML = botName;
+        document.getElementById('assistantName').innerHTML = botName;
         transcriptText += botName + "\n";
         document.title = "Q - " + botName;
-        hitxt = botName;
-        typeWriter();
     }
     transcriptText += "====================\n-------\n\n";
     if(urlParams.get('m') != null)

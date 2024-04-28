@@ -1,0 +1,58 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="../encrypt.js"></script>
+        <title>Q Assistant Builder</title>
+
+    </head>
+
+    <body>
+        <h1>Q Assistant Builder</h1>
+        <br>
+
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name">
+        <br><br>
+        Model:
+        <input type="radio" id="GPT-3.5" name="model" value="GPT-3.5" checked>
+        <label for="html">GPT-3.5</label>
+        <input type="radio" id="GPT-4" name="model" value="GPT-4">
+        <label for="GPT-4">GPT-4</label>
+        <br><br>
+        <label for="Intro">Intro Message:</label><br>
+        <textarea id="Intro" name="Intro" rows="4" cols="48"></textarea>
+        <br><br>
+        <label for="Suggestions">Suggested Prompts (separate with ; and no spaces):</label><br>
+        <textarea id="Suggestions" name="Suggestions" rows="4" cols="48"></textarea>
+        <br><br>
+        <label for="SystemPrompt">System Prompt:</label><br>
+        <textarea id="SystemPrompt" name="SystemPrompt" rows="8" cols="48"></textarea>
+
+        <br><br>
+        <button onclick="createLink()">Create Test Link</button>
+        <br><br><br>
+        <div id="result"></div>
+    
+    </body>
+
+</html>
+
+<script>
+    function createLink(){
+             
+        if(document.getElementById('name').value != ""){
+            encryptedURL = "https://quigley.page/assistants/?n=" + encrypt(document.getElementById('name').value);;
+            if(document.getElementById('GPT-4').checked == true)
+                encryptedURL += "&m=5";
+            if(document.getElementById('Intro').value != "")
+                encryptedURL += "&i=" + encrypt(document.getElementById('Intro').value);
+            if(document.getElementById('Suggestions').value != "")
+                encryptedURL += "&s=" + encrypt(document.getElementById('Suggestions').value);
+            if(document.getElementById('SystemPrompt').value != "")
+                encryptedURL += "&p=" + encrypt(document.getElementById('SystemPrompt').value);
+
+            document.getElementById('result').innerHTML = "Test Link: <a href='" + encryptedURL + "' target='_blank'>" + document.getElementById('name').value + "</a>";
+        }
+        
+    }
+</script>
