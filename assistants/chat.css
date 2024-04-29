@@ -79,10 +79,10 @@
     margin-right: 12px;
     height: 48px;
     border-radius: 50%;
-    animation-name: spin-and-expand;
+    /*animation-name: spin-and-expand;
     animation-duration: 0.8s;
     animation-timing-function: ease-out;
-    animation-iteration-count: 1;
+    animation-iteration-count: 1;*/
   }
 
 @keyframes spin-and-expand {
