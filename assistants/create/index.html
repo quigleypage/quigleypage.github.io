@@ -4,9 +4,13 @@
         <script src="../encrypt.js"></script>
         <title>Q Assistant Builder</title>
 
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+
     </head>
 
-    <body>
+    <body style="background-color: #F8F8F8;font-family: 'Roboto', sans-serif;">
         <h1>Q Assistant Builder</h1>
         <br>
 
@@ -20,16 +24,16 @@
         <label for="GPT-4">GPT-4</label>
         <br><br>
         <label for="Intro">Intro Message:</label><br>
-        <textarea id="Intro" name="Intro" rows="4" cols="48"></textarea>
+        <textarea id="Intro" name="Intro" rows="4" cols="44"></textarea>
         <br><br>
-        <label for="Suggestions">Suggested Prompts (separate with ; and no spaces):</label><br>
-        <textarea id="Suggestions" name="Suggestions" rows="4" cols="48"></textarea>
+        <label for="Suggestions">Suggested Prompts (; delimitted):</label><br>
+        <textarea id="Suggestions" name="Suggestions" rows="4" cols="44"></textarea>
         <br><br>
         <label for="SystemPrompt">System Prompt:</label><br>
-        <textarea id="SystemPrompt" name="SystemPrompt" rows="8" cols="48"></textarea>
+        <textarea id="SystemPrompt" name="SystemPrompt" rows="8" cols="44"></textarea>
 
         <br><br>
-        <button onclick="createLink()">Create Test Link</button>
+        <button onclick="createLink()">Generate Test Link</button>
         <br><br><br>
         <div id="result"></div>
     
