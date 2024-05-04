@@ -1,3 +1,6 @@
+document.getElementById("AIResponse").addEventListener("scroll", showArrowDown);
+
+
 const urlParams = new URL(window.location.toLocaleString()).searchParams;
 if(urlParams.get('n') != null){
     botName = decrypt(urlParams.get('n'));

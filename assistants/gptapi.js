@@ -1,9 +1,10 @@
 messageArray = [];
 model = 3;
 transcriptText = "Q Assistants\n";
-scrollHeightTracker = 0;
+//scrollHeightTracker = 0;
 botName = "Q";
 botIntroText = "";
+userInputPlaceholderText = "Message";
 
 async function generateText(prompt) {
     document.getElementById('sendButton').disabled = true;
@@ -35,21 +36,16 @@ async function generateText(prompt) {
 
         messageArray.push({role: "assistant", content: botResponse})
         botResponseCleaned = botResponse.replace(/\n/g, "<br />");
-        scrollHeightTracker = document.getElementById("AIResponse").scrollHeight;
+        //scrollHeightTracker = document.getElementById("AIResponse").scrollHeight;
         document.getElementById("AIResponse").innerHTML += '<div class="bot-message-card"><div class="sender-name">' + botName + '</div><div class="message">' + botResponseCleaned + '</div></div>';
         //document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
         transcriptText += botName + ":\n" + botResponse + "\n\n-------\n\n";
+        showArrowDown();
         document.getElementById('sendButton').innerHTML = '<i class="material-icons">send</i>';
         document.getElementById('sendButton').disabled = false;
-        document.getElementById('userInput').placeholder = "Message";
+        document.getElementById('userInput').placeholder = userInputPlaceholderText;
         document.getElementById('userInput').disabled = false;
         document.getElementById('downloadButton').style.display = "block";
-        if(document.getElementById("AIResponse").scrollTop != document.getElementById("AIResponse").scrollHeight && messageArray.length > 2){
-            document.getElementById('arrowDown').style.display = "block";
-            setTimeout(function() {
-                document.getElementById('arrowDown').style.display = "none";
-              }, 6000);
-        }
 
     } catch (error) {
         console.error(error);
@@ -98,5 +94,15 @@ function typeWriter() {
         document.getElementById("introText").innerHTML += hitxt.charAt(j);
         j++;
         setTimeout(typeWriter, speed);
+    }
+}
+
+function showArrowDown(){
+    //console.log(document.getElementById("AIResponse").scrollHeight - document.getElementById("AIResponse").scrollTop + " | " + document.getElementById("AIResponse").clientHeight);
+    if(document.getElementById("AIResponse").scrollHeight - document.getElementById("AIResponse").scrollTop > document.getElementById("AIResponse").clientHeight + 64){
+        document.getElementById('arrowDown').style.display = "block";
+    }
+    else{
+        document.getElementById('arrowDown').style.display = "none";
     }
 }
