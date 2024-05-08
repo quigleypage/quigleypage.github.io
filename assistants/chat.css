@@ -236,7 +236,7 @@
 
   .arrow-down {
     position: absolute;
-    top: calc(76vh);
+    top: calc(74vh);
     left: calc(50% - 22px);
     border: 1px solid;
     border-color: #E0E0E0;
