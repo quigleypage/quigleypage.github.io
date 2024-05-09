@@ -29,11 +29,17 @@
         <label for="Suggestions">Suggested Prompts (; delimitted):</label><br>
         <textarea id="Suggestions" name="Suggestions" rows="4" cols="44"></textarea>
         <br><br>
+        <label for="PHT1">Initial Placeholder Text:</label><br>
+        <textarea id="PHT1" name="PHT1" rows="1" cols="44"></textarea>
+        <br><br>
+        <label for="PHT2">Standard Placeholder Text:</label><br>
+        <textarea id="PHT2" name="PHT2" rows="1" cols="44"></textarea>
+        <br><br>
         <label for="SystemPrompt">System Prompt:</label><br>
         <textarea id="SystemPrompt" name="SystemPrompt" rows="8" cols="44"></textarea>
 
         <br><br>
-        <button onclick="createLink()">Generate Test Link</button>
+        <button onclick="createLink()">Generate</button>
         <br><br><br>
         <div id="result"></div>
     
@@ -52,6 +58,10 @@
                 encryptedURL += "&i=" + encrypt(document.getElementById('Intro').value);
             if(document.getElementById('Suggestions').value != "")
                 encryptedURL += "&s=" + encrypt(document.getElementById('Suggestions').value);
+            if(document.getElementById('PHT1').value != "")
+                encryptedURL += '&a=' + encrypt(document.getElementById('PHT1').value);
+            if(document.getElementById('PHT2').value != "")
+                encryptedURL += '&b=' + encrypt(document.getElementById('PHT2').value);
             if(document.getElementById('SystemPrompt').value != "")
                 encryptedURL += "&p=" + encrypt(document.getElementById('SystemPrompt').value);
 

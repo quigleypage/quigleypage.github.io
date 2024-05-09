@@ -30,3 +30,7 @@ if(urlParams.get('s') != null){
         document.getElementById('suggestedThemes').innerHTML += '<button class="q-suggested-themes" onclick="updateMessageBox(\'' + suggestedPromptArray[i] + '\')"><b>' + suggestedPromptArray[i] + '</b></button>';
     }
 }
+if(urlParams.get('a') != null)
+    document.getElementById('userInput').placeholder = decrypt(urlParams.get('a'));
+if(urlParams.get('b') != null)
+    userInputPlaceholderText = decrypt(urlParams.get('b'));
