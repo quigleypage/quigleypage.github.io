@@ -13,6 +13,9 @@ async function generateText(prompt) {
     else if(document.getElementById("GPT4TurboPreview").checked){
         encodedMessageArray = { promptText: messageArray, version: 5 };
     }
+    else if(document.getElementById("GPT4o").checked){
+        encodedMessageArray = { promptText: messageArray, version: 6 };
+    }
     else if(document.getElementById("DALLE").checked){
         encodedMessageArray = { promptText: prompt, version: -1 };
         isImage = true;
