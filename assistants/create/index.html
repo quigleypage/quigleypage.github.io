@@ -19,9 +19,11 @@
         <br><br>
         Model:
         <input type="radio" id="GPT-3.5" name="model" value="GPT-3.5" checked>
-        <label for="html">GPT-3.5</label>
+        <label for="html">GPT-3.5 Turbo</label>
         <input type="radio" id="GPT-4" name="model" value="GPT-4">
-        <label for="GPT-4">GPT-4</label>
+        <label for="GPT-4">GPT-4 Turbo</label>
+        <input type="radio" id="GPT-4o" name="model" value="GPT-4o">
+        <label for="GPT-4o">GPT-4o</label>
         <br><br>
         <label for="Intro">Intro Message:</label><br>
         <textarea id="Intro" name="Intro" rows="4" cols="44"></textarea>
@@ -54,6 +56,8 @@
             encryptedURL = "https://quigley.page/assistants/?n=" + encrypt(document.getElementById('name').value);;
             if(document.getElementById('GPT-4').checked == true)
                 encryptedURL += "&m=5";
+            else if(document.getElementById('GPT-4o').checked == true)
+                encryptedURL += "&m=6";
             if(document.getElementById('Intro').value != "")
                 encryptedURL += "&i=" + encrypt(document.getElementById('Intro').value);
             if(document.getElementById('Suggestions').value != "")
