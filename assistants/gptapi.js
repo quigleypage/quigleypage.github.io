@@ -13,7 +13,7 @@ async function generateText(prompt) {
     document.getElementById('userInput').placeholder = "One moment please...";
     document.getElementById('userInput').disabled = true;
 
-    document.getElementById("AIResponse").innerHTML += '<div class="user-message-card"><div class="sender-name">You</div><div class="message">' + prompt + '</div></div>';
+    document.getElementById("AIResponse").innerHTML += '<div class="user-message-card"><div class="sender-name">You</div><div class="message">' + prompt.replaceAll("\n", "<br>") + '</div></div>';
     messageArray.push({role: "user", content: prompt});
     transcriptText += "You:\n" + prompt + "\n\n-------\n\n";
     document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
