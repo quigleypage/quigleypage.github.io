@@ -1,0 +1,70 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>HTML File Creator</title>
+
+    </head>
+
+    <body style="background-color: #F8F8F8;font-family: 'Roboto', sans-serif;">
+
+        <input type="file" id="fileInput" accept=".html">
+        <button onclick="extractText()">Import</button>
+        <br><br>
+        <label for="HTMLCode">HTML:</label><br>
+        <textarea id="HTMLCode" name="HTMLCode" rows="40" style="width:99%"></textarea>
+
+        <br><br>
+        <label for="name">File Name:</label>
+        <input type="text" id="name" name="name">
+        <button onclick="downloadCode()">Export</button>
+    
+    </body>
+
+</html>
+
+<script>
+    function extractText() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert('Please select a file.');
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function(event) {
+            const contents = event.target.result;
+            const htmlElement = document.createElement('div');
+            htmlElement.innerHTML = contents;
+
+            // Extract text from HTML element
+            const extractedText = htmlElement.innerHTML;
+
+            document.getElementById('HTMLCode').value = extractedText;
+        };
+
+        reader.onerror = function(event) {
+            console.error('File could not be read! Code ' + event.target.error.code);
+        };
+
+        reader.readAsText(file);
+    }
+
+    function downloadCode(){
+        const data = document.getElementById('HTMLCode').value;
+        const blob = new Blob([data], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = document.getElementById('name').value + '.html';
+        a.click();
+
+        // Cleanup: release the object URL after the download has started
+        setTimeout(() => URL.revokeObjectURL(url), 0);
+
+    }
+
+</script>
