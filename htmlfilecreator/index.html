@@ -5,7 +5,7 @@
 
     </head>
 
-    <body style="background-color: #F8F8F8;font-family: 'Roboto', sans-serif;">
+    <body style="background-color: #F8F8F8;font-family: Arial, Helvetica, sans-serif;">
 
         <input type="file" id="fileInput" accept=".html">
         <button onclick="extractText()">Import</button>
@@ -37,10 +37,10 @@
         reader.onload = function(event) {
             const contents = event.target.result;
             const htmlElement = document.createElement('div');
-            htmlElement.innerHTML = contents;
+            htmlElement.HTML = contents;
 
             // Extract text from HTML element
-            const extractedText = htmlElement.innerHTML;
+            const extractedText = htmlElement.HTML;
 
             document.getElementById('HTMLCode').value = extractedText;
         };
