@@ -135,7 +135,7 @@ p{
 .settingsButton{
     background-color: white; /* used for stats and info */
     border: none;
-    color: black;
+    color: #BBBBBB;
     padding: 3% 2%;
     text-align: center;
     text-decoration: none;
@@ -193,7 +193,7 @@ p{
   
   .modal-header {
     padding: 4px 16px;
-    background-color: #A6CFEA;
+    background-color: #748c9c;
     color: white;
     font-size: 4vw;
     font-family: 'Roboto', sans-serif;
