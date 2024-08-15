@@ -29,8 +29,6 @@ async function qgenerateText(prompt) {
             messageArray.push({role: "assistant", content: botResponse});
             document.getElementById("q-AIResponse").innerHTML = botResponse;
             qcurrentCode = botResponse;
-            document.getElementById("quserInput").placeholder = "Describe desired adjustments";
-
         } 
         catch (error) {
             console.error(error);
@@ -38,6 +36,7 @@ async function qgenerateText(prompt) {
         document.getElementById('qsendButton').innerHTML = '<i class="material-icons">send</i>';
         document.getElementById('qsendButton').disabled = false;
         document.getElementById('quserInput').disabled = false;
+        document.getElementById("quserInput").placeholder = "Describe desired adjustments";
     }
 }
 
