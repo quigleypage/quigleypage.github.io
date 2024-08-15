@@ -1,36 +1,20 @@
-<html>
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q Page Designer</title>
 
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Karla&family=Roboto:wght@300&display=swap" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-        <link rel="stylesheet" href="chat.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Karla&family=Roboto:wght@300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 
-        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-        <script src="gptapi.js"></script>
+<link rel="stylesheet" href="qpagedesigner.css">
+<script src="qpagedesigner.js"></script>
 
-        <title>Q Page Designer</title>
-
-    </head>
-
-    <body>
-
-        <div id="AIResponse"></div>
-
-        <div id="q-fixed-input">
-        
-            <div class="q-search-bar">
-                <img id="qlogo" src="Q.jpeg" class="q-logo" onclick="qdownloadCode()">
-                <textarea id="userInput" class="q-search-input" type="text" placeholder="Describe your web page" autocomplete="off" rows="1"></textarea>
-                <button id="sendButton" class="q-search-button" type="button" onclick="qgenerateText(document.getElementById('userInput').value)">
-                <i class="material-icons">send</i>
-                </button>
-            </div>
-            
-        </div>
-    
-    </body>
-
-</html>
+<div id="q-AIResponse"></div>
+<div id="q-fixed-input">
+    <div class="q-search-bar">
+        <img id="qlogo" src="Q.jpeg" class="q-logo" onclick="qdownloadCode()">
+        <textarea id="quserInput" class="q-search-input" type="text" placeholder="Describe your web page" autocomplete="off" rows="1"></textarea>
+        <button id="qsendButton" class="q-search-button" type="button" onclick="qgenerateText(document.getElementById('quserInput').value)"><i class="material-icons">send</i></button>
+    </div>
+</div>
