@@ -46,6 +46,7 @@ async function qgenerateText(prompt) {
 function qdownloadCode(){
     
     if(currentCode != ""){
+        //document.getElementById("qlogo").style.animation = "q-spin-and-expand 1s";
         const data = currentCode;
         const blob = new Blob([data], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
@@ -57,5 +58,6 @@ function qdownloadCode(){
 
         // Cleanup: release the object URL after the download has started
         setTimeout(() => URL.revokeObjectURL(url), 0);
+        //document.getElementById("qlogo").style.animation = "none";
     }
 }
