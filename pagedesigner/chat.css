@@ -60,10 +60,10 @@
   
 @keyframes q-spin-and-expand {
   0% {
-    transform: rotate(0deg) scale(0);
+    transform: rotate(0deg);
   }
   100% {
-    transform: rotate(1440deg) scale(1);
+    transform: rotate(1440deg);
   }
 }
 

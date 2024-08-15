@@ -46,7 +46,7 @@ async function qgenerateText(prompt) {
 function qdownloadCode(){
     
     if(currentCode != ""){
-        //document.getElementById("qlogo").style.animation = "q-spin-and-expand 1s";
+        document.getElementById("qlogo").style.animation = "q-spin-and-expand 0.8s ease-out 1";
         const data = currentCode;
         const blob = new Blob([data], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
@@ -58,6 +58,10 @@ function qdownloadCode(){
 
         // Cleanup: release the object URL after the download has started
         setTimeout(() => URL.revokeObjectURL(url), 0);
-        //document.getElementById("qlogo").style.animation = "none";
+
+        setTimeout(function() {
+            document.getElementById("qlogo").style.animation = "none";
+        }, 800); // 1000 milliseconds = 1 second
+        
     }
 }
