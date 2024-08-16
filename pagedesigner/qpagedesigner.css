@@ -10,7 +10,10 @@
   margin-right: 6px;
   height: 40px;
   border-radius: 50%;
-
+  animation-name: q-spin-and-expand;
+  animation-duration: 0.8s;
+  animation-timing-function: ease-out;
+  animation-iteration-count: 1;
 }
 
 .q-search-bar {
@@ -58,12 +61,21 @@
 }
 
   
-@keyframes q-spin-and-expand {
+@keyframes q-spin {
   0% {
     transform: rotate(0deg);
   }
   100% {
     transform: rotate(1440deg);
+  }
+}
+
+@keyframes q-spin-and-expand {
+  0% {
+    transform: rotate(0deg) scale(0);
+  }
+  100% {
+    transform: rotate(1440deg) scale(1);
   }
 }
 

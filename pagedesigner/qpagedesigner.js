@@ -46,7 +46,7 @@ async function qgenerateText(prompt) {
 function qdownloadCode(){
     
     if(qcurrentCode != ""){
-        document.getElementById("qlogo").style.animation = "q-spin-and-expand 0.8s ease-out 1";
+        document.getElementById("qlogo").style.animation = "q-spin 0.8s ease-out 1";
         const data = qcurrentCode;
         const blob = new Blob([data], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
