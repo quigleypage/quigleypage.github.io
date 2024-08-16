@@ -37,6 +37,7 @@ async function qgenerateText(prompt) {
         document.getElementById('qsendButton').disabled = false;
         document.getElementById('quserInput').disabled = false;
         document.getElementById("quserInput").placeholder = "Describe desired adjustments";
+        document.getElementById("qlogo").style.display = "block";
     }
 }
 
@@ -63,4 +64,36 @@ function qdownloadCode(){
         }, 800); // 1000 milliseconds = 1 second
         
     }
+}
+
+function qextractText() {
+    const fileInput = document.getElementById('qfileInput');
+    const file = fileInput.files[0];
+
+    if (!file) {
+        alert('Please select a file.');
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function(event) {
+        const contents = event.target.result;
+        const htmlElement = document.createElement('div');
+        htmlElement.HTML = contents;
+
+        // Extract text from HTML element
+        const extractedText = htmlElement.HTML;
+
+        messageArray.push({role: "system", content: "Here is the user's existing HTML code:\n\n" + extractedText});
+        document.getElementById('q-AIResponse').innerHTML = extractedText;
+        document.getElementById("quserInput").placeholder = "Describe desired adjustments";
+        document.getElementById("qlogo").style.display = "block";
+    };
+
+    reader.onerror = function(event) {
+        console.error('File could not be read! Code ' + event.target.error.code);
+    };
+
+    reader.readAsText(file);
 }

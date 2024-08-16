@@ -10,10 +10,21 @@
 <link rel="stylesheet" href="qpagedesigner.css">
 <script src="qpagedesigner.js"></script>
 
-<div id="q-AIResponse"></div>
+<div id="q-AIResponse">
+    <div style="display: flex;align-items: center;justify-content: center;padding-bottom: 8px;padding-top:8px;">
+        <img src="Q.jpeg" style="display: block;margin-right: 12px;height: 48px;border-radius: 50%;">
+        <div style="font-family: 'Roboto', sans-serif; font-size: 24px;text-align: center;"><b>Page Designer</b></div>
+    </div>
+    <br><br><br>
+    <div style="font-family: 'Roboto', sans-serif; font-size: 20px;text-align: center;">Design and revise custom web pages through natural language.<br><br>Start from an existing .html file or describe your brand new web page in your own words.
+        <br><br><br><br><br>
+        <input type="file" id="qfileInput" accept=".html">
+        <button onclick="qextractText()">Import</button>
+    </div>
+</div>
 <div id="q-fixed-input">
     <div class="q-search-bar">
-        <img id="qlogo" src="Q.jpeg" class="q-logo" onclick="qdownloadCode()">
+        <img id="qlogo" src="Q.jpeg" class="q-logo" onclick="qdownloadCode()" style="display: none;">
         <textarea id="quserInput" class="q-search-input" type="text" placeholder="Describe your web page" autocomplete="off" rows="1"></textarea>
         <button id="qsendButton" class="q-search-button" type="button" onclick="qgenerateText(document.getElementById('quserInput').value)"><i class="material-icons">send</i></button>
     </div>
