@@ -1,6 +1,7 @@
 messageArray = [{role: "system", content: "You are a design assistant that generates HTML code, including style and script tags, for the user's described web page. Wrap any CSS code in style tags, and JS code in script tags, within the HTML. Define custom classes instead of using generic tags that may conflict with existing page elements.  In your responses, only provide code. Do not include any introductory commentary, code explanations, or elaborations at any point in the conversation."}];
 qmodel = 7;
 qcurrentCode = "";
+qImageDataURL = "";
 
 async function qgenerateText(prompt) {
     if(prompt != ""){
@@ -96,4 +97,37 @@ function qextractText() {
     };
 
     reader.readAsText(file);
+}
+
+function qConvertImageToURL() {
+    const qInput = document.getElementById('qImageInput');
+    const qFile = qInput.files[0];
+
+    if (qFile) {
+        const qReader = new FileReader();
+        
+        // Set the onload event handler before starting the file read operation.
+        qReader.onload = function(event) {
+            qImageDataURL = event.target.result;
+            console.log("Image Data URL:", qImageDataURL);
+            // Now you can use qImageDataURL as needed
+        };
+        
+        // Start reading the file and convert it to a data URL.
+        qReader.readAsDataURL(qFile);
+
+        qpromptArrary = [
+            { type: "text", text: "Use this image as a starting point." },
+            {
+              type: "image_url",
+              image_url: {
+                "url": qImageDataURL,
+              },
+            },
+        ];
+        qgenerateText(qpromptArrary);
+
+    } else {
+        alert("Please select or capture an image first.");
+    }
 }

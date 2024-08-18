@@ -16,10 +16,20 @@
         <div style="font-family: 'Roboto', sans-serif; font-size: 24px;text-align: center;"><b>Page Designer</b></div>
     </div>
     <br><br><br>
-    <div style="font-family: 'Roboto', sans-serif; font-size: 20px;text-align: center;">Design and revise custom web pages through natural language.<br><br>Start from an existing .html file or describe your brand new web page in your own words.
-        <br><br><br><br><br>
-        <input type="file" id="qfileInput" accept=".html">
-        <button onclick="qextractText()">Import</button>
+    <div style="font-family: 'Roboto', sans-serif; text-align: center;"><div style="font-size: 20px;">Design and revise custom web pages through natural language.</div>
+        <div style="font-size: 20px;">
+            <br><br>To get started, you can<br><br>
+            1) Import an existing .html file<br><br>
+            <input type="file" id="qfileInput" accept=".html">
+            <button onclick="qextractText()">Import</button>
+            <br><br><br>
+            2) Provide a sketch of your vision<br><br>
+            <input type="file" id="qImageInput" accept="image/*" capture="environment">
+            <button onclick="qConvertImageToURL()">Use</button>
+            <br><br><br>
+            3) Describe your idea in your own words
+            <br><br><br><br><br>
+        </div>
     </div>
 </div>
 <div id="q-fixed-input">
