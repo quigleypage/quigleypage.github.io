@@ -100,8 +100,9 @@ function qextractText() {
 }
 
 function qConvertImageToURL() {
-    const qInput = document.getElementById('qImageInput');
-    const qFile = qInput.files[0];
+    qInput = document.getElementById('qImageInput');
+    qFile = qInput.files[0];
+    qImageDataURL = "";
 
     if (qFile) {
         const qReader = new FileReader();
@@ -109,25 +110,28 @@ function qConvertImageToURL() {
         // Set the onload event handler before starting the file read operation.
         qReader.onload = function(event) {
             qImageDataURL = event.target.result;
-            console.log("Image Data URL:", qImageDataURL);
+            console.log(qImageDataURL);
             // Now you can use qImageDataURL as needed
+
+            qpromptArrary = [
+                { type: "text", text: "Use this image as a starting point." },
+                {
+                  type: "image_url",
+                  image_url: {
+                    "url": qImageDataURL
+                  },
+                },
+            ];
+            qgenerateText(qpromptArrary);
+        
         };
         
         // Start reading the file and convert it to a data URL.
         qReader.readAsDataURL(qFile);
 
-        qpromptArrary = [
-            { type: "text", text: "Use this image as a starting point." },
-            {
-              type: "image_url",
-              image_url: {
-                "url": qImageDataURL,
-              },
-            },
-        ];
-        qgenerateText(qpromptArrary);
-
     } else {
         alert("Please select or capture an image first.");
     }
+
+
 }
