@@ -47,6 +47,20 @@ async function qgenerateText(prompt) {
 function qdownloadCode(){
     
     if(qcurrentCode != ""){
+
+        const now = new Date();
+
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-based, so add 1
+        const day = String(now.getDate()).padStart(2, '0');
+
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+
+        const formattedDateTime = `${year}-${month}-${day} - ${hours}-${minutes}-${seconds}`;
+
+
         document.getElementById("qlogo").style.animation = "q-spin 0.8s ease-out 1";
         const data = qcurrentCode;
         const blob = new Blob([data], { type: 'text/html' });
@@ -54,7 +68,7 @@ function qdownloadCode(){
 
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'q-page-designer-export.html';
+        a.download = 'q-page-designer-export - ' + formattedDateTime + '.html';
         a.click();
 
         // Cleanup: release the object URL after the download has started

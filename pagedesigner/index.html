@@ -16,19 +16,20 @@
         <div style="font-family: 'Roboto', sans-serif; font-size: 24px;text-align: center;"><b>Page Designer</b></div>
     </div>
     <br><br><br>
-    <div style="font-family: 'Roboto', sans-serif; text-align: center;"><div style="font-size: 20px;">Design and revise custom web pages through natural language.</div>
-        <div style="font-size: 20px;">
-            <br><br>To get started, you can<br><br>
-            1) Import an existing .html file<br><br>
-            <input type="file" id="qfileInput" accept=".html">
-            <button onclick="qextractText()">Import</button>
-            <br><br><br>
-            2) Provide a sketch of your vision<br><br>
-            <input type="file" id="qImageInput" accept="image/*" capture="environment">
-            <button onclick="qConvertImageToURL()">Use</button>
-            <br><br><br>
-            3) Describe your idea in your own words
-            <br><br><br><br><br>
+    <div style="font-family: 'Roboto', sans-serif; text-align: center;"><div style="font-size: 20px;">Design and edit custom web pages through natural language.</div>
+        <div style="font-size: 18px;">
+            <br><br>
+            <div style="background-color: #EEEEEE; padding:12px;border-radius: 8px;">
+                Import an existing .html file<br><br>
+                <input type="file" id="qfileInput" accept=".html">
+                <button onclick="qextractText()">Import</button>
+            </div>
+            <br>
+            <div style="background-color: #EEEEEE; padding:12px;border-radius: 8px;">
+                Start from a picture<br><br>
+                <input type="file" id="qImageInput" accept="image/*" capture="environment">
+                <button onclick="qConvertImageToURL()">Generate</button>
+            </div>
         </div>
     </div>
 </div>
