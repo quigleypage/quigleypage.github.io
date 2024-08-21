@@ -40,3 +40,9 @@
         <button id="qsendButton" class="q-search-button" type="button" onclick="qgenerateText(document.getElementById('quserInput').value)"><i class="material-icons">send</i></button>
     </div>
 </div>
+
+<script>  
+    const urlParams = new URL(window.location.toLocaleString()).searchParams;
+    if(urlParams.get('m') != null)
+        qmodel = parseInt(urlParams.get('m'));
+</script>
