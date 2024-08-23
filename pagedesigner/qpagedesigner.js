@@ -68,7 +68,7 @@ function qdownloadCode(){
 
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'q-page-designer-export - ' + formattedDateTime + '.html';
+        a.download = 'Q Page Designer Export - ' + formattedDateTime + '.html';
         a.click();
 
         // Cleanup: release the object URL after the download has started
@@ -124,7 +124,7 @@ function qConvertImageToURL() {
         // Set the onload event handler before starting the file read operation.
         qReader.onload = function(event) {
             qImageDataURL = event.target.result;
-            console.log(qImageDataURL);
+            //console.log(qImageDataURL);
             // Now you can use qImageDataURL as needed
 
             qpromptArrary = [
