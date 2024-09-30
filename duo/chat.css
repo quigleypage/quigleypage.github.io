@@ -11,6 +11,11 @@
     opacity: 50%;
 }
 
+.q-form-inputs{
+  margin-bottom: 6px;
+  font-family: 'Roboto', sans-serif;
+}
+
 .user-message-card{
     padding: 12px;
     background-color: #D0E0E8;

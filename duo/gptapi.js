@@ -1,27 +1,33 @@
 personaAName = "";
 personaARole = "";
+personaAInstructions = "";
 personaBName = "";
 personaBRole = "";
+personaBInstructions = "";
 conversationTopic = "";
-conversationLength = 10;
+conversationLength = 20;
 personaAMessageArray = [];
 personaBMessageArray = [];
 turnTracker = "A";
 messagesGenerated = 0;
-transcriptText = "Q Dynamic Duo\n=============\n\n";
+transcriptText = "Q Dynamic Duo\n=============\n";
 
 function setParamaters(){
     document.getElementById('spinnerWrapper').innerHTML = '<div id="spinner" class="lds-default"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>';
+    document.getElementById('stopButton').style.display = "block";
     personaAName = document.getElementById("CharA").value;
     personaARole = document.getElementById("RoleA").value;
+    personaAInstructions = document.getElementById("InstructionsA").value;
     personaBName = document.getElementById("CharB").value;
     personaBRole = document.getElementById("RoleB").value;
+    personaBInstructions = document.getElementById("InstructionsB").value;
     conversationTopic = document.getElementById("topic").value;
+    transcriptText += "Persona A: " + personaAName + ", " + personaARole + "\nInstructions: " + personaAInstructions + "\n\nPersona B: " + personaBName + ", " + personaBRole + "\nInstructions: " + personaBInstructions + "\n\nTopic of Conversation: " + conversationTopic + "\n=============\n\n";
     //console.log(personaAName + " | " + personaBName + " | " + String(conversationLength));
 
-    if(personaAName != "" && personaBName != "" && conversationLength > 0 && conversationLength < 11){
-        personaAMessageArray.push({role: "system", content: "You are " + personaAName + ". Your role is " + personaARole + ". You are having a conversation with " + personaBName + ", whose role is " + personaBRole + ". You will start the conversation. Do not start messages with your name. The topic of the conversation is:\n\n" + conversationTopic});
-        personaBMessageArray.push({role: "system", content: "You are " + personaBName + ". Your role is " + personaBRole + ". You are having a conversation with " + personaAName + ", whose role is " + personaARole + ". Do not start messages with your name. The topic of the conversation is:\n\n" + conversationTopic});
+    if(personaAName != "" && personaBName != ""){
+        personaAMessageArray.push({role: "system", content: "You are " + personaAName + ". Your role is " + personaARole + ". You are having a conversation with " + personaBName + ", whose role is " + personaBRole + ". You will start the conversation. Do not start messages with your name." + personaAInstructions + ". When you feel the conversation has come to a natural end, either because you have solved the given problem or have nothing else to add, then reply ~~~DONE~~~. The topic of the conversation is:\n\n" + conversationTopic});
+        personaBMessageArray.push({role: "system", content: "You are " + personaBName + ". Your role is " + personaBRole + ". You are having a conversation with " + personaAName + ", whose role is " + personaARole + ". Do not start messages with your name." + personaBInstructions + ". When you feel the conversation has come to a natural end, either because you have solved the given problem or have nothing else to add, then reply ~~~DONE~~~. The topic of the conversation is:\n\n" + conversationTopic});
 
         document.getElementById("parameterForm").style.display = "none";
         generateText();
@@ -41,9 +47,10 @@ async function generateText() {
                     }
                 });
                 botResponse = response.data.text;
+                console.log(botResponse);
+                transcriptText += personaAName + ":\n" + botResponse + "\n\n-------\n\n";
                 personaAMessageArray.push({role: "assistant", content: botResponse});
                 personaBMessageArray.push({role: "user", content: botResponse});
-                transcriptText += personaAName + ":\n" + botResponse + "\n\n-------\n\n";
 
                 botResponseCleaned = botResponse.replace(/\n/g, "<br />");
                 // Bold
@@ -59,9 +66,20 @@ async function generateText() {
                 botResponseCleaned = botResponseCleaned.replaceAll(/`(.*?)`/g, '<code>$1</code>');
                 // Code block
                 botResponseCleaned = botResponseCleaned.replaceAll(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+                //remove stop word from visual
+                botResponseCleaned = botResponseCleaned.replaceAll('~~~DONE~~~','');
                         
                 document.getElementById("AIResponse").innerHTML +=  "<br><div style='padding:8px;'><b>" + personaAName + ", " + personaARole + "</b><br>" + botResponseCleaned + "</div>";
                 turnTracker = "B";
+                messagesGenerated += 1;
+
+                if(botResponse.includes("~~~DONE~~~") == false){
+                    generateText();
+                }
+                else{
+                    // call summarization function
+                    wrapUp();
+                }
             }
             else{
                 encodedpersonaBMessageArray = { promptText: personaBMessageArray, version: 7 };
@@ -71,9 +89,10 @@ async function generateText() {
                     }
                 });
                 botResponse = response.data.text;
+                console.log(botResponse);
+                transcriptText += personaBName + ":\n" + botResponse + "\n\n-------\n\n";
                 personaAMessageArray.push({role: "user", content: botResponse});
                 personaBMessageArray.push({role: "assistant", content: botResponse});
-                transcriptText += personaBName + ":\n" + botResponse + "\n\n-------\n\n";
 
                 botResponseCleaned = botResponse.replace(/\n/g, "<br />");
                 // Bold
@@ -89,13 +108,22 @@ async function generateText() {
                 botResponseCleaned = botResponseCleaned.replaceAll(/`(.*?)`/g, '<code>$1</code>');
                 // Code block
                 botResponseCleaned = botResponseCleaned.replaceAll(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+                //remove stop word from visual
+                botResponseCleaned = botResponseCleaned.replaceAll('~~~DONE~~~','');
 
                 document.getElementById("AIResponse").innerHTML += "<br><div style='padding:8px;background-color:#EFEFEF;border-radius:8px;'><b>" + personaBName + ", " + personaBRole + "</b><br>" + botResponseCleaned + "</div>";
                 turnTracker = "A";
+                messagesGenerated += 1;
+
+                if(botResponse.includes("~~~DONE~~~") == false){
+                    generateText();
+                }
+                else{
+                    //call summarization
+                    wrapUp();
+                }
             }
 
-            messagesGenerated += 1;
-            generateText();
         } 
         catch (error) {
             console.error(error);
@@ -103,12 +131,15 @@ async function generateText() {
         }
 
     }
-    else{
-        //stop the loading animation
-        document.getElementById('spinnerWrapper').innerHTML = '';
-        document.getElementById('downloadButton').style.display = "block";
-    }
     
+}
+
+function wrapUp(){
+    //stop the loading animation
+    document.getElementById('spinnerWrapper').innerHTML = '';
+    document.getElementById('stopButton').style.display = "none";
+    document.getElementById('downloadButton').style.display = "block";
+    messagesGenerated = conversationLength + 1;
 }
 
 function downloadText(){
