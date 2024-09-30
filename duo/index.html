@@ -1,0 +1,46 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Q Dynamic Duo</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="chat.css">
+
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script src="gptapi.js"></script>
+    </head>
+    <body style="font-family: 'Roboto', sans-serif;">
+        <div class="q-ai-navbar">
+            <img id="logo" class="logo" src="Q.jpeg"><h1 id="assistantName" class="q-ai-pageTitle">Dynamic Duo</h1>
+            <div id="spinnerWrapper"></div>
+            <button id="downloadButton" class="q-download-button" onclick="downloadText()"><i style="color: #bdbdbd;" class="material-icons right">download</i></button>
+        </div>
+
+        <div id="parameterForm" class="q-form-input-container">
+            <br>
+            <div>Define two AI personas to converse. You can have them solve a problem, explore an interesting topic, or just chat for entertainment.</div>
+            <br>
+            <label for="CharA" class="q-form-labels">Persona A Name:<br></label>
+            <input type="text" id="CharA" name="CharA" class="q-form-inputs"><br>
+            <label for="RoleA" class="q-form-labels">Persona A Role:<br></label>
+            <input type="text" id="RoleA" name="RoleA" class="q-form-inputs"><br>
+            <br>
+            <label for="CharB" class="q-form-labels">Persona B Name:<br></label>
+            <input type="text" id="CharB" name="CharB" class="q-form-inputs"><br>
+            <label for="RoleB" class="q-form-labels">Persona B Role:<br></label>
+            <input type="text" id="RoleB" name="RoleB" class="q-form-inputs"><br>
+            <br>
+            <label for="topic" class="q-form-labels">Topic:<br></label>
+            <textarea type="text" id="topic" name="topic" class="q-form-inputs" style="width:98%;"></textarea><br>
+            <br><br>
+            <button class="q-run-button" onclick="setParamaters()"><b>Run</b></button>
+
+        </div>
+        <div id="AIResponse"></div>
+
+    </body>
+
+</html>
