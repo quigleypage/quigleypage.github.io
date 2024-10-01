@@ -10,7 +10,8 @@ personaAMessageArray = [];
 personaBMessageArray = [];
 turnTracker = "A";
 messagesGenerated = 0;
-transcriptText = "Q Dynamic Duo\n=============\n";
+transcriptText = "";
+SummaryMessageArray = [];
 
 function setParamaters(){
     document.getElementById('spinnerWrapper').innerHTML = '<div id="spinner" class="lds-default"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>';
@@ -111,7 +112,7 @@ async function generateText() {
                 //remove stop word from visual
                 botResponseCleaned = botResponseCleaned.replaceAll('~~~DONE~~~','');
 
-                document.getElementById("AIResponse").innerHTML += "<br><div style='padding:8px;background-color:#EFEFEF;border-radius:8px;'><b>" + personaBName + ", " + personaBRole + "</b><br>" + botResponseCleaned + "</div>";
+                document.getElementById("AIResponse").innerHTML += "<br><div class='personaBMessageCard'><b>" + personaBName + ", " + personaBRole + "</b><br>" + botResponseCleaned + "</div>";
                 turnTracker = "A";
                 messagesGenerated += 1;
 
@@ -135,15 +136,15 @@ async function generateText() {
 }
 
 function wrapUp(){
-    //stop the loading animation
-    document.getElementById('spinnerWrapper').innerHTML = '';
     document.getElementById('stopButton').style.display = "none";
     document.getElementById('downloadButton').style.display = "block";
     messagesGenerated = conversationLength + 1;
+    summarize();
+    //document.getElementById('spinnerWrapper').innerHTML = ''; // this stops the spinner, comment out this line when you get summaries working
 }
 
 function downloadText(){
-    const data = transcriptText;
+    const data = "Q Dynamic Duo\n=============\n" + transcriptText;
     const blob = new Blob([data], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
 
@@ -168,4 +169,42 @@ function downloadText(){
 
     // Cleanup: release the object URL after the download has started
     setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+async function summarize() {
+    SummaryMessageArray.push({role: "system", content: "Summarize the following conversation in 2-4 sentences, emphasizing any key outcomes, results, or conclusions:\n\n" + transcriptText});
+    try {
+        encodedSummaryMessageArray = { promptText: SummaryMessageArray, version: 7 };
+        const response = await axios.post('https://gpt-test-app.herokuapp.com/generate-text', encodedSummaryMessageArray, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        botResponse = response.data.text;
+        //console.log(botResponse);
+        //transcriptText += "Conversation Summary:\n" + botResponse;
+        
+        botResponseCleaned = botResponse.replace(/\n/g, "<br />");
+        // Bold
+        botResponseCleaned = botResponseCleaned.replaceAll(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        botResponseCleaned = botResponseCleaned.replaceAll(/__(.*?)__/g, '<strong>$1</strong>');
+        // Italic
+        botResponseCleaned = botResponseCleaned.replaceAll(/\*(.*?)\*/g, '<em>$1</em>');
+        botResponseCleaned = botResponseCleaned.replaceAll(/_(.*?)_/g, '<em>$1</em>');
+        // Bold and Italic
+        botResponseCleaned = botResponseCleaned.replaceAll(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
+        botResponseCleaned = botResponseCleaned.replaceAll(/___(.*?)___/g, '<strong><em>$1</em></strong>');
+        // Inline code
+        botResponseCleaned = botResponseCleaned.replaceAll(/`(.*?)`/g, '<code>$1</code>');
+        // Code block
+        botResponseCleaned = botResponseCleaned.replaceAll(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+                
+        document.getElementById("AIResponse").innerHTML =  "<div class='summaryCard'><b>Conversation Summary</b><br>" + botResponseCleaned + "</div>" + document.getElementById("AIResponse").innerHTML;
+        document.getElementById('spinnerWrapper').innerHTML = '';
+
+    } 
+    catch (error) {
+        console.error(error);
+        document.getElementById("AIResponse").innerHTML += "<br><br><div id='ErrorMessage'><b>Error:</b> " + error + "</div>";
+    }
 }

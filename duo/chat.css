@@ -16,20 +16,18 @@
   font-family: 'Roboto', sans-serif;
 }
 
-.user-message-card{
-    padding: 12px;
-    background-color: #D0E0E8;
-    border-radius: 12px;
-    text-align: right;
-    margin-bottom: 8px;
+.personaBMessageCard{
+  padding:8px;
+  background-color:#EFEFEF;
+  border-radius:8px;
 }
 
-.bot-message-card{
-    padding: 12px;
-    background-color: #F1F4F4;
-    border-radius: 12px;
-    margin-bottom: 8px;
-    /*animation: fade-in 0.5s ease-in-out forwards;*/
+.summaryCard{
+  animation: fade-in 0.5s ease-in-out forwards;
+  border-radius: 8px;
+  border-style: dashed;
+  border-width: 2px;
+  padding:8px;
 }
 
 @keyframes fade-in {
