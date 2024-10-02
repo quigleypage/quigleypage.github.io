@@ -12,6 +12,7 @@ turnTracker = "A";
 messagesGenerated = 0;
 transcriptText = "";
 SummaryMessageArray = [];
+conversationSummary = "";
 
 function setParamaters(){
     document.getElementById('spinnerWrapper').innerHTML = '<div id="spinner" class="lds-default"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>';
@@ -137,14 +138,14 @@ async function generateText() {
 
 function wrapUp(){
     document.getElementById('stopButton').style.display = "none";
-    document.getElementById('downloadButton').style.display = "block";
+    //document.getElementById('downloadButton').style.display = "block";
     messagesGenerated = conversationLength + 1;
     summarize();
     //document.getElementById('spinnerWrapper').innerHTML = ''; // this stops the spinner, comment out this line when you get summaries working
 }
 
 function downloadText(){
-    const data = "Q Dynamic Duo\n=============\n" + transcriptText;
+    const data = "Q Dynamic Duo\n=============\nConversation Summary:\n" + conversationSummary + "\n=============\n" + transcriptText;
     const blob = new Blob([data], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
 
@@ -181,6 +182,7 @@ async function summarize() {
             }
         });
         botResponse = response.data.text;
+        conversationSummary = botResponse;
         //console.log(botResponse);
         //transcriptText += "Conversation Summary:\n" + botResponse;
         
@@ -201,6 +203,7 @@ async function summarize() {
                 
         document.getElementById("AIResponse").innerHTML =  "<div class='summaryCard'><b>Conversation Summary</b><br>" + botResponseCleaned + "</div>" + document.getElementById("AIResponse").innerHTML;
         document.getElementById('spinnerWrapper').innerHTML = '';
+        document.getElementById('downloadButton').style.display = "block";
 
     } 
     catch (error) {
