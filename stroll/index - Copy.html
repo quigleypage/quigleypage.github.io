@@ -213,67 +213,27 @@
                 this.goals = [];
                 this.obstacles = [];
                 
-                // Use predefined level layout 50% of the time in infinite mode
-                const usePredefined = Math.random() < 0.5;
+                // Clear existing elements
+                this.setupGrid();
+
+                // Place pieces randomly but ensure they can move
+                const positions = this.generateSolvableConfiguration();
                 
-                if (usePredefined) {
-                    // Use the predefined layout
-                    const predefinedLayout = {
-                        pieces: [
-                            {x: 2, y: 1, color: 'red'},
-                            {x: 4, y: 0, color: 'green'},
-                            {x: 3, y: 0, color: 'blue'},
-                            {x: 3, y: 1, color: 'yellow'}
-                        ],
-                        goals: [
-                            {x: 0, y: 5, color: 'red'},
-                            {x: 6, y: 4, color: 'green'},
-                            {x: 5, y: 4, color: 'blue'},
-                            {x: 1, y: 5, color: 'yellow'}
-                        ],
-                        obstacles: [
-                            {x: 0, y: 0},
-                            {x: 2, y: 3},
-                            {x: 3, y: 3},
-                            {x: 4, y: 3},
-                            {x: 5, y: 3},
-                            {x: 6, y: 3},
-                            {x: 2, y: 5},
-                            {x: 2, y: 6}
-                        ]
-                    };
+                // Create pieces and goals
+                positions.pieces.forEach((pos, i) => {
+                    this.pieces.push(this.createPiece(pos.x, pos.y, this.colors[i]));
+                });
+                
+                positions.goals.forEach((pos, i) => {
+                    this.goals.push(this.createGoal(pos.x, pos.y, this.colors[i]));
+                });
+                
+                // Add some obstacles
+                positions.obstacles.forEach(pos => {
+                    this.obstacles.push(this.createObstacle(pos.x, pos.y));
+                });
 
-                    // Create pieces from predefined layout
-                    predefinedLayout.pieces.forEach((piece) => {
-                        this.pieces.push(this.createPiece(piece.x, piece.y, piece.color));
-                    });
-                    
-                    // Create goals from predefined layout
-                    predefinedLayout.goals.forEach((goal) => {
-                        this.goals.push(this.createGoal(goal.x, goal.y, goal.color));
-                    });
-
-                    // Create goals from predefined layout
-                    predefinedLayout.obstacles.forEach((obstacle) => {
-                        this.obstacles.push(this.createObstacle(obstacle.x, obstacle.y));
-                    });
-                } 
-                else {
-                    // Generate a procedural level
-                    const positions = this.generateSolvableConfiguration();
-                    
-                    positions.pieces.forEach((pos, i) => {
-                        this.pieces.push(this.createPiece(pos.x, pos.y, this.colors[i]));
-                    });
-                    
-                    positions.goals.forEach((pos, i) => {
-                        this.goals.push(this.createGoal(pos.x, pos.y, this.colors[i]));
-                    });
-                    
-                    positions.obstacles.forEach(pos => {
-                        this.obstacles.push(this.createObstacle(pos.x, pos.y));
-                    });
-                }
+                this.levelDisplay.textContent = this.currentLevel;
             }
 
             generateSolvableConfiguration() {
@@ -293,12 +253,8 @@
                     positions.pieces.push({x, y});
                 }
 
-                // For procedural levels, randomly decide if we use 2 or 4 goals
-                const useAllGoals = Math.random() < 0.5;
-                const numGoals = useAllGoals ? 4 : 2;
-                
                 // Place goals away from pieces
-                for (let i = 0; i < numGoals; i++) {
+                for (let i = 0; i < 4; i++) {
                     let x, y;
                     do {
                         x = Math.floor(Math.random() * this.gridSize);
@@ -310,9 +266,8 @@
                     positions.goals.push({x, y});
                 }
 
-                // Add some obstacles (fewer obstacles when using fewer goals)
-                const numObstacles = useAllGoals ? 3 : 2;
-                for (let i = 0; i < numObstacles; i++) {
+                // Add a few obstacles
+                for (let i = 0; i < 3; i++) {
                     let x, y;
                     do {
                         x = Math.floor(Math.random() * this.gridSize);
