@@ -812,7 +812,7 @@
                 // Check win condition after movement is complete
                 if (this.checkWin()) {
                     setTimeout(() => {
-                        alert('Great job!');
+                        alert('Level Complete!');
                         this.currentLevel++;
                         if (this.gameMode === 'infinite') {
                             this.generateLevel();
