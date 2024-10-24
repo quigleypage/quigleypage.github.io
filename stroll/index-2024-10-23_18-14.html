@@ -1,30 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stroll</title>
     <style>
-        :root[data-theme="dark"] {
-            --background-color: #2c3e50;
-            --game-background: #34495e;
-            --obstacle-color: #2c3e50;
-            --text-color: white;
-            --button-background: #34495e;
-            --button-hover: #3498db;
-            --cell-border: rgba(255, 255, 255, 0.1);
-        }
-
-        :root[data-theme="light"] {
-            --background-color: #f5f5f5;
-            --game-background: #ffffff;
-            --obstacle-color: #cbd5e1;
-            --text-color: #1a202c;
-            --button-background: #e2e8f0;
-            --button-hover: #94a3b8;
-            --cell-border: rgba(0, 0, 0, 0.1);
-        }
-        
         :root {
             --cell-size: min(45px, 12vw);
             --grid-size: 7;
@@ -37,8 +17,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: var(--background-color);
-            transition: background-color 0.3s ease;
+            background: #2c3e50;
             font-family: Arial, sans-serif;
             touch-action: none;
         }
@@ -47,8 +26,7 @@
             position: relative;
             width: calc(var(--cell-size) * var(--grid-size));
             height: calc(var(--cell-size) * var(--grid-size));
-            background: var(--game-background);
-            transition: background-color 0.3s ease;
+            background: #34495e;
             border-radius: 8px;
             overflow: hidden;
         }
@@ -57,7 +35,7 @@
             position: absolute;
             width: var(--cell-size);
             height: var(--cell-size);
-            border: 1px solid var(--cell-border);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             box-sizing: border-box;
             display: flex;
             align-items: center;
@@ -100,8 +78,7 @@
         }
 
         .obstacle {
-            background: var(--obstacle-color);
-            transition: background-color 0.3s ease;
+            background: #2c3e50;
             border-radius: 4px;
         }
 
@@ -112,8 +89,7 @@
 
         #controls {
             margin-top: 20px;
-            color: var(--text-color);
-            transition: color 0.3s ease;
+            color: white;
         }
 
         .menu-screen {
@@ -126,22 +102,19 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: var(--background-color);
-            transition: background-color 0.3s ease;
+            background: #2c3e50;
             gap: 20px;
         }
 
         .menu-title {
-            color: var(--text-color);
-            transition: color 0.3s ease;
+            color: white;
             font-size: 2.5em;
             margin-bottom: 20px;
         }
 
         .menu-button {
-            background: var(--button-background);
-            color: var(--text-color);
-            transition: all 0.2s;
+            background: #34495e;
+            color: white;
             border: none;
             padding: 15px 30px;
             font-size: 1.2em;
@@ -164,8 +137,8 @@
         }
 
         .level-button {
-            background: var(--button-background);
-            color: var(--text-color);
+            background: #34495e;
+            color: white;
             border: none;
             padding: 10px;
             font-size: 1em;
@@ -182,40 +155,26 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            background: var(--button-background);
-            color: var(--text-color);
+            background: #34495e;
+            color: white;
             border: none;
             padding: 10px 20px;
             border-radius: 4px;
             cursor: pointer;
         }
 
-        #theme-toggle {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: var(--button-background);
-            color: var(--text-color);
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 1.2em;
-            line-height: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #theme-toggle:hover {
-            background: var(--button-hover);
-        }
-
         #level-info {
             color: white;
             margin-bottom: 20px;
             font-size: 1.2em;
+        }
+
+        #level-display {
+            color: white;
+            font-size: 1.2em;
+            text-align: center;
+            margin-bottom: 15px;
+            font-family: Arial, sans-serif;
         }
 
         @media (min-width: 768px) {
@@ -226,6 +185,7 @@
     </style>
 </head>
 <body>
+    <div id="level-display"></div>
     <div id="game-container">
         <div id="menu-screen" class="menu-screen">
             <h1 class="menu-title">STROLL</h1>
@@ -234,7 +194,6 @@
         </div>
     </div>
     <div id="controls" style="display: none">Use arrow keys or swipe to move</div>
-    <button id="theme-toggle" onclick="game.toggleTheme()">●</button>
 
     <script>
         class StrollGame {
@@ -251,8 +210,7 @@
                 this.colors = ['red', 'blue', 'green', 'yellow'];
                 this.container = document.getElementById('game-container');
                 this.controls = document.getElementById('controls');
-                this.theme = 'dark';
-                document.getElementById('theme-toggle').textContent = '●';
+                this.levelDisplay = document.getElementById('level-display');
                 
                 this.storyLevels = {
                     1: {
@@ -431,8 +389,7 @@
                             {x: 3, y: 2},
                             {x: 2, y: 3}
                         ]
-                    }
-                    
+                    }                    
                 };
 
                 this.showMainMenu();
@@ -447,10 +404,11 @@
                     </div>
                 `;
                 this.controls.style.display = 'none';
+                this.levelDisplay.style.display = 'none';
             }
 
             showLevelSelect() {
-                const totalLevels = 10; // Adjust as needed
+                const totalLevels = 9; // Adjust as needed
                 let levelGrid = '<div class="level-grid">';
                 for (let i = 1; i <= totalLevels; i++) {
                     levelGrid += `
@@ -486,6 +444,10 @@
                 this.currentLevel = level;
                 this.setupGame();
                 this.loadLevel(level);
+                if (this.gameMode === 'story') {
+                    this.levelDisplay.style.display = 'block';
+                    this.levelDisplay.textContent = `Level ${level}`;
+                }
             }
 
             setupGame() {
@@ -796,7 +758,7 @@
                     });
                 }, 200);
 
-                // Check win condition
+                // Check win condition after movement is complete
                 if (this.checkWin()) {
                     setTimeout(() => {
                         alert('Level Complete!');
@@ -806,6 +768,7 @@
                         } else {
                             if (this.storyLevels[this.currentLevel]) {
                                 this.loadLevel(this.currentLevel);
+                                this.levelDisplay.textContent = `Level ${this.currentLevel}`;
                             } else {
                                 this.showMainMenu();
                             }
@@ -822,12 +785,6 @@
                         goal.color === piece.color
                     )
                 );
-            }
-
-            toggleTheme() {
-                this.theme = this.theme === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', this.theme);
-                document.getElementById('theme-toggle').textContent = this.theme === 'dark' ? '●' : '○';
             }
         }
 
