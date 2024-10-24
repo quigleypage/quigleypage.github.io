@@ -212,10 +212,14 @@
             background: var(--button-hover);
         }
 
-        #level-info {
-            color: white;
-            margin-bottom: 20px;
+        
+        #level-display {
+            color: var(--text-color);
+            transition: color 0.3s ease;
             font-size: 1.2em;
+            text-align: center;
+            margin-bottom: 15px;
+            font-family: Arial, sans-serif;
         }
 
         @media (min-width: 768px) {
@@ -226,6 +230,7 @@
     </style>
 </head>
 <body>
+    <div id="level-display"></div>
     <div id="game-container">
         <div id="menu-screen" class="menu-screen">
             <h1 class="menu-title">STROLL</h1>
@@ -251,6 +256,7 @@
                 this.colors = ['red', 'blue', 'green', 'yellow'];
                 this.container = document.getElementById('game-container');
                 this.controls = document.getElementById('controls');
+                this.levelDisplay = document.getElementById('level-display');
                 this.theme = 'dark';
                 document.getElementById('theme-toggle').textContent = '●';
                 
@@ -447,10 +453,11 @@
                     </div>
                 `;
                 this.controls.style.display = 'none';
+                this.levelDisplay.style.display = 'none';
             }
 
             showLevelSelect() {
-                const totalLevels = 10; // Adjust as needed
+                const totalLevels = 9; // Adjust as needed
                 let levelGrid = '<div class="level-grid">';
                 for (let i = 1; i <= totalLevels; i++) {
                     levelGrid += `
@@ -486,6 +493,11 @@
                 this.currentLevel = level;
                 this.setupGame();
                 this.loadLevel(level);
+
+                if (this.gameMode === 'story') {
+                    this.levelDisplay.style.display = 'block';
+                    this.levelDisplay.textContent = `Level ${level}`;
+                }
             }
 
             setupGame() {
@@ -797,6 +809,7 @@
                 }, 200);
 
                 // Check win condition
+                // Check win condition after movement is complete
                 if (this.checkWin()) {
                     setTimeout(() => {
                         alert('Level Complete!');
@@ -806,6 +819,7 @@
                         } else {
                             if (this.storyLevels[this.currentLevel]) {
                                 this.loadLevel(this.currentLevel);
+                                this.levelDisplay.textContent = `Level ${this.currentLevel}`;
                             } else {
                                 this.showMainMenu();
                             }
