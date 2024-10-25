@@ -113,7 +113,7 @@
         #controls {
             margin-top: 20px;
             color: var(--text-color);
-            transition: color 0.3s ease;
+            transition: color 0.3s ease, opacity 1s ease-out;
         }
 
         .menu-screen {
@@ -153,7 +153,7 @@
         }
 
         .menu-button:hover {
-            background: #3498db;
+            background: var(--button-hover);
         }
 
         .level-grid {
@@ -173,9 +173,8 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-
         .level-button:hover {
-            background: #3498db;
+            background: var(--button-hover);
         }
 
         .back-button {
@@ -185,9 +184,16 @@
             background: var(--button-background);
             color: var(--text-color);
             border: none;
-            padding: 10px 20px;
+            padding: 12px 16px;
             border-radius: 4px;
             cursor: pointer;
+            font-size: 1.2em;    /* Increased for better icon visibility */
+            line-height: 1;      /* Ensures vertical centering */
+            display: flex;       /* For better icon centering */
+            transition: background 0.2s;
+        }
+        .back-button:hover {
+            background: var(--button-hover);
         }
 
         #theme-toggle {
@@ -207,7 +213,6 @@
             align-items: center;
             justify-content: center;
         }
-
         #theme-toggle:hover {
             background: var(--button-hover);
         }
@@ -252,6 +257,7 @@
                 this.gameMode = null;
                 this.touchStartX = 0;
                 this.touchStartY = 0;
+                this.controlsShown = true;
                 
                 this.colors = ['red', 'blue', 'green', 'yellow'];
                 this.container = document.getElementById('game-container');
@@ -489,7 +495,7 @@
 
                 this.container.innerHTML = `
                     <div class="menu-screen">
-                        <button class="back-button" onclick="game.showMainMenu()">Back</button><br><br>
+                        <button class="back-button" onclick="game.showMainMenu()">‹</button><br><br>
                         <h2 class="menu-title">Select Level</h2>
                         ${levelGrid}
                     </div>
@@ -510,6 +516,10 @@
 
             startLevel(level) {
                 this.currentLevel = level;
+                //experiment to confirm where I would need to adjust the grid size, would also need to adjust piece/goal/obstacle styles
+                /*if(level == 10){
+                    this.gridSize = 9;
+                }*/ 
                 this.setupGame();
                 this.loadLevel(level);
 
@@ -787,6 +797,10 @@
                     this.canMove(piece, direction)
                 );
 
+                if (movablePieces.length > 0) {
+                    this.fadeOutControls();  
+                }
+
                 // Add moving class to pieces that will move
                 movablePieces.forEach(piece => {
                     piece.element.classList.add('moving');
@@ -840,7 +854,8 @@
                                 this.loadLevel(this.currentLevel);
                                 this.levelDisplay.textContent = `Level ${this.currentLevel}`;
                             } else {
-                                this.showMainMenu();
+                                location.reload(); // temporary workaround to go back to main menu on end game without triggering bug
+                                //this.showMainMenu();
                             }
                         }
                     }, 300);
@@ -861,6 +876,13 @@
                 this.theme = this.theme === 'dark' ? 'light' : 'dark';
                 document.documentElement.setAttribute('data-theme', this.theme);
                 document.getElementById('theme-toggle').textContent = this.theme === 'dark' ? '●' : '○';
+            }
+
+            fadeOutControls() {
+                if (this.controlsShown) {
+                    this.controls.style.opacity = '0';
+                    this.controlsShown = false;
+                }
             }
         }
 
