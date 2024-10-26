@@ -238,7 +238,6 @@
     <div id="level-display"></div>
     <div id="game-container">
         <div id="menu-screen" class="menu-screen">
-            <!-- Potentially pointless legacy code -->
             <h1 class="menu-title">STROLL</h1>
             <button class="menu-button" onclick="game.startStoryMode()">Story Mode</button>
             <button class="menu-button" onclick="game.startInfiniteMode()">Infinite Mode</button>
@@ -463,39 +462,6 @@
                             {x: 5, y: 5},
                             {x: 0, y: 4}
                         ]
-                    },
-                    101: { //testing daily level concept
-                        pieces: [
-                            {
-                            "x": 2,
-                            "y": 0,
-                            "color": "red"
-                            },
-                            {
-                            "x": 0,
-                            "y": 1,
-                            "color": "yellow"
-                            },
-                            {
-                            "x": 1,
-                            "y": 1,
-                            "color": "blue"
-                            },
-                            {
-                            "x": 3,
-                            "y": 2,
-                            "color": "green"
-                            }
-                        ],
-                        goals: [
-                            {x: 6, y: 0, color: 'red'},
-                            {x: 6, y: 1, color: 'green'},
-                            {x: 5, y: 1, color: 'blue'},
-                            {x: 5, y: 0, color: 'yellow'}
-                        ],
-                        obstacles: [
-                            {x: 0, y: 0}
-                        ]
                     }
                     
                 };
@@ -507,8 +473,7 @@
                 this.container.innerHTML = `
                     <div id="menu-screen" class="menu-screen">
                         <h1 class="menu-title">STROLL</h1>
-                        <button class="menu-button" onclick="game.gameMode=null;game.startLevel(101)">Daily Puzzle</button>
-                        <button class="menu-button" onclick="game.startStoryMode()">Practice Levels</button>
+                        <button class="menu-button" onclick="game.startStoryMode()">Play</button>
                         <!-- <button class="menu-button" onclick="game.startInfiniteMode()">Infinite Mode</button> -->
                     </div>
                 `;
@@ -530,7 +495,7 @@
 
                 this.container.innerHTML = `
                     <div class="menu-screen">
-                        <button class="back-button" onclick="game.showMainMenu()">‹</button><br>
+                        <button class="back-button" onclick="game.showMainMenu()">‹</button><br><br>
                         <h2 class="menu-title">Select Level</h2>
                         ${levelGrid}
                     </div>
@@ -676,21 +641,67 @@
                 this.goals = [];
                 this.obstacles = [];
                 
-                // Generate a procedural level
-                const positions = this.generateSolvableConfiguration();
+                // Use predefined level layout 50% of the time in infinite mode
+                const usePredefined = Math.random() < 0.5;
                 
-                positions.pieces.forEach((pos, i) => {
-                    this.pieces.push(this.createPiece(pos.x, pos.y, this.colors[i]));
-                });
-                
-                positions.goals.forEach((pos, i) => {
-                    this.goals.push(this.createGoal(pos.x, pos.y, this.colors[i]));
-                });
-                
-                positions.obstacles.forEach(pos => {
-                    this.obstacles.push(this.createObstacle(pos.x, pos.y));
-                });
-                
+                if (usePredefined) {
+                    // Use the predefined layout
+                    const predefinedLayout = {
+                        pieces: [
+                            {x: 2, y: 1, color: 'red'},
+                            {x: 4, y: 0, color: 'green'},
+                            {x: 3, y: 0, color: 'blue'},
+                            {x: 3, y: 1, color: 'yellow'}
+                        ],
+                        goals: [
+                            {x: 0, y: 5, color: 'red'},
+                            {x: 6, y: 4, color: 'green'},
+                            {x: 5, y: 4, color: 'blue'},
+                            {x: 1, y: 5, color: 'yellow'}
+                        ],
+                        obstacles: [
+                            {x: 0, y: 0},
+                            {x: 2, y: 3},
+                            {x: 3, y: 3},
+                            {x: 4, y: 3},
+                            {x: 5, y: 3},
+                            {x: 6, y: 3},
+                            {x: 2, y: 5},
+                            {x: 2, y: 6}
+                        ]
+                    };
+
+                    // Create pieces from predefined layout
+                    predefinedLayout.pieces.forEach((piece) => {
+                        this.pieces.push(this.createPiece(piece.x, piece.y, piece.color));
+                    });
+                    
+                    // Create goals from predefined layout
+                    predefinedLayout.goals.forEach((goal) => {
+                        this.goals.push(this.createGoal(goal.x, goal.y, goal.color));
+                    });
+
+                    // Create goals from predefined layout
+                    predefinedLayout.obstacles.forEach((obstacle) => {
+                        this.obstacles.push(this.createObstacle(obstacle.x, obstacle.y));
+                    });
+                } 
+                else {
+                    // Generate a procedural level
+                    const positions = this.generateSolvableConfiguration();
+                    
+                    positions.pieces.forEach((pos, i) => {
+                        this.pieces.push(this.createPiece(pos.x, pos.y, this.colors[i]));
+                    });
+                    
+                    positions.goals.forEach((pos, i) => {
+                        this.goals.push(this.createGoal(pos.x, pos.y, this.colors[i]));
+                    });
+                    
+                    positions.obstacles.forEach(pos => {
+                        this.obstacles.push(this.createObstacle(pos.x, pos.y));
+                    });
+                }
             }
 
             generateSolvableConfiguration() {
@@ -830,6 +841,7 @@
                     });
                 }, 200);
 
+                // Check win condition
                 // Check win condition after movement is complete
                 if (this.checkWin()) {
                     setTimeout(() => {
