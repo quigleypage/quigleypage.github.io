@@ -128,7 +128,7 @@
 
         .utility-controls {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 5px;
         }
 
@@ -166,8 +166,6 @@
         <button onclick="generateCode()">Get Code</button>
         <button onclick="clearGrid()">Clear</button>
         <button onclick="setMode('erase')">Erase</button>
-        <button onclick="saveInitialState()">Save Start</button>
-        <button onclick="resetToInitial()">Reset</button>
     </div>
     <textarea id="output" readonly></textarea>
 
@@ -176,37 +174,6 @@
         let gridSize = 7;
         let grid = Array(gridSize).fill().map(() => Array(gridSize).fill(null));
         let isGoalMode = false;
-        let initialState = null; // Store the initial state
-
-        function saveInitialState() {
-            // Deep clone the current grid state
-            initialState = JSON.parse(JSON.stringify(grid));
-        }
-
-        function resetToInitial() {
-            if (!initialState) return;
-            
-            // Restore the grid data
-            grid = JSON.parse(JSON.stringify(initialState));
-            
-            // Update the visual representation
-            for (let y = 0; y < gridSize; y++) {
-                for (let x = 0; x < gridSize; x++) {
-                    const cell = editorGrid.children[y * gridSize + x];
-                    cell.innerHTML = '';
-                    
-                    const item = grid[y][x];
-                    if (item) {
-                        const element = document.createElement('div');
-                        element.className = `${item.type}`;
-                        if (item.color) {
-                            element.className += ` ${item.color}`;
-                        }
-                        cell.appendChild(element);
-                    }
-                }
-            }
-        }
 
         function toggleGoalMode() {
             isGoalMode = !isGoalMode;
@@ -297,7 +264,6 @@
         function clearGrid() {
             grid = Array(gridSize).fill().map(() => Array(gridSize).fill(null));
             Array.from(editorGrid.children).forEach(cell => cell.innerHTML = '');
-            initialState = null; // Clear the saved state when clearing the grid
         }
 
         function findPieceToJumpOver(x, y, direction) {
