@@ -133,10 +133,6 @@
         }
 
         @media (max-width: 480px) {
-            .tool-controls {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
             .movement-controls {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -150,7 +146,7 @@
         <button onclick="setMode('piece', 'blue')">Blue</button>
         <button onclick="setMode('piece', 'green')">Green</button>
         <button onclick="setMode('piece', 'yellow')">Yellow</button>
-        <button onclick="toggleGoalMode()">Goals</button>
+        <button onclick="toggleGoalMode()">more</button>
     </div>
     <div class="controls tool-controls" id="goalControls" style="display: none;">
         <button onclick="setMode('goal', 'red')">Red Goal</button>
