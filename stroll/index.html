@@ -197,7 +197,7 @@
         }
 
         #theme-toggle {
-            position: absolute;
+            position: fixed;
             top: 20px;
             right: 20px;
             background: var(--button-background);
@@ -212,6 +212,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 1000; /* Ensure it stays above other elements */
         }
         #theme-toggle:hover {
             background: var(--button-hover);
