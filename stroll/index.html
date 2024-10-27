@@ -28,6 +28,8 @@
         :root {
             --cell-size: min(45px, 12vw);
             --grid-size: 7;
+            /*--cell-size-7: min(45px, 12vw);  /* Original size for 7x7 */
+            /*--cell-size-10: min(32px, 9vw);  /* New size for 10x10 */
         }
 
         body {
@@ -51,6 +53,8 @@
             transition: background-color 0.3s ease;
             border-radius: 8px;
             overflow: hidden;
+            /*max-width: 95vw;  /* Prevent overflow on small screens */
+            /*max-height: 95vw; /* Keep it square */
         }
 
         .cell {
@@ -140,8 +144,8 @@
         .levelselect-title {
             color: var(--text-color);
             transition: color 0.3s ease;
-            font-size: 2em;
-            margin-bottom: 20px;
+            font-size: 1.5em;
+            margin-bottom: 12px;
         }
 
         .menu-button {
@@ -567,10 +571,16 @@
             startLevel(level) {
                 this.currentLevel = level;
                 //experiment to confirm where I would need to adjust the grid size, would also need to adjust piece/goal/obstacle styles
-                if(level == 11){
+                /*if(level == 11){
                     this.gridSize = 10;
                     document.documentElement.style.setProperty('--grid-size', 10);
+                    document.documentElement.style.setProperty('--cell-size', 'var(--cell-size-10)');
                 }
+                else{
+                    this.gridSize = 7;
+                    document.documentElement.style.setProperty('--grid-size', 7);
+                    document.documentElement.style.setProperty('--cell-size', 'var(--cell-size-7)');
+                }*/
                 this.setupGame();
                 this.loadLevel(level);
 

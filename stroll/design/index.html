@@ -128,32 +128,27 @@
 
         .utility-controls {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 5px;
         }
 
-        @media (max-width: 480px) {
-            .movement-controls {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
     </style>
 </head>
 <body>
     <h1>Stroll Level Editor</h1>
     <div class="controls tool-controls">
-        <button onclick="setMode('piece', 'red')">Red</button>
-        <button onclick="setMode('piece', 'blue')">Blue</button>
-        <button onclick="setMode('piece', 'green')">Green</button>
-        <button onclick="setMode('piece', 'yellow')">Yellow</button>
-        <button onclick="toggleGoalMode()">more</button>
+        <button onclick="setMode('piece', 'red')">🔴</button>
+        <button onclick="setMode('piece', 'blue')">🔵</button>
+        <button onclick="setMode('piece', 'green')">🟢</button>
+        <button onclick="setMode('piece', 'yellow')">🟡</button>
+        <button onclick="setMode('obstacle')">⬛️</button>
     </div>
-    <div class="controls tool-controls" id="goalControls" style="display: none;">
-        <button onclick="setMode('goal', 'red')">Red Goal</button>
-        <button onclick="setMode('goal', 'blue')">Blue Goal</button>
-        <button onclick="setMode('goal', 'green')">Green Goal</button>
-        <button onclick="setMode('goal', 'yellow')">Yellow Goal</button>
-        <button onclick="setMode('obstacle')">Block</button>
+    <div class="controls tool-controls" id="goalControls">
+        <button onclick="setMode('goal', 'red')">🔴 🏳️</button>
+        <button onclick="setMode('goal', 'blue')">🔵 🏳️</button>
+        <button onclick="setMode('goal', 'green')">🟢 🏳️</button>
+        <button onclick="setMode('goal', 'yellow')">🟡 🏳️</button>
+        <button onclick="setMode('erase')">❌</button>        
     </div>
     <div id="editor-grid"></div>
     <div class="controls movement-controls">
@@ -165,7 +160,6 @@
     <div class="controls utility-controls">
         <button onclick="generateCode()">Code</button>
         <button onclick="clearGrid()">Clear</button>
-        <button onclick="setMode('erase')">Erase</button>
         <button onclick="saveInitialState()">Save</button>
         <button onclick="resetToInitial()">Reset</button>
     </div>
@@ -206,11 +200,6 @@
                     }
                 }
             }
-        }
-
-        function toggleGoalMode() {
-            isGoalMode = !isGoalMode;
-            document.getElementById('goalControls').style.display = isGoalMode ? 'grid' : 'none';
         }
 
         // Initialize grid
