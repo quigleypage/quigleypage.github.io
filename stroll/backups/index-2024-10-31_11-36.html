@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stroll</title>
+    <style>
+        :root[data-theme="dark"] {
+            --background-color: #2c3e50;
+            --game-background: #34495e;
+            --obstacle-color: #2c3e50;
+            --text-color: white;
+            --button-background: #34495e;
+            --button-hover: #3498db;
+            --cell-border: rgba(255, 255, 255, 0.1);
+        }
+
+        :root[data-theme="light"] {
+            --background-color: #f5f5f5;
+            --game-background: #ffffff;
+            --obstacle-color: #cbd5e1;
+            --text-color: #1a202c;
+            --button-background: #e2e8f0;
+            --button-hover: #94a3b8;
+            --cell-border: rgba(0, 0, 0, 0.1);
+        }
+        
+        :root {
+            --cell-size: min(45px, 12vw);
+            --grid-size: 7;
+            /*--cell-size-7: min(45px, 12vw);  /* Original size for 7x7 */
+            /*--cell-size-10: min(32px, 9vw);  /* New size for 10x10 */
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--background-color);
+            transition: background-color 0.3s ease;
+            font-family: Arial, sans-serif;
+            touch-action: none;
+        }
+
+        #game-container {
+            position: relative;
+            width: calc(var(--cell-size) * var(--grid-size));
+            height: calc(var(--cell-size) * var(--grid-size));
+            background: var(--game-background);
+            transition: background-color 0.3s ease;
+            border-radius: 8px;
+            overflow: hidden;
+            /*max-width: 95vw;  /* Prevent overflow on small screens */
+            /*max-height: 95vw; /* Keep it square */
+        }
+
+        .cell {
+            position: absolute;
+            width: var(--cell-size);
+            height: var(--cell-size);
+            border: 1px solid var(--cell-border);
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .piece, .goal, .obstacle {
+            width: calc(var(--cell-size) * 0.8);
+            height: calc(var(--cell-size) * 0.8);
+        }
+
+        .piece {
+            position: absolute;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.2s ease-in-out;
+            z-index: 1;
+        }
+
+        .piece.moving {
+            z-index: 2;
+        }
+
+        @keyframes goalMatch {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .piece.matched {
+            animation: goalMatch 0.3s ease-in-out;
+        }
+
+        .goal {
+            border: 2px dashed;
+            background: transparent;
+            opacity: 0.5;
+            border-radius: 50%;
+        }
+
+        .obstacle {
+            background: var(--obstacle-color);
+            transition: background-color 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .red { background: #e74c3c; border-color: #e74c3c; }
+        .blue { background: #3498db; border-color: #3498db; }
+        .green { background: #2ecc71; border-color: #2ecc71; }
+        .yellow { background: #f1c40f; border-color: #f1c40f; }
+
+        #controls {
+            margin-top: 20px;
+            color: var(--text-color);
+            transition: color 0.3s ease, opacity 1s ease-out;
+        }
+
+        .menu-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--background-color);
+            transition: background-color 0.3s ease;
+            gap: 20px;
+        }
+
+        .menu-title {
+            color: var(--text-color);
+            transition: color 0.3s ease;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        .levelselect-title {
+            color: var(--text-color);
+            transition: color 0.3s ease;
+            font-size: 1.5em;
+            margin-bottom: 12px;
+        }
+
+        .menu-button {
+            background: var(--button-background);
+            color: var(--text-color);
+            transition: all 0.2s;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 200px;
+            text-align: center;
+        }
+
+        .menu-button:hover {
+            background: var(--button-hover);
+        }
+
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            padding: 20px;
+        }
+
+        .level-button {
+            background: var(--button-background);
+            color: var(--text-color);
+            border: none;
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .level-button:hover {
+            background: var(--button-hover);
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--button-background);
+            color: var(--text-color);
+            border: none;
+            padding: 12px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.2em;    /* Increased for better icon visibility */
+            line-height: 1;      /* Ensures vertical centering */
+            display: flex;       /* For better icon centering */
+            transition: background 0.2s;
+        }
+        .back-button:hover {
+            background: var(--button-hover);
+        }
+
+        #theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--button-background);
+            color: var(--text-color);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.2em;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000; /* Ensure it stays above other elements */
+        }
+        #theme-toggle:hover {
+            background: var(--button-hover);
+        }
+
+        
+        #level-display {
+            color: var(--text-color);
+            transition: color 0.3s ease;
+            font-size: 1.2em;
+            text-align: center;
+            margin-bottom: 15px;
+            font-family: Arial, sans-serif;
+        }
+
+        @media (min-width: 768px) {
+            :root {
+                --cell-size: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="level-display"></div>
+    <div id="game-container">
+        <div id="menu-screen" class="menu-screen">
+            <!-- Potentially pointless legacy code -->
+            <h1 class="menu-title">STROLL</h1>
+            <button class="menu-button" onclick="game.startStoryMode()">Story Mode</button>
+            <button class="menu-button" onclick="game.startInfiniteMode()">Infinite Mode</button>
+        </div>
+    </div>
+    <div id="controls" style="display: none">Use arrow keys or swipe to move</div>
+    <button id="theme-toggle" onclick="game.toggleTheme()">●</button>
+
+    <script>
+        class StrollGame {
+            constructor() {
+                this.gridSize = 7;
+                this.pieces = [];
+                this.goals = [];
+                this.obstacles = [];
+                this.currentLevel = 1;
+                this.gameMode = null;
+                this.touchStartX = 0;
+                this.touchStartY = 0;
+                this.controlsShown = true;
+                
+                this.colors = ['red', 'blue', 'green', 'yellow'];
+                this.container = document.getElementById('game-container');
+                this.controls = document.getElementById('controls');
+                this.levelDisplay = document.getElementById('level-display');
+                this.theme = 'dark';
+                document.getElementById('theme-toggle').textContent = '●';
+                
+                this.storyLevels = {
+                    1: { // OG Level 1
+                        pieces: [
+                            {x: 0, y: 0, color: 'red'},
+                            {x: 1, y: 0, color: 'green'},
+                            {x: 0, y: 1, color: 'blue'},
+                            {x: 1, y: 1, color: 'yellow'}
+                        ],
+                        goals: [
+                            {x: 2, y: 6, color: 'red'},
+                            {x: 2, y: 5, color: 'blue'},
+                            {x: 3, y: 5, color: 'yellow'},
+                            {x: 3, y: 6, color: 'green'}
+                        ],
+                        obstacles: []
+                    },
+                    2: { // OG Level 2
+                        pieces: [
+                            {x: 6, y: 1, color: 'red'},
+                            {x: 5, y: 0, color: 'green'},
+                            {x: 5, y: 1, color: 'blue'},
+                            {x: 6, y: 0, color: 'yellow'}
+                        ],
+                        goals: [
+                            {x: 6, y: 5, color: 'red'},
+                            {x: 1, y: 6, color: 'green'},
+                            {x: 5, y: 5, color: 'blue'},
+                            {x: 0, y: 6, color: 'yellow'}
+                        ],
+                        obstacles: [
+                            {x: 3, y: 5},
+                            {x: 4, y: 0},
+                            {x: 4, y: 1},
+                            {x: 4, y: 2},
+                            {x: 4, y: 3},
+                            {x: 4, y: 4},
+                            {x: 4, y: 5}
+                        ]
+                    },
+                    3: { // OG Level 3
+                        pieces: [
+                            {x: 1, y: 0, color: 'red'},
+                            {x: 0, y: 1, color: 'green'},
+                            {x: 0, y: 0, color: 'blue'},
+                            {x: 1, y: 1, color: 'yellow'}
+                        ],
+                        goals: [
+                            {x: 1, y: 2, color: 'red'},
+                            {x: 4, y: 3, color: 'green'},
+                            {x: 0, y: 2, color: 'blue'},
+                            {x: 3, y: 3, color: 'yellow'}
+                        ],
+                        obstacles: [
+                            {x: 3, y: 0},
+                            {x: 3, y: 1},
+                            {x: 3, y: 2}
+                        ]
+                    },
+                    4: { // OG Level 4
+                        pieces: [
+                            {x: 4, y: 1, color: 'red'},
+                            {x: 3, y: 1, color: 'green'},
+                            {x: 4, y: 0, color: 'blue'},
+                            {x: 3, y: 0, color: 'yellow'}
+                        ],
+                        goals: [
+                            {x: 0, y: 1, color: 'red'},
+                            {x: 1, y: 5, color: 'green'},
+                            {x: 2, y: 0, color: 'blue'},
+                            {x: 1, y: 6, color: 'yellow'}
+                        ],
+                        obstacles: [
+                            {x: 2, y: 2},
+                            {x: 3, y: 2},
+                            {x: 5, y: 2},
+                            {x: 6, y: 2}
+                        ]
+                    },
+                    5: { // OG Level 5
+                        pieces: [
+                            {x: 1, y: 2, color: 'red'},
+                            {x: 2, y: 1, color: 'green'},
+                            {x: 1, y: 1, color: 'blue'},
+                            {x: 2, y: 2, color: 'yellow'}
+                        ],
+                        goals: [
+                            {x: 5, y: 4, color: 'red'},
+                            {x: 4, y: 5, color: 'green'},
+                            {x: 5, y: 5, color: 'blue'},
+                            {x: 6, y: 4, color: 'yellow'}
+                        ],
+                        obstacles: [
+                            {x: 0, y: 3},
+                            {x: 2, y: 3}
+                        ]
+                    },
+                    6: { // OG level 7
+                        pieces: [
+                            {x: 2, y: 1, color: 'red'},
+                            {x: 4, y: 0, color: 'green'},
+                            {x: 3, y: 0, color: 'blue'},
+                            {x: 3, y: 1, color: 'yellow'}
+                        ],
+                        goals: [
+                            {x: 0, y: 5, color: 'red'},
+                            {x: 6, y: 4, color: 'green'},
+                            {x: 5, y: 4, color: 'blue'},
+                            {x: 1, y: 5, color: 'yellow'}
+                        ],
+                        obstacles: [
+                            {x: 0, y: 0},
+                            {x: 2, y: 3},
+                            {x: 3, y: 3},
+                            {x: 4, y: 3},
+                            {x: 5, y: 3},
+                            {x: 6, y: 3},
+                            {x: 2, y: 5},
+                            {x: 2, y: 6}
+                        ]
+                    },
+                    7: { // OG level 8
+                        pieces: [
+                            {x: 0, y: 1, color: 'red'},
+                            {x: 1, y: 1, color: 'green'},
+                            {x: 2, y: 0, color: 'blue'},
+                            {x: 1, y: 2, color: 'yellow'}
+                        ],
+                        goals: [
+                            {x: 4, y: 5, color: 'red'},
+                            {x: 5, y: 5, color: 'green'},
+                            {x: 6, y: 4, color: 'blue'},
+                            {x: 5, y: 6, color: 'yellow'}
+                        ],
+                        obstacles: [
+                            {x: 1, y: 0},
+                            {x: 3, y: 0},
+                            {x: 3, y: 3},
+                            {x: 0, y: 4},
+                            {x: 1, y: 4},
+                            {x: 2, y: 4}
+                        ]
+                    },
+                    8: { // OG level 9
+                        pieces: [
+                            {x: 0, y: 5, color: 'red'},
+                            {x: 0, y: 6, color: 'green'},
+                            {x: 1, y: 6, color: 'blue'},
+                            {x: 1, y: 5, color: 'yellow'}
+                        ],
+                        goals: [
+                            {x: 2, y: 3, color: 'red'},
+                            {x: 0, y: 2, color: 'green'},
+                            {x: 1, y: 0, color: 'blue'},
+                            {x: 1, y: 1, color: 'yellow'}
+                        ],
+                        obstacles: [
+                            {x: 3, y: 5}
+                        ]
+                    },
+                    9: { // OG level 16
+                        pieces: [
+                            {x: 3, y: 1, color: 'red'},
+                            {x: 4, y: 0, color: 'green'},
+                            {x: 3, y: 0, color: 'blue'},
+                            {x: 4, y: 1, color: 'yellow'}
+                        ],
+                        goals: [
+                            {x: 1, y: 5, color: 'red'},
+                            {x: 2, y: 4, color: 'green'},
+                            {x: 1, y: 4, color: 'blue'},
+                            {x: 0, y: 3, color: 'yellow'}
+                        ],
+                        obstacles: [
+                            {x: 2, y: 2},
+                            {x: 3, y: 2},
+                            {x: 2, y: 3}
+                        ]
+                    },
+                    10: { // new level
+                        pieces: [
+                            {x: 4, y: 6, color: 'red'},
+                            {x: 0, y: 5, color: 'green'},
+                            {x: 1, y: 5, color: 'blue'},
+                            {x: 5, y: 4, color: 'yellow'}
+                        ],
+                        goals: [
+                            {x: 2, y: 0, color: 'red'},
+                            {x: 6, y: 1, color: 'green'},
+                            {x: 5, y: 1, color: 'blue'},
+                            {x: 1, y: 2, color: 'yellow'}
+                        ],
+                        obstacles: [
+                            {x: 3, y: 2},
+                            {x: 5, y: 5},
+                            {x: 0, y: 4}
+                        ]
+                    },
+
+                    /*11: { // new level, first 10x10
+                        pieces: [
+                            {x: 4, y: 6, color: 'red'},
+                            {x: 0, y: 5, color: 'green'},
+                            {x: 1, y: 5, color: 'blue'},
+                            {x: 5, y: 4, color: 'yellow'}
+                        ],
+                        goals: [
+                            {x: 2, y: 0, color: 'red'},
+                            {x: 6, y: 1, color: 'green'},
+                            {x: 5, y: 1, color: 'blue'},
+                            {x: 1, y: 2, color: 'yellow'}
+                        ],
+                        obstacles: [
+                            {x: 3, y: 2},
+                            {x: 5, y: 5},
+                            {x: 0, y: 4}
+                        ]
+                    },*/
+
+                    101: { //testing daily level concept
+                        pieces: [
+                            {"x": 3, "y": 0, "color": "yellow"},
+                            {"x": 0, "y": 1,"color": "green"},
+                            {"x": 1, "y": 1, "color": "red"},
+                            {"x": 4, "y": 2, "color": "blue"}
+                        ],
+                        goals: [
+                            {"x": 5, "y": 0, "color": "yellow"},
+                            {"x": 5, "y": 1, "color": "red"},
+                            {"x": 6, "y": 3, "color": "green"},
+                            {"x": 4, "y": 2, "color": "blue"}
+                        ],
+                        obstacles: [
+                            {"x": 4, "y": 0},
+                            {"x": 6, "y": 1},
+                            {"x": 5, "y": 5},
+                            {"x": 3, "y": 6}
+                        ]
+                    }
+                    
+                };
+
+                this.showMainMenu();
+            }
+
+            showMainMenu() {
+                this.container.innerHTML = `
+                    <div id="menu-screen" class="menu-screen">
+                        <h1 class="menu-title">STROLL</h1>
+                        <button class="menu-button" onclick="game.gameMode=null;game.startLevel(101)">Daily Puzzle</button>
+                        <button class="menu-button" onclick="game.startStoryMode()">Practice Levels</button>
+                        <!-- <button class="menu-button" onclick="game.startInfiniteMode()">Infinite Mode</button> -->
+                    </div>
+                `;
+                this.controls.style.display = 'none';
+                this.levelDisplay.style.display = 'none';
+            }
+
+            showLevelSelect() {
+                const totalLevels = 10; // Adjust as needed
+                let levelGrid = '<div class="level-grid">';
+                for (let i = 1; i <= totalLevels; i++) {
+                    levelGrid += `
+                        <button class="level-button" onclick="game.startLevel(${i})">
+                            ${i}
+                        </button>
+                    `;
+                }
+                levelGrid += '</div>';
+
+                this.container.innerHTML = `
+                    <div class="menu-screen">
+                        <button class="back-button" onclick="game.showMainMenu()">‹</button><br>
+                        <h2 class="levelselect-title">Select Level</h2>
+                        ${levelGrid}
+                    </div>
+                `;
+            }
+
+            startStoryMode() {
+                this.gameMode = 'story';
+                this.showLevelSelect();
+            }
+
+            startInfiniteMode() {
+                this.gameMode = 'infinite';
+                this.currentLevel = 1;
+                this.setupGame();
+                this.generateLevel();
+            }
+
+            startLevel(level) {
+                this.currentLevel = level;
+                //experiment to confirm where I would need to adjust the grid size, would also need to adjust piece/goal/obstacle styles
+                /*if(level == 11){
+                    this.gridSize = 10;
+                    document.documentElement.style.setProperty('--grid-size', 10);
+                    document.documentElement.style.setProperty('--cell-size', 'var(--cell-size-10)');
+                }
+                else{
+                    this.gridSize = 7;
+                    document.documentElement.style.setProperty('--grid-size', 7);
+                    document.documentElement.style.setProperty('--cell-size', 'var(--cell-size-7)');
+                }*/
+                this.setupGame();
+                this.loadLevel(level);
+
+                if (this.gameMode === 'story') {
+                    this.levelDisplay.style.display = 'block';
+                    this.levelDisplay.textContent = `Level ${level}`;
+                }
+            }
+
+            setupGame() {
+                this.setupGrid();
+                this.setupEventListeners();
+                this.controls.style.display = 'block';
+            }
+
+            loadLevel(level) {
+                if (this.storyLevels[level]) {
+                    const levelData = this.storyLevels[level];
+                    this.pieces = [];
+                    this.goals = [];
+                    this.obstacles = [];
+                    
+                    this.setupGrid();
+                    
+                    levelData.pieces.forEach(piece => {
+                        this.pieces.push(this.createPiece(piece.x, piece.y, piece.color));
+                    });
+                    
+                    levelData.goals.forEach(goal => {
+                        this.goals.push(this.createGoal(goal.x, goal.y, goal.color));
+                    });
+                    
+                    levelData.obstacles.forEach(obstacle => {
+                        this.obstacles.push(this.createObstacle(obstacle.x, obstacle.y));
+                    });
+                }
+            }
+
+            setupGrid() {
+                this.container.innerHTML = '';
+                for (let y = 0; y < this.gridSize; y++) {
+                    for (let x = 0; x < this.gridSize; x++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.style.left = `${x * 100/this.gridSize}%`;
+                        cell.style.top = `${y * 100/this.gridSize}%`;
+                        cell.style.width = `${100/this.gridSize}%`;
+                        cell.style.height = `${100/this.gridSize}%`;
+                        this.container.appendChild(cell);
+                    }
+                }
+            }
+
+            setupEventListeners() {
+                document.addEventListener('keydown', (e) => this.handleKeyPress(e));
+                this.container.addEventListener('touchstart', (e) => {
+                    this.touchStartX = e.touches[0].clientX;
+                    this.touchStartY = e.touches[0].clientY;
+                });
+                this.container.addEventListener('touchend', (e) => {
+                    const deltaX = e.changedTouches[0].clientX - this.touchStartX;
+                    const deltaY = e.changedTouches[0].clientY - this.touchStartY;
+                    
+                    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                        if (deltaX > 50) this.moveAll('right');
+                        else if (deltaX < -50) this.moveAll('left');
+                    } else {
+                        if (deltaY > 50) this.moveAll('down');
+                        else if (deltaY < -50) this.moveAll('up');
+                    }
+                });
+            }
+
+            handleKeyPress(e) {
+                switch(e.key) {
+                    case 'ArrowUp': this.moveAll('up'); break;
+                    case 'ArrowDown': this.moveAll('down'); break;
+                    case 'ArrowLeft': this.moveAll('left'); break;
+                    case 'ArrowRight': this.moveAll('right'); break;
+                }
+            }
+
+            getGridPosition(x, y) {
+                const cellSize = this.container.offsetWidth / this.gridSize;
+                return {
+                    left: `${x * cellSize + cellSize/2}px`,
+                    top: `${y * cellSize + cellSize/2}px`
+                };
+            }
+
+            createPiece(x, y, color) {
+                const piece = document.createElement('div');
+                piece.className = `piece ${color}`;
+                const pos = this.getGridPosition(x, y);
+                piece.style.left = pos.left;
+                piece.style.top = pos.top;
+                this.container.appendChild(piece);
+                return {element: piece, x, y, color};
+            }
+
+            createGoal(x, y, color) {
+                const cell = this.container.children[y * this.gridSize + x];
+                const goal = document.createElement('div');
+                goal.className = `goal ${color}`;
+                cell.appendChild(goal);
+                return {element: goal, x, y, color};
+            }
+
+            createObstacle(x, y) {
+                const cell = this.container.children[y * this.gridSize + x];
+                const obstacle = document.createElement('div');
+                obstacle.className = 'obstacle';
+                cell.appendChild(obstacle);
+                return {element: obstacle, x, y};
+            }
+
+            generateLevel() {
+                this.pieces = [];
+                this.goals = [];
+                this.obstacles = [];
+                
+                // Generate a procedural level
+                const positions = this.generateSolvableConfiguration();
+                
+                positions.pieces.forEach((pos, i) => {
+                    this.pieces.push(this.createPiece(pos.x, pos.y, this.colors[i]));
+                });
+                
+                positions.goals.forEach((pos, i) => {
+                    this.goals.push(this.createGoal(pos.x, pos.y, this.colors[i]));
+                });
+                
+                positions.obstacles.forEach(pos => {
+                    this.obstacles.push(this.createObstacle(pos.x, pos.y));
+                });
+                
+            }
+
+            generateSolvableConfiguration() {
+                const positions = {
+                    pieces: [],
+                    goals: [],
+                    obstacles: []
+                };
+
+                // Place pieces ensuring they can move
+                for (let i = 0; i < 4; i++) {
+                    let x, y;
+                    do {
+                        x = Math.floor(Math.random() * (this.gridSize - 2)) + 1;
+                        y = Math.floor(Math.random() * (this.gridSize - 2)) + 1;
+                    } while (positions.pieces.some(p => p.x === x && p.y === y));
+                    positions.pieces.push({x, y});
+                }
+
+                // For procedural levels, randomly decide if we use 2 or 4 goals
+                const useAllGoals = Math.random() < 0.5;
+                const numGoals = useAllGoals ? 4 : 2;
+                
+                // Place goals away from pieces
+                for (let i = 0; i < numGoals; i++) {
+                    let x, y;
+                    do {
+                        x = Math.floor(Math.random() * this.gridSize);
+                        y = Math.floor(Math.random() * this.gridSize);
+                    } while (
+                        positions.pieces.some(p => p.x === x && p.y === y) ||
+                        positions.goals.some(g => g.x === x && g.y === y)
+                    );
+                    positions.goals.push({x, y});
+                }
+
+                // Add some obstacles (fewer obstacles when using fewer goals)
+                const numObstacles = useAllGoals ? 3 : 2;
+                for (let i = 0; i < numObstacles; i++) {
+                    let x, y;
+                    do {
+                        x = Math.floor(Math.random() * this.gridSize);
+                        y = Math.floor(Math.random() * this.gridSize);
+                    } while (
+                        positions.pieces.some(p => p.x === x && p.y === y) ||
+                        positions.goals.some(g => g.x === x && g.y === y) ||
+                        positions.obstacles.some(o => o.x === x && o.y === y)
+                    );
+                    positions.obstacles.push({x, y});
+                }
+
+                return positions;
+            }
+
+            canMove(piece, direction) {
+                const dx = direction === 'left' ? -1 : direction === 'right' ? 1 : 0;
+                const dy = direction === 'up' ? -1 : direction === 'down' ? 1 : 0;
+                
+                // Check if there's a piece to jump over
+                const adjacentX = piece.x + dx;
+                const adjacentY = piece.y + dy;
+                const targetX = piece.x + dx * 2;
+                const targetY = piece.y + dy * 2;
+
+                // Check bounds
+                if (targetX < 0 || targetX >= this.gridSize || targetY < 0 || targetY >= this.gridSize) {
+                    return false;
+                }
+
+                // Check if there's a piece to jump over
+                const hasAdjacentPiece = this.pieces.some(p => 
+                    p.x === adjacentX && p.y === adjacentY
+                );
+
+                // Check if target space is free
+                const targetIsFree = !this.pieces.some(p => 
+                    p.x === targetX && p.y === targetY
+                ) && !this.obstacles.some(o =>
+                    o.x === targetX && o.y === targetY
+                );
+
+                // Check if there's no obstacle in the way
+                const noObstacleAdjacent = !this.obstacles.some(o =>
+                    o.x === adjacentX && o.y === adjacentY
+                );
+
+                return hasAdjacentPiece && targetIsFree && noObstacleAdjacent;
+            }
+
+            moveAll(direction) {
+                // First, determine which pieces can move
+                const movablePieces = this.pieces.filter(piece => 
+                    this.canMove(piece, direction)
+                );
+
+                if (movablePieces.length > 0) {
+                    this.fadeOutControls();  
+                }
+
+                // Add moving class to pieces that will move
+                movablePieces.forEach(piece => {
+                    piece.element.classList.add('moving');
+                });
+
+                // Then move all movable pieces
+                movablePieces.forEach(piece => {
+                    const dx = direction === 'left' ? -2 : direction === 'right' ? 2 : 0;
+                    const dy = direction === 'up' ? -2 : direction === 'down' ? 2 : 0;
+                    
+                    piece.x += dx;
+                    piece.y += dy;
+                    const pos = this.getGridPosition(piece.x, piece.y);
+                    piece.element.style.left = pos.left;
+                    piece.element.style.top = pos.top;
+
+                    // Check if this piece landed on its matching goal
+                    const matchingGoal = this.goals.find(goal => 
+                        goal.x === piece.x && 
+                        goal.y === piece.y && 
+                        goal.color === piece.color
+                    );
+
+                    if (matchingGoal) {
+                        // Remove any existing animation
+                        piece.element.classList.remove('matched');
+                        // Trigger reflow to restart animation
+                        void piece.element.offsetWidth;
+                        // Add animation class
+                        piece.element.classList.add('matched');
+                    }
+                });
+
+                // Remove moving class after animation
+                setTimeout(() => {
+                    movablePieces.forEach(piece => {
+                        piece.element.classList.remove('moving');
+                    });
+                }, 200);
+
+                // Check win condition after movement is complete
+                if (this.checkWin()) {
+                    setTimeout(() => {
+                        alert('Great job!');
+                        this.currentLevel++;
+                        if (this.gameMode === 'infinite') {
+                            this.generateLevel();
+                        } else {
+                            if (this.storyLevels[this.currentLevel]) {
+                                this.loadLevel(this.currentLevel);
+                                this.levelDisplay.textContent = `Level ${this.currentLevel}`;
+                            } else {
+                                location.reload(); // temporary workaround to go back to main menu on end game without triggering bug
+                                //this.showMainMenu();
+                            }
+                        }
+                    }, 300);
+                }
+            }
+
+            checkWin() {
+                return this.pieces.every(piece => 
+                    this.goals.some(goal => 
+                        goal.x === piece.x && 
+                        goal.y === piece.y && 
+                        goal.color === piece.color
+                    )
+                );
+            }
+
+            toggleTheme() {
+                this.theme = this.theme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', this.theme);
+                document.getElementById('theme-toggle').textContent = this.theme === 'dark' ? '●' : '○';
+            }
+
+            fadeOutControls() {
+                if (this.controlsShown) {
+                    this.controls.style.opacity = '0';
+                    this.controlsShown = false;
+                }
+            }
+        }
+
+        // Start the game
+        const game = new StrollGame();
+    </script>
+</body>
+</html>
