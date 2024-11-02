@@ -63,29 +63,6 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        /* Add this after your existing .obstacle styles */
-        .color-tile {
-            width: calc(var(--cell-size) * 0.8);
-            height: calc(var(--cell-size) * 0.8);
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            border: 2px solid white;
-            border-radius: 4px;
-        }
-
-        .color-tile.red { background-color: #e74c3c; }
-        .color-tile.blue { background-color: #3498db; }
-        .color-tile.green { background-color: #2ecc71; }
-        .color-tile.yellow { background-color: #f1c40f; }
-
-        .color-tile-controls {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 5px;
-        }
-
         .piece.red { background: #e74c3c; }
         .piece.blue { background: #3498db; }
         .piece.green { background: #2ecc71; }
@@ -165,12 +142,6 @@
         <button onclick="setMode('piece', 'green')">🟢</button>
         <button onclick="setMode('piece', 'yellow')">🟡</button>
         <button onclick="setMode('obstacle')">⬛️</button>
-    </div>
-    <div class="controls color-tile-controls">
-        <button onclick="setMode('color-tile', 'red')">🟥</button>
-        <button onclick="setMode('color-tile', 'blue')">🟦</button>
-        <button onclick="setMode('color-tile', 'green')">🟩</button>
-        <button onclick="setMode('color-tile', 'yellow')">🟨</button>
     </div>
     <div class="controls tool-controls" id="goalControls">
         <button onclick="setMode('goal', 'red')">🔴 🏳️</button>
@@ -282,11 +253,10 @@
             };
         }
 
-        function generateCode() { // need to fix syntax for tile color output
+        function generateCode() {
             const pieces = [];
             const goals = [];
             const obstacles = [];
-            const colorTiles = [];
 
             for (let y = 0; y < gridSize; y++) {
                 for (let x = 0; x < gridSize; x++) {
@@ -295,16 +265,10 @@
 
                     if (item.type === 'piece') {
                         pieces.push({x, y, color: item.color});
-                        // If there's a color tile in the same cell
-                        if (item.colorTile) {
-                            colorTiles.push({x, y, targetColor: item.colorTile.color});
-                        }
                     } else if (item.type === 'goal') {
                         goals.push({x, y, color: item.color});
                     } else if (item.type === 'obstacle') {
                         obstacles.push({x, y});
-                    } else if (item.type === 'color-tile') {
-                        colorTiles.push({x, y, targetColor: item.color});
                     }
                 }
             }
@@ -312,8 +276,7 @@
             const levelData = {
                 pieces,
                 goals,
-                obstacles,
-                colorTiles
+                obstacles
             };
 
             document.getElementById('output').value = 
@@ -324,7 +287,7 @@
             setTimeout(() => {
                 document.getElementById('copyButton').innerHTML = "Copy";
             }, 2000);
-                }
+        }
 
         function clearGrid() {
             grid = Array(gridSize).fill().map(() => Array(gridSize).fill(null));
@@ -357,11 +320,9 @@
                 return false;
             }
 
-            const targetCell = grid[targetY][targetX];
-            return !targetCell || 
-                targetCell.type === 'color-tile' ||
-                (targetCell.type !== 'piece' && 
-                    targetCell.type !== 'obstacle');
+            return !grid[targetY][targetX] || 
+                   (grid[targetY][targetX].type !== 'piece' && 
+                    grid[targetY][targetX].type !== 'obstacle');
         }
 
         function canMove(x, y, direction) {
@@ -375,50 +336,14 @@
             const toX = fromX + dx;
             const toY = fromY + dy;
             
-            // Get both the moving piece and target cell contents
             const piece = grid[fromY][fromX];
-            const targetCell = grid[toY][toX];
-            
-            // Remove piece from original position
             grid[fromY][fromX] = null;
-            const fromCell = editorGrid.children[fromY * gridSize + fromX];
-            fromCell.innerHTML = '';
+            grid[toY][toX] = piece;
 
-            // If landing on a color tile
-            if (targetCell && targetCell.type === 'color-tile') {
-                // Update the piece's color
-                piece.color = targetCell.color;
-                
-                // Store both the piece and color tile in the grid
-                grid[toY][toX] = {
-                    type: 'piece',
-                    color: piece.color,
-                    colorTile: targetCell
-                };
-                
-                // Update the visual representation
-                const toCell = editorGrid.children[toY * gridSize + toX];
-                
-                // Create and add the color tile element
-                const colorTileElement = document.createElement('div');
-                colorTileElement.className = `color-tile ${targetCell.color}`;
-                
-                // Create and add the piece element on top
-                const pieceElement = document.createElement('div');
-                pieceElement.className = `piece ${piece.color}`;
-                
-                toCell.innerHTML = '';
-                toCell.appendChild(colorTileElement);
-                toCell.appendChild(pieceElement);
-            } else {
-                // Normal movement without color tile
-                grid[toY][toX] = piece;
-                const toCell = editorGrid.children[toY * gridSize + toX];
-                const pieceElement = document.createElement('div');
-                pieceElement.className = `piece ${piece.color}`;
-                toCell.innerHTML = '';
-                toCell.appendChild(pieceElement);
-            }
+            const fromCell = editorGrid.children[fromY * gridSize + fromX];
+            const toCell = editorGrid.children[toY * gridSize + toX];
+            toCell.innerHTML = fromCell.innerHTML;
+            fromCell.innerHTML = '';
         }
 
         function moveAll(direction) {

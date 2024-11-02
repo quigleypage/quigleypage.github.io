@@ -78,8 +78,7 @@
             position: absolute;
             border-radius: 50%;
             transform: translate(-50%, -50%);
-            /*transition: all 0.2s ease-in-out;*/
-            transition: all 0.2s ease-in-out, background-color 0.5s ease-in-out;
+            transition: all 0.2s ease-in-out;
             z-index: 1;
         }
 
@@ -107,14 +106,6 @@
         .obstacle {
             background: var(--obstacle-color);
             transition: background-color 0.3s ease;
-            border-radius: 4px;
-        }
-
-        .color-tile {
-            width: calc(var(--cell-size) * 0.8);
-            height: calc(var(--cell-size) * 0.8);
-            border: 2px solid;
-            opacity: 0.3;
             border-radius: 4px;
         }
 
@@ -274,7 +265,6 @@
                 this.pieces = [];
                 this.goals = [];
                 this.obstacles = [];
-                this.colorTiles = [];
                 this.currentLevel = 1;
                 this.gameMode = null;
                 this.touchStartX = 0;
@@ -302,8 +292,7 @@
                             {x: 3, y: 5, color: 'yellow'},
                             {x: 3, y: 6, color: 'green'}
                         ],
-                        obstacles: [],
-                        colorTiles: []
+                        obstacles: []
                     },
                     2: { // OG Level 2
                         pieces: [
@@ -326,8 +315,7 @@
                             {x: 4, y: 3},
                             {x: 4, y: 4},
                             {x: 4, y: 5}
-                        ],
-                        colorTiles: []
+                        ]
                     },
                     3: { // OG Level 3
                         pieces: [
@@ -346,8 +334,7 @@
                             {x: 3, y: 0},
                             {x: 3, y: 1},
                             {x: 3, y: 2}
-                        ],
-                        colorTiles: []
+                        ]
                     },
                     4: { // OG Level 4
                         pieces: [
@@ -367,8 +354,7 @@
                             {x: 3, y: 2},
                             {x: 5, y: 2},
                             {x: 6, y: 2}
-                        ],
-                        colorTiles: []
+                        ]
                     },
                     5: { // OG Level 5
                         pieces: [
@@ -386,8 +372,7 @@
                         obstacles: [
                             {x: 0, y: 3},
                             {x: 2, y: 3}
-                        ],
-                        colorTiles: []
+                        ]
                     },
                     6: { // OG level 7
                         pieces: [
@@ -411,8 +396,7 @@
                             {x: 6, y: 3},
                             {x: 2, y: 5},
                             {x: 2, y: 6}
-                        ],
-                        colorTiles: []
+                        ]
                     },
                     7: { // OG level 8
                         pieces: [
@@ -434,8 +418,7 @@
                             {x: 0, y: 4},
                             {x: 1, y: 4},
                             {x: 2, y: 4}
-                        ],
-                        colorTiles: []
+                        ]
                     },
                     8: { // OG level 9
                         pieces: [
@@ -452,8 +435,7 @@
                         ],
                         obstacles: [
                             {x: 3, y: 5}
-                        ],
-                        colorTiles: []
+                        ]
                     },
                     9: { // OG level 16
                         pieces: [
@@ -472,8 +454,7 @@
                             {x: 2, y: 2},
                             {x: 3, y: 2},
                             {x: 2, y: 3}
-                        ],
-                        colorTiles: []
+                        ]
                     },
                     10: { // new level
                         pieces: [
@@ -492,8 +473,7 @@
                             {x: 3, y: 2},
                             {x: 5, y: 5},
                             {x: 0, y: 4}
-                        ],
-                        colorTiles: []
+                        ]
                     },
 
                     11: { // new level
@@ -514,30 +494,6 @@
                             {"x": 6, "y": 1},
                             {"x": 5, "y": 5},
                             {"x": 3, "y": 6}
-                        ],
-                        colorTiles: []
-                    },
-
-                    12: { // test level, color change introduced
-                        pieces: [
-                            {"x": 0, "y": 0, "color": "yellow"},
-                            {"x": 0, "y": 1,"color": "green"},
-                            {"x": 1, "y": 1, "color": "red"},
-                            {"x": 1, "y": 0, "color": "blue"}
-                        ],
-                        goals: [
-                            {"x": 5, "y": 5, "color": "blue"},
-                            {"x": 5, "y": 6, "color": "blue"},
-                            {"x": 6, "y": 6, "color": "blue"},
-                            {"x": 6, "y": 5, "color": "blue"}
-                        ],
-                        obstacles: [
-                            {"x": 4, "y": 0},
-                        ],
-                        colorTiles: [
-                            {x: 0, y: 5, color: 'blue'},
-                            {x: 0, y: 6, color: 'blue'},
-                            {x: 1, y: 5, color: 'blue'}
                         ]
                     }
                     
@@ -560,7 +516,7 @@
             }
 
             showLevelSelect() {
-                const totalLevels = 12; // Adjust as needed
+                const totalLevels = 11; // Adjust as needed
                 let levelGrid = '<div class="level-grid">';
                 for (let i = 1; i <= totalLevels; i++) {
                     levelGrid += `
@@ -626,7 +582,6 @@
                     this.pieces = [];
                     this.goals = [];
                     this.obstacles = [];
-                    this.colorTiles = []; 
                     
                     this.setupGrid();
                     
@@ -641,12 +596,6 @@
                     levelData.obstacles.forEach(obstacle => {
                         this.obstacles.push(this.createObstacle(obstacle.x, obstacle.y));
                     });
-
-                    if (levelData.colorTiles) {
-                        levelData.colorTiles.forEach(tile => {
-                            this.colorTiles.push(this.createColorTile(tile.x, tile.y, tile.color));
-                        });
-                    }
                 }
             }
 
@@ -726,14 +675,6 @@
                 obstacle.className = 'obstacle';
                 cell.appendChild(obstacle);
                 return {element: obstacle, x, y};
-            }
-
-            createColorTile(x, y, color) {
-                const cell = this.container.children[y * this.gridSize + x];
-                const tile = document.createElement('div');
-                tile.className = `color-tile ${color}`;
-                cell.appendChild(tile);
-                return {element: tile, x, y, color};
             }
 
             generateLevel() {
@@ -871,21 +812,6 @@
                     piece.element.style.left = pos.left;
                     piece.element.style.top = pos.top;
 
-                    // Check if piece landed on a color tile
-                    const colorTile = this.colorTiles.find(tile => 
-                        tile.x === piece.x && 
-                        tile.y === piece.y
-                    );
-
-                    if (colorTile) {
-                        // Remove old color class
-                        piece.element.classList.remove(piece.color);
-                        // Update piece color
-                        piece.color = colorTile.color;
-                        // Add new color class
-                        piece.element.classList.add(piece.color);
-                    }
-
                     // Check if this piece landed on its matching goal
                     const matchingGoal = this.goals.find(goal => 
                         goal.x === piece.x && 
@@ -952,7 +878,6 @@
                     this.controlsShown = false;
                 }
             }
-
         }
 
         // Start the game
