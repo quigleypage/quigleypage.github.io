@@ -297,14 +297,14 @@
                         pieces.push({x, y, color: item.color});
                         // If there's a color tile in the same cell
                         if (item.colorTile) {
-                            colorTiles.push({x, y, targetColor: item.colorTile.color});
+                            colorTiles.push({x, y, color: item.colorTile.color});
                         }
                     } else if (item.type === 'goal') {
                         goals.push({x, y, color: item.color});
                     } else if (item.type === 'obstacle') {
                         obstacles.push({x, y});
                     } else if (item.type === 'color-tile') {
-                        colorTiles.push({x, y, targetColor: item.color});
+                        colorTiles.push({x, y, color: item.color});
                     }
                 }
             }
@@ -324,7 +324,7 @@
             setTimeout(() => {
                 document.getElementById('copyButton').innerHTML = "Copy";
             }, 2000);
-                }
+        }
 
         function clearGrid() {
             grid = Array(gridSize).fill().map(() => Array(gridSize).fill(null));
