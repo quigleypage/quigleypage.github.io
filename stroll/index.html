@@ -144,7 +144,7 @@
         .levelselect-title {
             color: var(--text-color);
             transition: color 0.3s ease;
-            font-size: 1.5em;
+            font-size: 2em;
             margin-bottom: 12px;
         }
 
@@ -476,27 +476,7 @@
                         ]
                     },
 
-                    /*11: { // new level, first 10x10
-                        pieces: [
-                            {x: 4, y: 6, color: 'red'},
-                            {x: 0, y: 5, color: 'green'},
-                            {x: 1, y: 5, color: 'blue'},
-                            {x: 5, y: 4, color: 'yellow'}
-                        ],
-                        goals: [
-                            {x: 2, y: 0, color: 'red'},
-                            {x: 6, y: 1, color: 'green'},
-                            {x: 5, y: 1, color: 'blue'},
-                            {x: 1, y: 2, color: 'yellow'}
-                        ],
-                        obstacles: [
-                            {x: 3, y: 2},
-                            {x: 5, y: 5},
-                            {x: 0, y: 4}
-                        ]
-                    },*/
-
-                    101: { //testing daily level concept
+                    11: { // new level
                         pieces: [
                             {"x": 3, "y": 0, "color": "yellow"},
                             {"x": 0, "y": 1,"color": "green"},
@@ -526,8 +506,8 @@
                 this.container.innerHTML = `
                     <div id="menu-screen" class="menu-screen">
                         <h1 class="menu-title">STROLL</h1>
-                        <button class="menu-button" onclick="game.gameMode=null;game.startLevel(101)">Daily Puzzle</button>
-                        <button class="menu-button" onclick="game.startStoryMode()">Practice Levels</button>
+                        <!-- <button class="menu-button" onclick="game.gameMode=null;game.startLevel(101)">Daily Puzzle</button> -->
+                        <button class="menu-button" onclick="game.startStoryMode()">Play</button>
                         <!-- <button class="menu-button" onclick="game.startInfiniteMode()">Infinite Mode</button> -->
                     </div>
                 `;
@@ -536,7 +516,7 @@
             }
 
             showLevelSelect() {
-                const totalLevels = 10; // Adjust as needed
+                const totalLevels = 11; // Adjust as needed
                 let levelGrid = '<div class="level-grid">';
                 for (let i = 1; i <= totalLevels; i++) {
                     levelGrid += `
@@ -549,7 +529,7 @@
 
                 this.container.innerHTML = `
                     <div class="menu-screen">
-                        <button class="back-button" onclick="game.showMainMenu()">‹</button><br>
+                        <!-- <button class="back-button" onclick="game.showMainMenu()">‹</button><br> -->
                         <h2 class="levelselect-title">Select Level</h2>
                         ${levelGrid}
                     </div>
@@ -571,7 +551,7 @@
             startLevel(level) {
                 this.currentLevel = level;
                 //experiment to confirm where I would need to adjust the grid size, would also need to adjust piece/goal/obstacle styles
-                /*if(level == 11){
+                /*if(level == 12){
                     this.gridSize = 10;
                     document.documentElement.style.setProperty('--grid-size', 10);
                     document.documentElement.style.setProperty('--cell-size', 'var(--cell-size-10)');
