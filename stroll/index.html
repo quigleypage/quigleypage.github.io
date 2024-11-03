@@ -518,26 +518,27 @@
                         colorTiles: []
                     },
 
-                    12: { // test level, color change introduced
+                    12: { // new level, color change introduced
                         pieces: [
-                            {"x": 0, "y": 0, "color": "yellow"},
-                            {"x": 0, "y": 1,"color": "green"},
-                            {"x": 1, "y": 1, "color": "red"},
-                            {"x": 1, "y": 0, "color": "blue"}
+                            {"x": 2, "y": 4, "color": "red"},
+                            {"x": 1, "y": 4,"color": "green"},
+                            {"x": 1, "y": 3, "color": "blue"},
+                            {"x": 2, "y": 3, "color": "yellow"}
                         ],
                         goals: [
                             {"x": 5, "y": 5, "color": "blue"},
-                            {"x": 5, "y": 6, "color": "blue"},
-                            {"x": 6, "y": 6, "color": "blue"},
-                            {"x": 6, "y": 5, "color": "blue"}
+                            {"x": 5, "y": 6, "color": "yellow"},
+                            {"x": 4, "y": 6, "color": "blue"},
+                            {"x": 6, "y": 5, "color": "yellow"}
                         ],
                         obstacles: [
-                            {"x": 4, "y": 0},
+                            {"x": 6, "y": 6},
+                            {"x": 3, "y": 1},
+                            {"x": 5, "y": 1}
                         ],
                         colorTiles: [
-                            {x: 0, y: 5, color: 'blue'},
-                            {x: 0, y: 6, color: 'blue'},
-                            {x: 1, y: 5, color: 'blue'}
+                            {x: 6, y: 0, color: 'blue'},
+                            {x: 5, y: 0, color: 'yellow'},
                         ]
                     }
                     
