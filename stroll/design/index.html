@@ -189,7 +189,7 @@
     <div class="controls utility-controls">
         <button id="copyButton" onclick="generateCode()">Copy</button>
         <button onclick="clearGrid()">Clear</button>
-        <button onclick="saveInitialState()">Save</button>
+        <button id="saveButton" onclick="saveInitialState()">Save</button>
         <button onclick="resetToInitial()">Reset</button>
     </div>
     <textarea id="output" readonly style="display: none;"></textarea>
@@ -204,6 +204,11 @@
         function saveInitialState() {
             // Deep clone the current grid state
             initialState = JSON.parse(JSON.stringify(grid));
+
+            document.getElementById("saveButton").innerHTML = "Saved!";
+            setTimeout(() => {
+                document.getElementById('saveButton').innerHTML = "Save";
+            }, 2000);
         }
 
         function resetToInitial() {
