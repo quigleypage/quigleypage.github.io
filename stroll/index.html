@@ -540,7 +540,35 @@
                             {x: 6, y: 0, color: 'blue'},
                             {x: 5, y: 0, color: 'yellow'},
                         ]
-                    }
+                    },
+
+                    13: { // new level
+                        pieces: [
+                            {"x": 2, "y": 5, "color": "red"},
+                            {"x": 0, "y": 6,"color": "red"},
+                            {"x": 1, "y": 1, "color": "red"},
+                            {"x": 1, "y": 2, "color": "red"}
+                        ],
+                        goals: [
+                            {"x": 1, "y": 4, "color": "green"},
+                            {"x": 5, "y": 3, "color": "yellow"},
+                            {"x": 2, "y": 4, "color": "blue"},
+                            {"x": 6, "y": 3, "color": "green"}
+                        ],
+                        obstacles: [
+                            {x: 0, y: 4},
+                            {x: 3, y: 4},
+                            {x: 5, y: 4},
+                            {x: 2, y: 0},
+                            {x: 3, y: 2}
+                        ],
+                        colorTiles: [
+                            {x: 1, y: 0, color: 'green'},
+                            {x: 0, y: 1, color: 'green'},
+                            {x: 3, y: 5, color: 'yellow'},
+                            {x: 4, y: 2, color: 'blue'}
+                        ]
+                    },
                     
                 };
 
@@ -561,7 +589,7 @@
             }
 
             showLevelSelect() {
-                const totalLevels = 12; // Adjust as needed
+                const totalLevels = 13; // Adjust as needed
                 let levelGrid = '<div class="level-grid">';
                 for (let i = 1; i <= totalLevels; i++) {
                     levelGrid += `
@@ -596,7 +624,7 @@
             startLevel(level) {
                 this.currentLevel = level;
                 //experiment to confirm where I would need to adjust the grid size, would also need to adjust piece/goal/obstacle styles
-                /*if(level > 19){
+                /*if(level > 20){
                     this.gridSize = 10;
                     document.documentElement.style.setProperty('--grid-size', 10);
                     document.documentElement.style.setProperty('--cell-size', 'var(--cell-size-10)');
