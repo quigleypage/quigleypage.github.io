@@ -17,13 +17,15 @@
         <label for="name">Name:</label>
         <input type="text" id="name" name="name">
         <br><br>
-        Model:
-        <input type="radio" id="GPT-3.5" name="model" value="GPT-3.5" checked>
-        <label for="html">GPT-3.5 Turbo</label>
-        <input type="radio" id="GPT-4" name="model" value="GPT-4">
-        <label for="GPT-4">GPT-4o mini</label>
+        Model:<br>
+        <input type="radio" id="GPT-4o-mini" name="model" value="GPT-4o-mini" checked>
+            <label for="GPT-4o-mini">GPT-4o mini</label>
         <input type="radio" id="GPT-4o" name="model" value="GPT-4o">
-        <label for="GPT-4o">GPT-4o</label>
+            <label for="GPT-4o">GPT-4o</label>
+        <input type="radio" id="o1-mini" name="model" value="o1-mini">
+            <label for="o1-mini">o1-mini</label>
+        <input type="radio" id="o1-preview" name="model" value="o1-preview">
+            <label for="o1-preview">o1-preview</label>
         <br><br>
         <label for="Intro">Intro Message:</label><br>
         <textarea id="Intro" name="Intro" rows="4" cols="44"></textarea>
@@ -54,10 +56,14 @@
              
         if(document.getElementById('name').value != ""){
             encryptedURL = "https://quigley.page/assistants/?n=" + encrypt(document.getElementById('name').value);;
-            if(document.getElementById('GPT-4').checked == true)
+            if(document.getElementById('GPT-4o-mini').checked == true)
                 encryptedURL += "&m=7";
             else if(document.getElementById('GPT-4o').checked == true)
                 encryptedURL += "&m=6";
+            else if(document.getElementById('o1-mini').checked == true)
+                encryptedURL += "&m=9";
+            else if(document.getElementById('o1-preview').checked == true)
+                encryptedURL += "&m=8";
             if(document.getElementById('Intro').value != "")
                 encryptedURL += "&i=" + encrypt(document.getElementById('Intro').value);
             if(document.getElementById('Suggestions').value != "")

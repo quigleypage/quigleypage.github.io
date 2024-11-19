@@ -1,5 +1,5 @@
 messageArray = [];
-model = 3;
+model = 7;
 transcriptText = "Q Assistants\n";
 //scrollHeightTracker = 0;
 botName = "Q";
