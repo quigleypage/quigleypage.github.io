@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Thanksgiving!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Birthstone&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #fff8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-image: url("bg.png");
+            background-size: cover; /* Stretch the image to cover the screen */
+            background-position: center; /* Center the image */
+            background-repeat: no-repeat; /* Prevent tiling */
+            height: calc(100vh - 40px); /* Subtract total padding from viewport height */
+        }
+        h1 {
+            color: #8B4513;
+            text-align: center;
+            font-size: 36px;
+            font-family: "Birthstone", cursive;
+        }
+        .game-container {
+            max-width: 600px;
+            width: 100%;
+        }
+        .grid {
+            display: grid;
+            gap: 2px;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            grid-template-columns: repeat(13, 1fr);
+        }
+        .cell {
+            aspect-ratio: 1;
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            text-transform: uppercase;
+            background: white;
+            position: relative;
+        }
+        .cell.hidden {
+            visibility: hidden;
+        }
+        .cell.active {
+            border: 2px solid #8B4513;
+        }
+        .cell.blocked {
+            background: #333;
+        }
+        .number {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            font-size: 8px;
+        }
+        .clues {
+            margin-top: 20px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 36px;
+        }
+        .keyboard {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            width: 100%;
+            max-width: 500px;
+        }
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+        .key {
+            padding: 10px;
+            min-width: 20px;
+            text-align: center;
+            background: #ddd;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        .key:active {
+            background: #bbb;
+        }
+        .key.wide {
+            min-width: 60px;
+        }
+        .correct {
+            background: #6aaa64 !important;
+            color: white;
+        }
+        .present {
+            background: #c9b458 !important;
+            color: white;
+        }
+        .absent {
+            background: #787c7e !important;
+            color: white;
+        }
+        .win-message {
+            margin-top: 20px;
+            padding: 20px;
+            background: #6aaa64;
+            color: white;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Happy Thanksgiving<br>from the Quigleys!</h1>
+        <div class="grid" id="grid"></div>
+        <div class="clues" id="clues">
+            <!-- <strong>Clues:</strong><br>
+            1. Across: Traditional main course (6)<br>
+            2. Down: Sweet orange dessert (3)<br>
+            3. Across: Expression of gratitude (6)<br>
+            4. Down: Seasonal gourd (7)<br>
+            5. Across: Month of the holiday (9) -->
+            <img src="kq.png" style="float: left;margin-right: 6px;" width="40px"> <div id="message" style="padding-top: 10px;">All those carbs make your brain foggy.</div>
+        </div>
+        <div class="keyboard" id="keyboard"></div>
+        <div class="win-message" id="winMessage">
+            Congratulations. Now stop playing games and get back to your family! 🦃
+        </div>
+    </div>
+
+    <script>
+        const words = {
+            'HARVEST': {x: 0, y: 0, direction: 'across', number: 1},
+            'STUFFING': {x: 5, y: 0, direction: 'down', number: 2},
+            'PARADE': {x: 9, y: 0, direction: 'down', number: 3},
+            'CORNUCOPIA': {x: 2, y: 3, direction: 'down', number: 4},
+            'GRATITUDE': {x: 1, y: 5, direction: 'across', number: 5},
+            'GOBBLE': {x: 1, y: 9, direction: 'across', number: 6},
+            'PIE': {x: 12, y: 10, direction: 'down', number: 7},
+            'CARBOHYDRATE': {x: 1, y: 12, direction: 'across', number: 8}
+        };
+
+        const grid = document.getElementById('grid');
+        const keyboard = document.getElementById('keyboard');
+        const winMessage = document.getElementById('winMessage');
+        
+        let currentWord = null;
+        let currentIndex = 0;
+        let solvedWords = new Set();
+        
+        // Create grid and track used cells
+        const gridCells = Array(13).fill().map(() => Array(13).fill(null));
+        const usedCells = Array(13).fill().map(() => Array(13).fill(false));
+        
+        // Mark used cells
+        for (const [word, info] of Object.entries(words)) {
+            const {x, y, direction} = info;
+            for (let i = 0; i < word.length; i++) {
+                const cellX = direction === 'across' ? x + i : x;
+                const cellY = direction === 'down' ? y + i : y;
+                usedCells[cellY][cellX] = true;
+            }
+        }
+
+        // Create grid
+        for (let y = 0; y < 13; y++) {
+            for (let x = 0; x < 13; x++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                if (!usedCells[y][x]) {
+                    cell.classList.add('hidden');
+                }
+                grid.appendChild(cell);
+                gridCells[y][x] = cell;
+            }
+        }
+
+        // Place words on grid
+        for (const [word, info] of Object.entries(words)) {
+            const {x, y, direction, number} = info;
+            
+            // Add number to first cell
+            const numberDiv = document.createElement('div');
+            numberDiv.className = 'number';
+            numberDiv.textContent = number;
+            gridCells[y][x].appendChild(numberDiv);
+            
+            for (let i = 0; i < word.length; i++) {
+                const cellX = direction === 'across' ? x + i : x;
+                const cellY = direction === 'down' ? y + i : y;
+                const cell = gridCells[cellY][cellX];
+                cell.dataset.x = cellX;
+                cell.dataset.y = cellY;
+                cell.dataset.word = word;
+                cell.dataset.index = i;
+                
+                cell.addEventListener('click', () => {
+                    if (!solvedWords.has(word)) {
+                        selectWord(word, i);
+                    }
+                });
+            }
+        }
+
+        // Create keyboard
+        const rows = [
+            'QWERTYUIOP',
+            'ASDFGHJKL',
+            'ZXCVBNM'
+        ];
+
+        rows.forEach((row, i) => {
+            const keyboardRow = document.createElement('div');
+            keyboardRow.className = 'keyboard-row';
+            
+            if (i === 2) {
+                const enterKey = document.createElement('button');
+                enterKey.className = 'key wide';
+                enterKey.textContent = 'Enter';
+                enterKey.onclick = checkWord;
+                keyboardRow.appendChild(enterKey);
+            }
+            
+            for (const letter of row) {
+                const key = document.createElement('button');
+                key.className = 'key';
+                key.textContent = letter;
+                key.onclick = () => handleKeyPress(letter);
+                keyboardRow.appendChild(key);
+            }
+            
+            if (i === 2) {
+                const backspaceKey = document.createElement('button');
+                backspaceKey.className = 'key wide';
+                backspaceKey.textContent = '←';
+                backspaceKey.onclick = () => handleKeyPress('Backspace');
+                keyboardRow.appendChild(backspaceKey);
+            }
+            
+            keyboard.appendChild(keyboardRow);
+        });
+
+        function clearFeedback(word) {
+            const info = words[word];
+            for (let i = 0; i < word.length; i++) {
+                const cellX = info.direction === 'across' ? info.x + i : info.x;
+                const cellY = info.direction === 'down' ? info.y + i : info.y;
+                const cell = gridCells[cellY][cellX];
+                cell.classList.remove('correct', 'present', 'absent');
+            }
+        }
+
+        function selectWord(word, startIndex = 0) {
+            currentWord = word;
+            currentIndex = startIndex;
+            const info = words[word];
+            
+            // Remove active class from all cells
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('active');
+            });
+            
+            // Add active class to cells of selected word
+            for (let i = 0; i < word.length; i++) {
+                const cellX = info.direction === 'across' ? info.x + i : info.x;
+                const cellY = info.direction === 'down' ? info.y + i : info.y;
+                gridCells[cellY][cellX].classList.add('active');
+            }
+        }
+
+        function handleKeyPress(key) {
+            if (!currentWord) return;
+            
+            const info = words[currentWord];
+            
+            if (key === 'Backspace') {
+                const cellX = info.direction === 'across' ? info.x + currentIndex : info.x;
+                const cellY = info.direction === 'down' ? info.y + currentIndex : info.y;
+                const currentCell = gridCells[cellY][cellX];
+                
+                if (currentCell.textContent) {
+                    currentCell.textContent = '';
+                    // Clear feedback colors when backspacing
+                    currentCell.classList.remove('correct', 'present', 'absent');
+                } else if (currentIndex > 0) {
+                    currentIndex--;
+                    const prevX = info.direction === 'across' ? info.x + currentIndex : info.x;
+                    const prevY = info.direction === 'down' ? info.y + currentIndex : info.y;
+                    const prevCell = gridCells[prevY][prevX];
+                    prevCell.textContent = '';
+                    // Clear feedback colors when backspacing
+                    prevCell.classList.remove('correct', 'present', 'absent');
+                }
+                return;
+            }
+            
+            if (key.length === 1 && key.match(/[A-Z]/) && currentIndex < currentWord.length) {
+                const cellX = info.direction === 'across' ? info.x + currentIndex : info.x;
+                const cellY = info.direction === 'down' ? info.y + currentIndex : info.y;
+                const currentCell = gridCells[cellY][cellX];
+                
+                // Clear feedback colors when entering new letter
+                currentCell.classList.remove('correct', 'present', 'absent');
+                currentCell.textContent = key;
+                
+                if (currentIndex < currentWord.length - 1) {
+                    currentIndex++;
+                }
+            }
+        }
+
+        function checkWord() {
+            if (!currentWord) return;
+            
+            const info = words[currentWord];
+            let guess = '';
+            
+            // Clear any existing feedback before checking
+            clearFeedback(currentWord);
+            
+            // Collect guess
+            for (let i = 0; i < currentWord.length; i++) {
+                const cellX = info.direction === 'across' ? info.x + i : info.x;
+                const cellY = info.direction === 'down' ? info.y + i : info.y;
+                const cell = gridCells[cellY][cellX];
+                guess += cell.textContent || '';
+            }
+            
+            if (guess.length !== currentWord.length) return;
+            
+            // Check letters and apply colors
+            let remainingLetters = currentWord.split('');
+            const cells = [];
+            
+            // First pass: Mark correct letters
+            for (let i = 0; i < currentWord.length; i++) {
+                const cellX = info.direction === 'across' ? info.x + i : info.x;
+                const cellY = info.direction === 'down' ? info.y + i : info.y;
+                const cell = gridCells[cellY][cellX];
+                cells.push(cell);
+                
+                if (guess[i] === currentWord[i]) {
+                    cell.classList.add('correct');
+                    remainingLetters[i] = null;
+                }
+            }
+            
+            // Second pass: Mark present and absent letters
+            for (let i = 0; i < currentWord.length; i++) {
+                if (!cells[i].classList.contains('correct')) {
+                    const letterIndex = remainingLetters.indexOf(guess[i]);
+                    if (letterIndex !== -1) {
+                        cells[i].classList.add('present');
+                        remainingLetters[letterIndex] = null;
+                    } else {
+                        cells[i].classList.add('absent');
+                    }
+                }
+            }
+            
+            if (guess === currentWord) {
+                solvedWords.add(currentWord);
+                currentWord = null;
+                currentIndex = 0;
+                
+                // Check if all words are solved
+                if (solvedWords.size === Object.keys(words).length) {
+                    winMessage.style.display = 'block';
+                    document.getElementById('keyboard').style.display = 'none';
+                    document.getElementById('clues').style.display = 'none';
+                }
+                document.getElementById("message").innerHTML = "Alright, now we're getting somewhere.";
+            }
+            else{
+                if(Math.random() < 0.5){
+                    document.getElementById("message").innerHTML = "Oof, not quite.";
+                }
+                else{
+                    document.getElementById("message").innerHTML = "Come on, are you even trying?";
+                }
+            }
+        }
+
+        // Handle keyboard input
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                checkWord();
+            } else if (e.key === 'Backspace') {
+                handleKeyPress('Backspace');
+            } else if (e.key.length === 1 && e.key.match(/[a-zA-Z]/)) {
+                handleKeyPress(e.key.toUpperCase());
+            }
+        });
+    </script>
+</body>
+</html>
