@@ -39,7 +39,7 @@
             width: 100%;
             max-width: 400px;
             margin: 0 auto;
-            grid-template-columns: repeat(13, 1fr);
+            grid-template-columns: repeat(14, 1fr); /*width of grid*/
         }
         .cell {
             aspect-ratio: 1;
@@ -90,7 +90,7 @@
         }
         .key {
             padding: 10px;
-            min-width: 20px;
+            min-width: 28px;
             text-align: center;
             background: #E8D5B5;
             color: #8B4513;
@@ -139,24 +139,23 @@
             3. Across: Expression of gratitude (6)<br>
             4. Down: Seasonal gourd (7)<br>
             5. Across: Month of the holiday (9) -->
-            <img src="kq.png" style="float: left;margin-right: 6px;" width="40px"> <div id="message" style="padding-top: 10px;">All those carbs make your brain foggy.</div>
+            <img src="kq.png" style="float: left;margin-right: 6px;" width="40px"> <div id="message" style="padding-top: 10px;">Carbs make my brain foggy.</div>
         </div>
         <div class="keyboard" id="keyboard"></div>
         <div class="win-message" id="winMessage">
-            Congratulations. Now stop playing games and get back to your family! 🦃
+            Congratulations! Now stop playing games and get back to your family! 🦃
         </div>
     </div>
 
     <script>
         const words = {
-            'HARVEST': {x: 0, y: 0, direction: 'across', number: 1},
-            'STUFFING': {x: 5, y: 0, direction: 'down', number: 2},
-            'PARADE': {x: 9, y: 0, direction: 'down', number: 3},
-            'CORNUCOPIA': {x: 2, y: 3, direction: 'down', number: 4},
-            'GRATITUDE': {x: 1, y: 5, direction: 'across', number: 5},
-            'GOBBLE': {x: 1, y: 9, direction: 'across', number: 6},
-            'PIE': {x: 12, y: 10, direction: 'down', number: 7},
-            'CARBOHYDRATE': {x: 1, y: 12, direction: 'across', number: 8}
+            'GOBBLE': {x: 11, y: 0, direction: 'down', number: 1, clue: "What's that sound?"},
+            'PIE': {x: 6, y: 2, direction: 'down', number: 2, clue: "Not the number."},
+            'STUFFING': {x: 1, y: 3, direction: 'across', number: 3, clue: "Please keep it out of the bird."},
+            'GRATITUDE': {x: 8, y: 3, direction: 'down', number: 4, clue: "You ought to have some."},
+            'HARVEST': {x: 7, y: 5, direction: 'across', number: 5, clue: "There's Havoc in the Quigley house."},
+            'CORNUCOPIA': {x: 0, y: 7, direction: 'across', number: 6, clue: "Not the kind of horn you honk."},
+            'PARADE': {x: 4, y: 10, direction: 'across', number: 7, clue: "Who put a clothing store in charge?"},
         };
 
         const grid = document.getElementById('grid');
@@ -168,8 +167,8 @@
         let solvedWords = new Set();
         
         // Create grid and track used cells
-        const gridCells = Array(13).fill().map(() => Array(13).fill(null));
-        const usedCells = Array(13).fill().map(() => Array(13).fill(false));
+        const gridCells = Array(12).fill().map(() => Array(14).fill(null)); //height then width
+        const usedCells = Array(12).fill().map(() => Array(14).fill(false)); //height then width
         
         // Mark used cells
         for (const [word, info] of Object.entries(words)) {
@@ -182,8 +181,8 @@
         }
 
         // Create grid
-        for (let y = 0; y < 13; y++) {
-            for (let x = 0; x < 13; x++) {
+        for (let y = 0; y < 12; y++) { // height of grid
+            for (let x = 0; x < 14; x++) { // width of grid
                 const cell = document.createElement('div');
                 cell.className = 'cell';
                 if (!usedCells[y][x]) {
@@ -285,6 +284,9 @@
                 const cellY = info.direction === 'down' ? info.y + i : info.y;
                 gridCells[cellY][cellX].classList.add('active');
             }
+
+            //update message box with hint
+            document.getElementById("message").innerHTML = info.clue;
         }
 
         function handleKeyPress(key) {
@@ -381,6 +383,11 @@
                 solvedWords.add(currentWord);
                 currentWord = null;
                 currentIndex = 0;
+
+                // Remove active class from all cells
+                document.querySelectorAll('.cell').forEach(cell => {
+                    cell.classList.remove('active');
+                });
                 
                 // Check if all words are solved
                 if (solvedWords.size === Object.keys(words).length) {
@@ -388,14 +395,22 @@
                     document.getElementById('keyboard').style.display = 'none';
                     document.getElementById('clues').style.display = 'none';
                 }
-                document.getElementById("message").innerHTML = "Alright, now we're getting somewhere.";
+                else{
+                    //If not all words are solved
+                    if(Math.random() < 0.5){
+                        document.getElementById("message").innerHTML = "Now we're getting somewhere!";
+                    }
+                    else{
+                        document.getElementById("message").innerHTML = "Nice job!";
+                    }
+                }
             }
-            else{
+            else{ //if the guess was wrong
                 if(Math.random() < 0.5){
                     document.getElementById("message").innerHTML = "Oof, not quite.";
                 }
                 else{
-                    document.getElementById("message").innerHTML = "Come on, are you even trying?";
+                    document.getElementById("message").innerHTML = "Let's try again.";
                 }
             }
         }
