@@ -428,6 +428,14 @@
                 handleKeyPress(e.key.toUpperCase());
             }
         });
+
+        //prevent auto scroll on iOS
+        window.addEventListener('scroll', function(e) {
+            if (window.scrollY !== 0) {
+                window.scrollTo(0, 0);
+            }
+            }, { once: true });
+
     </script>
 </body>
 </html>
