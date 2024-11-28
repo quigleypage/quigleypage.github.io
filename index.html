@@ -9,6 +9,41 @@
     <meta name="author" content="Kevin Quigley">
 
     <title>Quigley.page</title>
+
+    <script>
+        // Set the correct PIN
+        const correctPin = "0625";
+        
+        function verifyPin() {
+            let pin;
+            let isCorrect = false;
+            
+            while (!isCorrect) {
+                pin = prompt("Enter PIN:");
+                
+                if (pin === null) {
+                    // User clicked Cancel
+                    window.location.href = "about:blank";
+                    return false;
+                }
+                
+                if (pin === correctPin) {
+                    isCorrect = true;
+                } else {
+                    alert("Incorrect PIN. Please try again.");
+                }
+            }
+            
+            return true;
+        }
+        
+        // Add event listener to verify PIN before page load
+        document.addEventListener("DOMContentLoaded", function(event) {
+            if (!verifyPin()) {
+                event.preventDefault();
+            }
+        });
+    </script>
 </head>
 
 <body>
@@ -65,6 +100,7 @@
     <a href="/popul">Popul</a><br>
     <a href="https://quigley.page/harvest/">Harvest Havoc</a><br>
     <a href="https://hydegriffen.itch.io/juliethd">Juliet HD</a><br>
+    <a href="https://quigley.page/happythanksgiving/">Thanksgiving Crosswordle 2024</a><br>
     <br>
 
     <h3>Misc</h3>
