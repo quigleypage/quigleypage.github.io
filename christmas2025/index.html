@@ -145,7 +145,8 @@
             y: canvas.height / 2 - 30, // Adjusted for vertical center
             width: 60, // Adjusted for landscape orientation
             height: 40, // Adjusted for landscape orientation
-            speed: 5
+            speed: 5,
+            targetY: canvas.height / 2 - 30 // Initial target position
         };
 
         let trees = []; // For snowy tree tops
@@ -181,51 +182,40 @@
         }
 
         // Game controls
-        let movingUp = false;
-        let movingDown = false;
-
         function handleTouch(e) {
             e.preventDefault();
+            if (!gameRunning) return;
+
             const touch = e.touches[0];
             const gameRect = canvas.getBoundingClientRect();
             const touchY = touch.clientY - gameRect.top;
 
-            if (touchY < canvas.height / 2) {
-                movingUp = true;
-                movingDown = false;
-            } else {
-                movingUp = false;
-                movingDown = true;
-            }
-        }
-
-        function handleTouchEnd() {
-            movingUp = false;
-            movingDown = false;
+            santa.targetY = touchY - santa.height / 2;
         }
 
         canvas.addEventListener('touchstart', handleTouch);
         canvas.addEventListener('touchmove', handleTouch);
-        canvas.addEventListener('touchend', handleTouchEnd);
+        canvas.addEventListener('touchend', () => {
+            santa.targetY = santa.y; // Stop moving when touch ends
+        });
 
         // Keyboard controls
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowUp') movingUp = true;
-            if (e.key === 'ArrowDown') movingDown = true;
+            if (e.key === 'ArrowUp') santa.targetY = santa.y - 50; // Move target up
+            if (e.key === 'ArrowDown') santa.targetY = santa.y + 50; // Move target down
         });
 
         document.addEventListener('keyup', (e) => {
-            if (e.key === 'ArrowUp') movingUp = false;
-            if (e.key === 'ArrowDown') movingDown = false;
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') santa.targetY = santa.y; // Stop moving
         });
 
         // Generate obstacles (drones) based on level
         function generateObstacle(x) {
-            const topLimit = canvas.height / 3; // Drones allowed in top two-thirds
+            const topLimit = canvas.height / 4; // Drones allowed in top three-fourths
             const types = ['Horizontal', 'Vertical'];
             const type = types[Math.floor(Math.random() * types.length)];
             const size = 25 + Math.random() * 10;
-            const y = Math.random() * (topLimit * 2 - size); // Restrict to top two-thirds
+            const y = Math.random() * (topLimit * 3 - size); // Restrict to top three-fourths
 
             obstacles.push({
                 x: x,
@@ -240,11 +230,11 @@
 
         // --- Generate Snowy Christmas Trees ---
         function generateTree(xPos) {
-            const minHeight = 60;
-            const maxHeight = canvas.height / 3;
+            const minHeight = 40; // Adjust tree height
+            const maxHeight = canvas.height / 4; // Trees in bottom one-fourth
             const treeHeight = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
             const treeWidth = Math.floor(Math.random() * (80 - 50 + 1)) + 50; // Width between 50 and 80
-            const y = canvas.height - treeHeight;
+            const y = canvas.height - treeHeight; // Position trees at the bottom
 
             // Create a tree with multiple layers
             const numLayers = 3 + Math.floor(Math.random() * 3); // 3 to 5 layers
@@ -293,7 +283,7 @@
 
         // Update obstacle positions
         function updateObstacles() {
-            const topLimit = canvas.height / 3;
+            const topLimit = canvas.height / 4;
 
             obstacles.forEach(obstacle => {
                 obstacle.movementCounter += 0.05;
@@ -307,8 +297,8 @@
                         break;
                 }
 
-                // Keep drones in the top two-thirds of the screen
-                obstacle.y = Math.max(0, Math.min(topLimit * 2 - obstacle.height, obstacle.y));
+                // Keep drones in the top three-fourths of the screen
+                obstacle.y = Math.max(0, Math.min(topLimit * 3 - obstacle.height, obstacle.y));
             });
 
             obstacles = obstacles.filter(obstacle => obstacle.x > -50);
@@ -357,8 +347,15 @@
         function update() {
             if (!gameRunning) return;
 
-            if (movingUp && santa.y > 0) santa.y -= santa.speed; // Move up
-            if (movingDown && santa.y < canvas.height - santa.height) santa.y += santa.speed; // Move down
+            // Smoothly move Santa towards the target position
+            if (santa.y < santa.targetY) {
+                santa.y += Math.min(santa.speed, santa.targetY - santa.y);
+            } else if (santa.y > santa.targetY) {
+                santa.y -= Math.min(santa.speed, santa.y - santa.targetY);
+            }
+
+            // Keep Santa within the canvas bounds
+            santa.y = Math.max(0, Math.min(canvas.height - santa.height, santa.y));
 
             const scrollSpeed = 1.8 + Math.min(level * 0.3, 3); // Reduced scroll speed progression
             viewportOffset += scrollSpeed; // Horizontal scrolling
@@ -472,6 +469,7 @@
             scoreElement.textContent = 'Distance: 0';
             santa.x = 50; // Start from the left
             santa.y = canvas.height / 2 - 30; // Adjusted for vertical center
+            santa.targetY = santa.y;
             santa.speed = 5;
             trees = [];
             obstacles = [];
