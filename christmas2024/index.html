@@ -110,6 +110,12 @@
             text-shadow: 1px 1px 2px #fff;
             color: white;
         }
+        /*@media (max-width: 768px) {
+            #gameContainer {
+                width: 90vw;
+                height: 80vw; /* Maintain aspect ratio 
+            }
+        }*/
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&display=swap" rel="stylesheet">
 </head>
@@ -147,7 +153,7 @@
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
     
-        // Game variables
+        // --- Game variables ---
         let gameRunning = false;
         let score = 0;
         let bestScore = localStorage.getItem('bestScore') || 0;
@@ -157,7 +163,8 @@
             y: canvas.height / 2 - 30,
             width: 60,
             height: 40,
-            speed: 5,
+            speed: 3,  // **Reduced initial speed**
+            maxSpeed: 6, // **Added maximum speed for Santa**
             targetY: canvas.height / 2 - 30
         };
     
@@ -165,6 +172,25 @@
         let obstacles = [];
         let lastTreeX = canvas.width;
         let viewportOffset = 0;
+    
+        // --- Difficulty parameters ---
+        const initialObstacleDensity = 0.2; // **Reduced initial density**
+        const obstacleDensityIncreaseRate = 0.02; // **Rate of density increase per level**
+        let currentObstacleDensity = initialObstacleDensity;
+
+        const initialTreeDensity = 0.6; // **Reduced initial density**
+        const treeDensityIncreaseRate = 0.05; // **Rate of density increase per level**
+        let currentTreeDensity = initialTreeDensity;
+    
+        const initialScrollSpeed = 1.2; // **Reduced initial speed**
+        const maxScrollSpeed = 3; // **Maximum scroll speed**
+        const scrollSpeedIncreaseRate = 0.1; // **Rate of speed increase per level**
+        let currentScrollSpeed = initialScrollSpeed;
+
+        const initialObstacleSpeed = 1;
+        const maxObstacleSpeed = 3;
+        const obstacleSpeedIncreaseRate = 0.3;
+        let currentObstacleSpeed = initialObstacleSpeed;
     
         // Load Santa image
         const santaImg = new Image();
@@ -220,10 +246,13 @@
     
         // Generate obstacles (drones) based on level
         function generateObstacle(x) {
+            // Only generate obstacles based on the current density
+            if (Math.random() > currentObstacleDensity) return;
+
             const topLimit = canvas.height / 4;
             const types = ['Horizontal', 'Vertical'];
             const type = types[Math.floor(Math.random() * types.length)];
-            const size = 25 + Math.random() * 10;
+            const size = 20 + Math.random() * 8; // **Reduced size**
             const y = Math.random() * (topLimit * 3 - size);
     
             obstacles.push({
@@ -232,7 +261,7 @@
                 width: size,
                 height: size,
                 type: type,
-                speed: 1.5 + Math.min(level * 0.4, 3),
+                speed: currentObstacleSpeed,
                 movementCounter: 0
             });
         }
@@ -269,7 +298,7 @@
                 color: getRandomTreeColor()
             });
     
-            if (Math.random() < Math.min(0.3 + level * 0.05, 0.7)) {
+            if (Math.random() < currentTreeDensity) {
                 generateObstacle(xPos + treeWidth + 50);
             }
         }
@@ -346,20 +375,29 @@
             return false;
         }
     
-        // Game loop
+        // --- Game loop ---
         function update() {
             if (!gameRunning) return;
     
+            // --- Update Santa's position ---
             if (santa.y < santa.targetY) {
                 santa.y += Math.min(santa.speed, santa.targetY - santa.y);
             } else if (santa.y > santa.targetY) {
                 santa.y -= Math.min(santa.speed, santa.y - santa.targetY);
             }
-    
             santa.y = Math.max(0, Math.min(canvas.height - santa.height, santa.y));
+
+            // --- Increase difficulty gradually ---
+            if (level > 1) {
+                currentScrollSpeed = Math.min(maxScrollSpeed, initialScrollSpeed + (level - 1) * scrollSpeedIncreaseRate);
+                currentObstacleDensity = Math.min(1, initialObstacleDensity + (level - 1) * obstacleDensityIncreaseRate);
+                currentTreeDensity = Math.min(1, initialTreeDensity + (level - 1) * treeDensityIncreaseRate);
+                currentObstacleSpeed = Math.min(maxObstacleSpeed, initialObstacleSpeed + (level - 1) * obstacleSpeedIncreaseRate);
+                santa.speed = Math.min(santa.maxSpeed, 3 + (level - 1) * 0.15);
+            }
     
-            const scrollSpeed = 1.8 + Math.min(level * 0.3, 3);
-            viewportOffset += scrollSpeed;
+            // --- Update game elements ---
+            viewportOffset += currentScrollSpeed;
             score = Math.floor(viewportOffset / 10);
             level = Math.floor(score / 75) + 1;
     
@@ -470,10 +508,16 @@
             santa.x = 50;
             santa.y = canvas.height / 2 - 30;
             santa.targetY = santa.y;
-            santa.speed = 5;
+            santa.speed = 3;
             trees = [];
             obstacles = [];
             lastTreeX = canvas.width;
+
+            // --- Reset difficulty parameters ---
+            currentScrollSpeed = initialScrollSpeed;
+            currentObstacleDensity = initialObstacleDensity;
+            currentTreeDensity = initialTreeDensity;
+            currentObstacleSpeed = initialObstacleSpeed;
     
             startScreen.style.display = 'none';
             gameOverElement.style.display = 'none';
