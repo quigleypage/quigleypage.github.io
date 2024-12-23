@@ -33,7 +33,7 @@
             max-width: 95vw;
             height: 400px;
             max-height: 95vh;
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.8);
             border-radius: 10px;
             box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.1), 0 0 10px rgba(100, 100, 100, 0.1);
             overflow: hidden;
@@ -125,14 +125,14 @@
         <div id="score">0</div>
         <div id="startScreen">
             <h2>Santa's Wild Ride</h2>
-            <p style="font-size: 18px; line-height: 1.6;">Tap or use arrow keys</p>
-            <button id="startButton">Now, Dasher!</button>
+            <p style="font-size: 18px; line-height: 1.6;">Tap and slide to move<br>Adjust your phone volume</p>
+            <button id="startButton">Let's go go go!</button>
         </div>
         <div id="gameOver">
             <h2>Ouch!</h2>
             <p>Final Distance: <span id="finalScore">0</span></p>
             <p>Best Distance: <span id="bestScore">0</span></p>
-            <button id="restartButton">Try Again</button>
+            <button id="restartButton">Try again</button>
         </div>
     </div>
 
@@ -163,8 +163,8 @@
             y: canvas.height / 2 - 30,
             width: 60,
             height: 40,
-            speed: 3,  // **Reduced initial speed**
-            maxSpeed: 6, // **Added maximum speed for Santa**
+            speed: 3,  // Reduced initial speed
+            maxSpeed: 6, // Maximum speed for Santa
             targetY: canvas.height / 2 - 30
         };
     
@@ -174,17 +174,17 @@
         let viewportOffset = 0;
     
         // --- Difficulty parameters ---
-        const initialObstacleDensity = 0.2; // **Reduced initial density**
-        const obstacleDensityIncreaseRate = 0.02; // **Rate of density increase per level**
+        const initialObstacleDensity = 0.2; // Reduced initial density
+        const obstacleDensityIncreaseRate = 0.02; // Rate of density increase per level
         let currentObstacleDensity = initialObstacleDensity;
 
-        const initialTreeDensity = 0.6; // **Reduced initial density**
-        const treeDensityIncreaseRate = 0.05; // **Rate of density increase per level**
+        const initialTreeDensity = 0.8; // Increased initial density
+        const treeDensityIncreaseRate = 0.07; // Increased rate of density increase per level
         let currentTreeDensity = initialTreeDensity;
     
-        const initialScrollSpeed = 1.2; // **Reduced initial speed**
-        const maxScrollSpeed = 3; // **Maximum scroll speed**
-        const scrollSpeedIncreaseRate = 0.1; // **Rate of speed increase per level**
+        const initialScrollSpeed = 1.2; // Reduced initial speed
+        const maxScrollSpeed = 3; // Maximum scroll speed
+        const scrollSpeedIncreaseRate = 0.1; // Rate of speed increase per level
         let currentScrollSpeed = initialScrollSpeed;
 
         const initialObstacleSpeed = 1;
@@ -252,7 +252,7 @@
             const topLimit = canvas.height / 4;
             const types = ['Horizontal', 'Vertical'];
             const type = types[Math.floor(Math.random() * types.length)];
-            const size = 20 + Math.random() * 8; // **Reduced size**
+            const size = 20 + Math.random() * 8; // Reduced size
             const y = Math.random() * (topLimit * 3 - size);
     
             obstacles.push({
@@ -268,19 +268,19 @@
     
         // --- Generate Snowy Christmas Trees ---
         function generateTree(xPos) {
-            const minHeight = 40;
-            const maxHeight = canvas.height / 4;
+            const minHeight = 30; 
+            const maxHeight = canvas.height / 4; // **Reverted max height**
             const treeHeight = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
-            const treeWidth = Math.floor(Math.random() * (80 - 50 + 1)) + 50;
+            const treeWidth = Math.floor(Math.random() * (100 - 40 + 1)) + 40; // Increased width variation
             const y = canvas.height - treeHeight;
-    
+
             const numLayers = 3 + Math.floor(Math.random() * 3);
             const layers = [];
             for (let i = 0; i < numLayers; i++) {
                 const layerWidth = treeWidth * (1 - i / numLayers);
                 const layerHeight = treeHeight / numLayers;
                 const layerY = y + treeHeight - layerHeight * (i + 1);
-    
+
                 layers.push({
                     x: xPos + (treeWidth - layerWidth) / 2,
                     y: layerY,
@@ -288,7 +288,7 @@
                     height: layerHeight
                 });
             }
-    
+
             trees.push({
                 x: xPos,
                 y: y,
@@ -297,7 +297,7 @@
                 layers: layers,
                 color: getRandomTreeColor()
             });
-    
+
             if (Math.random() < currentTreeDensity) {
                 generateObstacle(xPos + treeWidth + 50);
             }
@@ -404,8 +404,18 @@
             updateObstacles();
     
             while (lastTreeX < viewportOffset + canvas.width + 200) {
-                generateTree(lastTreeX);
-                lastTreeX += 100 + Math.random() * 80;
+                if (Math.random() < 0.6) { // 60% chance to create a cluster
+                    // Generate a cluster of 3-5 trees very close together
+                    const clusterSize = 3 + Math.floor(Math.random() * 3);
+                    for (let i = 0; i < clusterSize; i++) {
+                        generateTree(lastTreeX);
+                        lastTreeX += 20 + Math.random() * 30; // Very close spacing within the cluster
+                    }
+                } else {
+                    // Generate a single tree with slightly reduced spacing
+                    generateTree(lastTreeX);
+                    lastTreeX += 60 + Math.random() * 40;
+                }
             }
     
             if (checkObstacleCollision() || checkTreeCollision()) {
@@ -432,7 +442,8 @@
                     ctx.lineTo(x + layer.width, y + layer.height);
                     ctx.closePath();
                     ctx.fill();
-    
+
+                    // **Re-add white triangles**
                     ctx.beginPath();
                     ctx.fillStyle = '#FFFFFF';
                     ctx.moveTo(x + layer.width / 2, y);
@@ -513,7 +524,7 @@
             obstacles = [];
             lastTreeX = canvas.width;
 
-            // --- Reset difficulty parameters ---
+            // Reset difficulty parameters
             currentScrollSpeed = initialScrollSpeed;
             currentObstacleDensity = initialObstacleDensity;
             currentTreeDensity = initialTreeDensity;
