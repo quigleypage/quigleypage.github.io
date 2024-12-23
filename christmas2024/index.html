@@ -215,6 +215,15 @@
                 console.log('Error playing music:', error);
             });
         }
+
+        // --- Pause and Resume Music on Focus Change ---
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                bgMusic.pause();
+            } else if (gameRunning) {
+                bgMusic.play();
+            }
+        });
     
         // Game controls
         function handleTouch(e) {
@@ -508,6 +517,7 @@
             finalScoreElement.textContent = score;
             bestScoreElement.textContent = bestScore;
             gameOverElement.style.display = 'flex';
+            //bgMusic.pause();
         }
     
         function startGame() {
