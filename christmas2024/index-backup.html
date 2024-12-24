@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Santa's Wild Ride</title>
     <style>
-        /* CSS Styles (no changes) */
+        /* CSS Styles */
         html {
             touch-action: manipulation;
             background: #ffe8d6;
@@ -174,12 +174,12 @@
         let viewportOffset = 0;
     
         // --- Difficulty parameters ---
-        const initialObstacleDensity = 0.1; // **Reduced initial density to be very low**
-        const obstacleDensityIncreaseRate = 0.008; // **Reduced rate of density increase per level**
+        const initialObstacleDensity = 0.2; // Reduced initial density
+        const obstacleDensityIncreaseRate = 0.02; // Rate of density increase per level
         let currentObstacleDensity = initialObstacleDensity;
 
-        const initialTreeDensity = 0.8;
-        const treeDensityIncreaseRate = 0.07;
+        const initialTreeDensity = 0.8; // Increased initial density
+        const treeDensityIncreaseRate = 0.07; // Increased rate of density increase per level
         let currentTreeDensity = initialTreeDensity;
     
         const initialScrollSpeed = 1.2; // Reduced initial speed
@@ -187,14 +187,10 @@
         const scrollSpeedIncreaseRate = 0.1; // Rate of speed increase per level
         let currentScrollSpeed = initialScrollSpeed;
 
-        const initialObstacleSpeed = 0.7; // **Reduced initial obstacle speed**
-        const maxObstacleSpeed = 2.5; // **Reduced maximum obstacle speed**
-        const obstacleSpeedIncreaseRate = 0.15; // **Reduced rate of obstacle speed increase**
+        const initialObstacleSpeed = 1;
+        const maxObstacleSpeed = 3;
+        const obstacleSpeedIncreaseRate = 0.3;
         let currentObstacleSpeed = initialObstacleSpeed;
-
-        // **New variables for gradual introduction of obstacle types**
-        let horizontalObstaclesUnlocked = false;
-        let verticalObstaclesUnlocked = false;
     
         // Load Santa image
         const santaImg = new Image();
@@ -257,38 +253,17 @@
             if (e.key === 'ArrowUp' || e.key === 'ArrowDown') santa.targetY = santa.y;
         });
     
-        // **Modified generateObstacle function for gradual introduction**
+        // Generate obstacles (drones) based on level
         function generateObstacle(x) {
-            // Very low chance to generate obstacles in the first few levels
-            if (level < 3 && Math.random() > 0.05) return;
-
+            // Only generate obstacles based on the current density
             if (Math.random() > currentObstacleDensity) return;
 
             const topLimit = canvas.height / 4;
-            let type = '';
-
-            // Introduce obstacle types gradually
-            if (level >= 3 && !horizontalObstaclesUnlocked) {
-                horizontalObstaclesUnlocked = true;
-            }
-            if (level >= 5 && !verticalObstaclesUnlocked) {
-                verticalObstaclesUnlocked = true;
-            }
-
-            // Select type based on unlocked types
-            const availableTypes = [];
-            if (horizontalObstaclesUnlocked) availableTypes.push('Horizontal');
-            if (verticalObstaclesUnlocked) availableTypes.push('Vertical');
-
-            if (availableTypes.length > 0) {
-                type = availableTypes[Math.floor(Math.random() * availableTypes.length)];
-            } else {
-                return; // No types unlocked yet
-            }
-
-            const size = 20 + Math.random() * 8;
+            const types = ['Horizontal', 'Vertical'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const size = 20 + Math.random() * 8; // Reduced size
             const y = Math.random() * (topLimit * 3 - size);
-
+    
             obstacles.push({
                 x: x,
                 y: y,
@@ -332,7 +307,6 @@
                 color: getRandomTreeColor()
             });
 
-            // **No change here - obstacles generated after trees are still valid**
             if (Math.random() < currentTreeDensity) {
                 generateObstacle(xPos + treeWidth + 50);
             }
@@ -565,10 +539,6 @@
             currentObstacleDensity = initialObstacleDensity;
             currentTreeDensity = initialTreeDensity;
             currentObstacleSpeed = initialObstacleSpeed;
-
-            // **Reset obstacle type introduction variables**
-            horizontalObstaclesUnlocked = false;
-            verticalObstaclesUnlocked = false;
     
             startScreen.style.display = 'none';
             gameOverElement.style.display = 'none';
