@@ -125,8 +125,8 @@
         <div id="score">0</div>
         <div id="startScreen">
             <h2>Santa's Wild Ride</h2>
-            <p style="font-size: 18px; line-height: 1.6;">Tap and slide to move<br>Adjust your phone volume</p>
-            <button id="startButton">And away we go!</button>
+            <p style="font-size: 18px; line-height: 1.6;">Tap and slide to move<br>Tip: Turn your volume on</p>
+            <button id="startButton">Ho ho ho,<br>and away we go!</button>
         </div>
         <div id="gameOver">
             <h2>Ouch!</h2>
@@ -494,7 +494,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
     
             // Subtle snow effect
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
             for (let i = 0; i < 70; i++) {
                 const y = Math.random() * canvas.height;
                 const x = (viewportOffset * 0.1 + i * 10) % canvas.width;
