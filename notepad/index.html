@@ -207,7 +207,7 @@
 
         .compose-input {
             width: 100%;
-            min-height: 120px;
+            min-height: 200px;
             background: none;
             border: none;
             color: white;
@@ -341,7 +341,7 @@
 
     <div class="chat-screen" id="chatScreen">
         <div id="chatMessages" class="chat-messages">
-            <div class="chat-bubble received">Hello! I am an AI assistant that uses your notepad as context. How can I help you?</div>
+            <div class="chat-bubble received">Hello! I am an AI assistant that let's you talk to your notepad. How can I help you?</div>
         </div>
         <div class="chat-input-container">
             <input id="messageInput" type="text" class="chat-input" placeholder="Type your message...">
@@ -370,7 +370,7 @@
                 </button>
             </div>
             <div class="compose-area">
-                <textarea class="compose-input" placeholder="What's on your mind?" maxlength="1000"></textarea>
+                <textarea class="compose-input" placeholder="What's on your mind?" maxlength="10000"></textarea>
             </div>
             <div class="modal-footer">
                 <button class="post-btn" id="postBtn" disabled>Save</button>
