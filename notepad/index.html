@@ -72,7 +72,7 @@
         .post-text {
             margin-bottom: 12px;
             line-height: 1.4;
-            white-space: pre-wrap;
+            white-space: pre-wrap; /* Preserve newlines */
         }
 
         .post-actions {
@@ -329,11 +329,35 @@
             flex-direction: column;
             padding-bottom: 80px; /* Make room for the input field */
         }
+
+        /* New Chat Button Styles */
+        .new-chat-button {
+            background-color: #1da1f2;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 14px; /* Adjust as needed */
+        }
+
+        .new-chat-button:hover {
+            background-color: #1a91da;
+        }
+
+        #newChatButtonContainer {
+            display: flex;
+            align-items: center;
+            margin-left: auto; /* Push the button to the right */
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>Notes</h1>
+        <div id="newChatButtonContainer"></div>
     </div>
 
     <div class="feed" id="feed">
@@ -382,7 +406,20 @@
     <script>
         // Initialize posts from localStorage or empty array
         let posts = JSON.parse(localStorage.getItem('posts')) || [];
+
         let editingPostId = null;
+
+        const feed = document.getElementById('feed');
+        const composeBtn = document.getElementById('composeBtn');
+        const composeModal = document.getElementById('composeModal');
+        const closeModal = document.getElementById('closeModal');
+        const postBtn = document.getElementById('postBtn');
+        const composeInput = document.querySelector('.compose-input');
+
+        // Check if there are any existing posts
+        if (posts.length === 0) {
+            createPlaceholderPosts();
+        }
 
         function savePosts() {
             localStorage.setItem('posts', JSON.stringify(posts));
@@ -471,13 +508,7 @@
             });
         }
 
-        const feed = document.getElementById('feed');
-        const composeBtn = document.getElementById('composeBtn');
-        const composeModal = document.getElementById('composeModal');
-        const closeModal = document.getElementById('closeModal');
-        const postBtn = document.getElementById('postBtn');
-        const composeInput = document.querySelector('.compose-input');
-        
+
         // Initial render
         renderPosts();
 
@@ -514,6 +545,21 @@
             }
         });
 
+        // Function to reset the chat
+        function resetChat() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = '<div class="chat-bubble received">Hello! I am an AI assistant that let\'s you talk to your notepad. How can I help you?</div>';
+            // You might need to reinitialize other parts of your chat logic here
+            messageArray = [];
+        }
+
+        // Function to handle "Reset" button click
+        function handleNewChatClick() {
+            if (confirm('Are you sure you want to reset the chat? This will clear the current conversation.')) {
+                resetChat();
+            }
+        }
+
         // Handle bottom navigation and screen switching
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => {
@@ -521,16 +567,24 @@
                 item.classList.add('active');
 
                 const targetScreen = item.dataset.target;
+                const newChatButtonContainer = document.getElementById('newChatButtonContainer');
+
                 if (targetScreen === 'feed') {
                     document.getElementById('feed').style.display = 'block';
                     document.getElementById('chatScreen').style.display = 'none';
                     document.querySelector('.header h1').textContent = 'Notes';
                     document.getElementById('composeBtn').style.display = 'flex';
+                    newChatButtonContainer.innerHTML = ''; // Remove New Chat button
                 } else if (targetScreen === 'chatScreen') {
                     document.getElementById('feed').style.display = 'none';
                     document.getElementById('chatScreen').style.display = 'block';
                     document.querySelector('.header h1').textContent = 'Chat';
                     document.getElementById('composeBtn').style.display = 'none';
+
+                    // Add New Chat button dynamically
+                    newChatButtonContainer.innerHTML = '<button class="new-chat-button">Reset</button>';
+                    const newChatButton = document.querySelector('.new-chat-button');
+                    newChatButton.addEventListener('click', handleNewChatClick);
                 }
             });
         });
@@ -560,6 +614,37 @@
 
             return summaryString;
         }
+
+        // Function to create placeholder posts
+        function createPlaceholderPosts() {
+            const placeholderPosts = [
+                {
+                    id: Date.now(),
+                    text: "Welcome to Q Notepad! This is a sample note. You can edit it or delete it.",
+                    timestamp: new Date().getTime()
+                },
+                {
+                    id: Date.now() + 1, // Ensure unique ID
+                    text: "You can use the compose button (the pencil icon) to create new notes.",
+                    timestamp: new Date().getTime()
+                },
+                {
+                    id: Date.now() + 2, // Ensure unique ID
+                    text: "Try switching to the Chat tab (using the bottom navigation) to talk to your notes!",
+                    timestamp: new Date().getTime()
+                },
+                {
+                    id: Date.now() + 3, // Ensure unique ID
+                    text: "Please note that this version of Q Notepad is for demo purposes only and uses local storage (i.e. cookies). If you clear your browser data, then you will lose your notes.",
+                    timestamp: new Date().getTime()
+                }
+            ];
+
+            posts = placeholderPosts; // Update the 'posts' array
+            savePosts();             // Save to localStorage
+            renderPosts();          // Display the new posts
+        }
+
 
     </script>
     <script src="chat.js"></script>
