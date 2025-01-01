@@ -2,7 +2,9 @@ messageArray = [];
 model = 7;
 
 async function generateText(prompt) {
-    messageArray[0] = {role: "system", content: "You are a helpful assistant that responds to user prompts based on the information in their notepad:\n\n" + generateNotesSummary()};
+    const formattedDate = new Date().toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, month: 'long', day: 'numeric', year: 'numeric' });
+
+    messageArray[0] = {role: "system", content: "You are a helpful assistant that responds to user prompts based on the information in their notepad. For your awareness, it is currently " + formattedDate + "\n\n" + generateNotesSummary()};
 
     document.getElementById("chatMessages").innerHTML += '<div class="chat-bubble sent">' + prompt.replaceAll("\n", "<br>") + '</div>';
     document.getElementById("chatMessages").innerHTML += '<div id="typingDots" class="chat-bubble received"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div></div>';
