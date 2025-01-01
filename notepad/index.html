@@ -396,6 +396,11 @@
             }
             }
 
+            #char-count {
+                color: #8899a6; /* Or your desired color */
+                font-size: 14px;
+                margin-right: auto; /* Push it to the left */
+            }
     </style>
 </head>
 <body>
@@ -442,6 +447,7 @@
                 <textarea class="compose-input" placeholder="What's on your mind?" maxlength="10000"></textarea>
             </div>
             <div class="modal-footer">
+                <span id="char-count">0 / 10000</span>
                 <button class="post-btn" id="postBtn" disabled>Save</button>
             </div>
         </div>
@@ -535,6 +541,10 @@
             postBtn.textContent = 'Update';
             postBtn.disabled = false;
             composeModal.classList.add('active');
+
+            // Add these lines to update character count on edit:
+            const charCount = document.getElementById('char-count');
+            charCount.textContent = `${post.text.length} / 10000`;
         }
 
         function deletePost(id) {
@@ -563,6 +573,10 @@
             postBtn.textContent = 'Save';
             postBtn.disabled = true;
             composeModal.classList.add('active');
+
+            // Add these lines to reset character count on new post:
+            const charCount = document.getElementById('char-count');
+            charCount.textContent = '0 / 10000';
         });
 
         closeModal.addEventListener('click', () => {
@@ -574,7 +588,12 @@
         });
 
         composeInput.addEventListener('input', () => {
+            const currentLength = composeInput.value.trim().length;
             postBtn.disabled = composeInput.value.trim().length === 0;
+
+            // Update character count display
+            const charCount = document.getElementById('char-count');
+            charCount.textContent = `${currentLength} / 10000`;
         });
 
         postBtn.addEventListener('click', () => {
