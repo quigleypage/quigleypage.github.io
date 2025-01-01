@@ -5,6 +5,7 @@ async function generateText(prompt) {
     messageArray[0] = {role: "system", content: "You are a helpful assistant that responds to user prompts based on the information in their notepad:\n\n" + generateNotesSummary()};
 
     document.getElementById("chatMessages").innerHTML += '<div class="chat-bubble sent">' + prompt.replaceAll("\n", "<br>") + '</div>';
+    document.getElementById("chatMessages").innerHTML += '<div id="typingDots" class="chat-bubble received"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div></div>';
     messageArray.push({role: "user", content: prompt});
     document.getElementById("chatMessages").scrollTop = document.getElementById("chatMessages").scrollHeight;
     encodedMessageArray = { promptText: messageArray, version: model };
@@ -37,6 +38,7 @@ async function generateText(prompt) {
         // Code block
         botResponseCleaned = botResponseCleaned.replaceAll(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
 
+        document.getElementById('typingDots').remove();
         document.getElementById("chatMessages").innerHTML += '<div class="chat-bubble received">' + botResponseCleaned + '</div>';
 
         document.getElementById('chatSendButton').disabled = false;
