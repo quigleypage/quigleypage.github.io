@@ -13,7 +13,10 @@ async function generateText(prompt) {
     document.getElementById('userInput').placeholder = "One moment please...";
     document.getElementById('userInput').disabled = true;
 
-    document.getElementById("AIResponse").innerHTML += '<div class="user-message-card"><div class="sender-name">You</div><div class="message">' + prompt.replaceAll("\n", "<br>") + '</div></div>';
+    //document.getElementById("AIResponse").innerHTML += '<div class="user-message-card"><div class="sender-name">You</div><div class="message">' + prompt.replaceAll("\n", "<br>") + '</div></div>';
+    document.getElementById("AIResponse").innerHTML += '<div class="user-message-card"><div class="message">' + prompt.replaceAll("\n", "<br>") + '</div></div>';
+    const loader = createFloatingQ();
+    document.getElementById("AIResponse").appendChild(loader.element);
     messageArray.push({role: "user", content: prompt});
     transcriptText += "You:\n" + prompt + "\n\n-------\n\n";
     document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
@@ -51,7 +54,9 @@ async function generateText(prompt) {
         botResponseCleaned = botResponseCleaned.replaceAll(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
 
         //scrollHeightTracker = document.getElementById("AIResponse").scrollHeight;
-        document.getElementById("AIResponse").innerHTML += '<div class="bot-message-card"><div class="sender-name">' + botName + '</div><div class="message">' + botResponseCleaned + '</div></div>';
+        //document.getElementById("AIResponse").innerHTML += '<div class="bot-message-card"><div class="sender-name">' + botName + '</div><div class="message">' + botResponseCleaned + '</div></div>';
+        loader.destroy();
+        document.getElementById("AIResponse").innerHTML += '<div class="bot-message-card"><div class="message">' + botResponseCleaned + '</div></div>';
         //document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
         transcriptText += botName + ":\n" + botResponse + "\n\n-------\n\n";
         showArrowDown();
@@ -120,3 +125,123 @@ function showArrowDown(){
         document.getElementById('arrowDown').style.display = "none";
     }
 }
+
+function createFloatingQ() {
+    // Create container with styles
+    const container = document.createElement('div');
+    container.style.cssText = `
+      width: 64px;
+      height: 64px;
+      background: white;
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+    `;
+  
+    // Create animation class
+    class Circle {
+      constructor(size) {
+        this.element = document.createElement('div');
+        this.element.style.cssText = `
+          position: absolute;
+          background: black;
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+          width: ${size}px;
+          height: ${size}px;
+        `;
+        
+        const PADDING = 10;
+        this.x = PADDING + Math.random() * (100 - 2 * PADDING);
+        this.y = PADDING + Math.random() * (100 - 2 * PADDING);
+        this.dx = (Math.random() - 0.5) * 0.08;
+        this.dy = (Math.random() - 0.5) * 0.08;
+        
+        this.updatePosition();
+      }
+  
+      updatePosition() {
+        this.element.style.left = this.x + '%';
+        this.element.style.top = this.y + '%';
+      }
+    }
+  
+    // Animation controller
+    const circles = [];
+    let isForming = false;
+    const PADDING = 10;
+    let animationFrame;
+    let formationInterval;
+    let lastTime = performance.now();
+  
+    function getQPosition(index) {
+      const qPositions = [
+        { x: 50, y: 20 }, { x: 35, y: 25 }, { x: 25, y: 35 },
+        { x: 20, y: 50 }, { x: 25, y: 65 }, { x: 35, y: 75 },
+        { x: 50, y: 80 }, { x: 65, y: 75 }, { x: 75, y: 65 },
+        { x: 80, y: 50 }, { x: 75, y: 35 }, { x: 65, y: 25 },
+        { x: 65, y: 70 }, { x: 75, y: 75 }, { x: 85, y: 80 },
+        { x: 40, y: 30 }, { x: 60, y: 30 }, { x: 40, y: 70 },
+        { x: 60, y: 70 }, { x: 55, y: 65 }
+      ];
+      return qPositions[index] || { x: 50, y: 50 };
+    }
+  
+    function animate(currentTime) {
+      const deltaTime = currentTime - lastTime;
+      lastTime = currentTime;
+  
+      circles.forEach((circle, index) => {
+        if (isForming) {
+          const target = getQPosition(index);
+          circle.x += (target.x - circle.x) * 0.1;
+          circle.y += (target.y - circle.y) * 0.1;
+        } else {
+          circle.x += circle.dx * deltaTime;
+          circle.y += circle.dy * deltaTime;
+  
+          if (circle.x < PADDING || circle.x > (100 - PADDING)) {
+            circle.dx = -circle.dx;
+            circle.x = Math.max(PADDING, Math.min(100 - PADDING, circle.x));
+          }
+          if (circle.y < PADDING || circle.y > (100 - PADDING)) {
+            circle.dy = -circle.dy;
+            circle.y = Math.max(PADDING, Math.min(100 - PADDING, circle.y));
+          }
+  
+          if (Math.random() < 0.001) {
+            circle.dx = (Math.random() - 0.5) * 0.08;
+            circle.dy = (Math.random() - 0.5) * 0.08;
+          }
+        }
+        
+        circle.updatePosition();
+      });
+  
+      animationFrame = requestAnimationFrame(animate);
+    }
+  
+    // Initialize circles
+    const sizes = [3.5, 4, 4.5, 5];
+    for (let i = 0; i < 20; i++) {
+      const circle = new Circle(sizes[i % sizes.length]);
+      container.appendChild(circle.element);
+      circles.push(circle);
+    }
+  
+    // Start animation
+    animationFrame = requestAnimationFrame(animate);
+    formationInterval = setInterval(() => {
+      isForming = true;
+      setTimeout(() => isForming = false, 1000);
+    }, 4000);
+  
+    // Cleanup function
+    function destroy() {
+      cancelAnimationFrame(animationFrame);
+      clearInterval(formationInterval);
+      container.remove();
+    }
+  
+    return { element: container, destroy };
+  }
