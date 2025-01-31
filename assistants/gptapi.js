@@ -60,7 +60,7 @@ async function generateText(prompt) {
         //document.getElementById("AIResponse").scrollTop = document.getElementById("AIResponse").scrollHeight;
         transcriptText += botName + ":\n" + botResponse + "\n\n-------\n\n";
         showArrowDown();
-        document.getElementById('sendButton').innerHTML = '<i class="material-icons">send</i>';
+        document.getElementById('sendButton').innerHTML = '<i class="material-icons">arrow_circle_up</i>';
         document.getElementById('sendButton').disabled = false;
         document.getElementById('userInput').placeholder = userInputPlaceholderText;
         document.getElementById('userInput').disabled = false;
