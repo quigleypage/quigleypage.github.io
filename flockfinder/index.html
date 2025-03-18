@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flock Finder</title>
+    <style>
+        :root {
+            --primary-color: #ffde59;
+            --secondary-color: #ff914d;
+            --text-color: #333;
+            --background-color: #f9f9f9;
+            --card-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            --header-height: 60px;
+            --menu-width: 250px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            position: relative;
+            min-height: 100vh;
+            padding-top: var(--header-height);
+        }
+        
+        /* Header styles */
+        header {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            height: var(--header-height);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .collection-counter {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* Menu styles */
+        .container {
+            display: flex;
+            min-height: calc(100vh - var(--header-height));
+        }
+        
+        .menu {
+            width: var(--menu-width);
+            background-color: white;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            padding: 20px 0;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+        
+        .menu h2 {
+            padding: 0 20px 10px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 10px;
+        }
+        
+        .menu h3 {
+            padding: 10px 20px 5px;
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+        
+        .character-list {
+            list-style: none;
+        }
+        
+        .character-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        
+        .character-item:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .character-item.active {
+            background-color: var(--primary-color);
+            font-weight: bold;
+        }
+        
+        .character-item .check-icon {
+            margin-left: auto;
+            color: #4CAF50;
+            display: none;
+        }
+        
+        .character-item.collected .check-icon {
+            display: inline;
+        }
+        
+        /* Content styles */
+        .content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        
+        .character-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .character-image {
+            width: 100%;
+            height: 300px;
+            object-fit: contain;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .character-image img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        .character-details {
+            padding: 20px;
+        }
+        
+        .character-details h2 {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .collect-button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        
+        .collect-button:hover {
+            background-color: #ff7a2e;
+        }
+        
+        .collect-button.collected {
+            background-color: #4CAF50;
+        }
+        
+        .character-description {
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .qr-info {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        /* Cookie banner styles */
+        .cookie-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(51, 51, 51, 0.95);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .cookie-banner.active {
+            transform: translateY(0);
+        }
+        
+        .cookie-banner p {
+            margin-right: 20px;
+        }
+        
+        .cookie-dismiss {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .cookie-dismiss:hover {
+            background-color: #f0c940;
+        }
+        
+        /* Responsive styles */
+        @media screen and (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+            
+            .menu {
+                position: fixed;
+                top: var(--header-height);
+                left: 0;
+                bottom: 0;
+                transform: translateX(-100%);
+                z-index: 90;
+            }
+            
+            .menu.active {
+                transform: translateX(0);
+            }
+            
+            .content {
+                padding: 10px;
+            }
+            
+            .logo h1 {
+                font-size: 1.2rem;
+            }
+            
+            .cookie-banner {
+                flex-direction: column;
+                padding: 10px;
+            }
+            
+            .cookie-banner p {
+                margin-right: 0;
+                margin-bottom: 10px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <button class="menu-toggle">☰</button>
+        <div class="logo">
+            <h1>Flock Finder</h1>
+        </div>
+        <div class="collection-counter">
+            <span id="collection-count">0</span>/<span id="total-count">10</span>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="menu" id="character-menu">
+            <h2>Flocks</h2>
+            <div id="pirates-section">
+                <h3>Pirates</h3>
+                <ul class="character-list" id="pirates-list">
+                    <!-- Pirates characters will be populated by JavaScript -->
+                </ul>
+            </div>
+            <div id="mermaids-section">
+                <h3>Mermaids</h3>
+                <ul class="character-list" id="mermaids-list">
+                    <!-- Mermaids characters will be populated by JavaScript -->
+                </ul>
+            </div>
+            <div id="other-section">
+                <h3>Other</h3>
+                <ul class="character-list" id="other-list">
+                    <!-- Other characters will be populated by JavaScript -->
+                </ul>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="character-card" id="character-card">
+                <!-- Character card will be populated by JavaScript -->
+                <div class="character-image">
+                    <img src="/api/placeholder/400/320" alt="Select a character" id="character-image">
+                </div>
+                <div class="character-details">
+                    <h2>
+                        <span id="character-name">Select a character</span>
+                        <button class="collect-button" id="collect-button">Collect</button>
+                    </h2>
+                    <div class="character-description" id="character-description">
+                        Please select a character from the menu to view details.
+                    </div>
+                    <div class="qr-info">
+                        QR Code: <span id="character-code">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cookie disclaimer banner -->
+    <div class="cookie-banner" id="cookie-banner">
+        <p>This site uses cookies to track your collection. By continuing to use this site, you consent to our use of cookies for collection tracking and enhancement of your experience.</p>
+        <button class="cookie-dismiss" id="cookie-dismiss">Got it!</button>
+    </div>
+
+    <script>
+        // Character data
+        const characters = [
+            {
+                id: 'cap',
+                name: 'Captain Quack',
+                description: 'The fearless leader of the duck fleet. Captain Quack has sailed the seven seas and has a story for every wave. Do not ask what treasure is in his chest, and do not touch it.',
+                image: 'cap.jpg',
+                qrCode: 'DK001-CAPT',
+                category: 'pirates'
+            },
+            {
+                id: 'fin',
+                name: 'Finley',
+                description: 'Known as "Fin" to his friends, Finley always loves coming to the surface to ride the wakes of big ships and give a friendly scare to any passengers looking down at the water.',
+                image: 'fin.jpg',
+                qrCode: 'DK002-DOCT',
+                category: 'other'
+            },
+            {
+                id: 'astro-duck',
+                name: 'Astro Duck',
+                description: 'Blast off with Astro Duck, the space explorer! This duck features a glow-in-the-dark space helmet and authentic NASA-inspired details on its spacesuit.',
+                image: '/api/placeholder/400/320',
+                qrCode: 'DK003-ASTR',
+                category: 'pirates'
+            },
+            {
+                id: 'chef-quackers',
+                name: 'Chef Quackers',
+                description: 'Master of the kitchen and creator of the famous "Duck à l\'Orange" recipe (ironic, we know). Comes with a miniature whisk and chef\'s hat that can be removed.',
+                image: '/api/placeholder/400/320',
+                qrCode: 'DK004-CHEF',
+                category: 'pirates'
+            },
+            {
+                id: 'detective-mallard',
+                name: 'Detective Mallard',
+                description: 'The sharpest mind in the duck pond. With his magnifying glass and deerstalker hat, no mystery is too complicated for Detective Mallard to solve.',
+                image: '/api/placeholder/400/320',
+                qrCode: 'DK005-DETC',
+                category: 'pirates'
+            },
+            {
+                id: 'pearl',
+                name: 'Pearl',
+                description: 'Whether on land or sea, Pearls just want to have fun, and the deck of a big cruise ship is the perfect place to swim and sun at the same time.',
+                image: 'pearl.jpg',
+                qrCode: 'DK006-ROYL',
+                category: 'mermaids'
+            },
+            {
+                id: 'ninja-duck',
+                name: 'Ninja Duck',
+                description: 'Silent and stealthy, Ninja Duck moves without making a squeak. This rare black duck comes with a removable headband and tiny throwing stars.',
+                image: '/api/placeholder/400/320',
+                qrCode: 'DK007-NINJ',
+                category: 'pirates'
+            },
+            {
+                id: 'mermaid-quackiella',
+                name: 'Mermaid Quackiella',
+                description: 'From the depths of the ocean, Mermaid Quackiella enchants with her beautiful singing voice. Her shimmering tail changes color in warm water!',
+                image: '/api/placeholder/400/320',
+                qrCode: 'DK011-MERM',
+                category: 'mermaids'
+            },
+            {
+                id: 'pirate-quackbeard',
+                name: 'Pirate Quackbeard',
+                description: 'The most feared pirate of the seven seas! Quackbeard comes with a removable eye patch and a tiny treasure chest that actually opens.',
+                image: '/api/placeholder/400/320',
+                qrCode: 'DK012-PIRA',
+                category: 'pirates'
+            },
+            {
+                id: 'pearl-diver-duck',
+                name: 'Pearl Diver Duck',
+                description: 'A skilled diver who searches for rare treasures beneath the waves. Comes with a tiny pearl that glows in the dark.',
+                image: '/api/placeholder/400/320',
+                qrCode: 'DK013-PEAR',
+                category: 'mermaids'
+            }
+        ];
+
+        // DOM elements
+        const piratesList = document.getElementById('pirates-list');
+        const mermaidsList = document.getElementById('mermaids-list');
+        const otherList = document.getElementById('other-list');
+        const characterCard = document.getElementById('character-card');
+        const characterImage = document.getElementById('character-image');
+        const characterName = document.getElementById('character-name');
+        const characterDescription = document.getElementById('character-description');
+        const characterCode = document.getElementById('character-code');
+        const collectButton = document.getElementById('collect-button');
+        const collectionCount = document.getElementById('collection-count');
+        const totalCount = document.getElementById('total-count');
+        const menuToggle = document.querySelector('.menu-toggle');
+        const menu = document.getElementById('character-menu');
+        const cookieBanner = document.getElementById('cookie-banner');
+        const cookieDismiss = document.getElementById('cookie-dismiss');
+
+        // Initialize state
+        let selectedCharacter = null;
+        let collectedCharacters = loadCollectedCharacters();
+
+        // Initialize the app
+        function init() {
+            populateCharacterList();
+            updateCollectionCounter();
+            handleUrlParameter();
+            checkCookieConsent();
+            
+            // Event listeners
+            collectButton.addEventListener('click', toggleCollect);
+            menuToggle.addEventListener('click', toggleMenu);
+            cookieDismiss.addEventListener('click', dismissCookieBanner);
+            
+            // Initial selection if no URL parameter
+            if (!selectedCharacter && characters.length > 0) {
+                selectCharacter(characters[0].id);
+            }
+        }
+
+        // Check cookie consent
+        function checkCookieConsent() {
+            const cookieConsent = localStorage.getItem('cookieConsent');
+            if (!cookieConsent) {
+                cookieBanner.classList.add('active');
+            }
+        }
+
+        // Dismiss cookie banner
+        function dismissCookieBanner() {
+            cookieBanner.classList.remove('active');
+            localStorage.setItem('cookieConsent', 'true');
+        }
+
+        // Populate the character lists by category
+        function populateCharacterList() {
+            characters.forEach(character => {
+                const li = document.createElement('li');
+                li.className = 'character-item';
+                li.dataset.id = character.id;
+                if (collectedCharacters.includes(character.id)) {
+                    li.classList.add('collected');
+                }
+                
+                li.innerHTML = `
+                    ${character.name}
+                    <span class="check-icon">✓</span>
+                `;
+                
+                li.addEventListener('click', () => {
+                    selectCharacter(character.id);
+                    if (window.innerWidth <= 768) {
+                        toggleMenu();
+                    }
+                });
+                
+                // Add to appropriate category list
+                switch(character.category) {
+                    case 'pirates':
+                        piratesList.appendChild(li);
+                        break;
+                    case 'mermaids':
+                        mermaidsList.appendChild(li);
+                        break;
+                    default:
+                        otherList.appendChild(li);
+                        break;
+                }
+            });
+        }
+
+        // Select a character
+        function selectCharacter(id) {
+            const character = characters.find(char => char.id === id);
+            if (!character) return;
+            
+            selectedCharacter = character;
+            
+            // Update UI
+            characterImage.src = character.image;
+            characterImage.alt = character.name;
+            characterName.textContent = character.name;
+            characterDescription.textContent = character.description;
+            characterCode.textContent = character.qrCode;
+            
+            // Update collect button
+            if (collectedCharacters.includes(character.id)) {
+                collectButton.textContent = 'Collected';
+                collectButton.classList.add('collected');
+            } else {
+                collectButton.textContent = 'Collect';
+                collectButton.classList.remove('collected');
+            }
+            
+            // Update active menu item
+            document.querySelectorAll('.character-item').forEach(item => {
+                if (item.dataset.id === id) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+            
+            // Update URL
+            window.history.replaceState({}, '', `?character=${id}`);
+        }
+
+        // Toggle character collection
+        function toggleCollect() {
+            if (!selectedCharacter) return;
+            
+            const index = collectedCharacters.indexOf(selectedCharacter.id);
+            
+            if (index === -1) {
+                // Add to collection
+                collectedCharacters.push(selectedCharacter.id);
+                collectButton.textContent = 'Collected';
+                collectButton.classList.add('collected');
+                
+                // Update menu item
+                const menuItem = document.querySelector(`.character-item[data-id="${selectedCharacter.id}"]`);
+                if (menuItem) {
+                    menuItem.classList.add('collected');
+                }
+            } else {
+                // Remove from collection
+                collectedCharacters.splice(index, 1);
+                collectButton.textContent = 'Collect';
+                collectButton.classList.remove('collected');
+                
+                // Update menu item
+                const menuItem = document.querySelector(`.character-item[data-id="${selectedCharacter.id}"]`);
+                if (menuItem) {
+                    menuItem.classList.remove('collected');
+                }
+            }
+            
+            // Save to local storage
+            saveCollectedCharacters();
+            updateCollectionCounter();
+        }
+
+        // Save collected characters to local storage
+        function saveCollectedCharacters() {
+            localStorage.setItem('collectedDucks', JSON.stringify(collectedCharacters));
+        }
+
+        // Load collected characters from local storage
+        function loadCollectedCharacters() {
+            const saved = localStorage.getItem('collectedDucks');
+            return saved ? JSON.parse(saved) : [];
+        }
+
+        // Update collection counter
+        function updateCollectionCounter() {
+            collectionCount.textContent = collectedCharacters.length;
+            totalCount.textContent = characters.length;
+        }
+
+        // Handle URL parameter
+        function handleUrlParameter() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const characterId = urlParams.get('character');
+            
+            if (characterId) {
+                selectCharacter(characterId);
+            }
+        }
+
+        // Toggle mobile menu
+        function toggleMenu() {
+            menu.classList.toggle('active');
+        }
+
+        // Initialize app when the page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
