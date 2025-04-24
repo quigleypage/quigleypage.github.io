@@ -1,0 +1,48 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Karla&family=Roboto:wght@300&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+        <link rel="stylesheet" href="chat.css">
+
+        <link rel="manifest" href="manifest.json">
+
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+        <title>Q Image Generator</title>
+
+    </head>
+
+    <body class="all" onload="typeWriter()">
+
+        <div class="intro">
+            <img class="profileimg" src="Q.jpeg"><div style="font-size:24px;padding-top:6px;" id="hi">I</div><br><br>
+        </div>
+        <br>
+
+        <div class="search-bar">
+            <input id="userInput" class="search-input" type="text" placeholder="Describe the image you want to create" autocomplete="off">
+            <button id="sendButton" class="search-button" type="button" onclick="generateText(document.getElementById('userInput').value)">
+              <i class="material-icons">send</i>
+            </button>
+        </div>
+        <br>
+
+        <div class="chatContainer" style="padding-bottom:6px;">
+            <button id="clearButton" onclick="clearConversation()" style="color:#bdbdbd;background-color: white;border:none;float:right;font-size: 14px;display:none;">Clear</button>
+        </div>
+        <br>
+
+        <div id="AIResponse" class="chatContainer"></div>
+
+       
+    </body>
+    <script src="chat.js"></script>
+
+</html>
