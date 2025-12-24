@@ -297,7 +297,7 @@
     
     <div class="container">
         <div class="menu" id="character-menu">
-            <h2>Flocks</h2>
+            <h2><a href="https://flock-finder.com">🏠</a>  Flocks</h2>
             <div id="pirates-section">
                 <h3>Pirates</h3>
                 <ul class="character-list" id="pirates-list">
@@ -322,18 +322,18 @@
             <div class="character-card" id="character-card">
                 <!-- Character card will be populated by JavaScript -->
                 <div class="character-image">
-                    <img src="/api/placeholder/400/320" alt="Select a character" id="character-image">
+                    <img src="all.jpg" alt="Select a character" id="character-image">
                 </div>
                 <div class="character-details">
                     <h2>
-                        <span id="character-name">Select a character</span>
+                        <span id="character-name">Welcome to Flock Finder</span>
                         <button class="collect-button" id="collect-button">Collect</button>
                     </h2>
                     <div class="character-description" id="character-description">
-                        Please select a character from the menu to view details.
+                        Track your collection by selecting characters from the lefthand menu and clicking the orange "Collect" button like the one above.
                     </div>
                     <div class="qr-info">
-                        Code: <span id="character-code">-</span>
+                        Code: <span id="character-code">WELCOME</span>
                     </div>
                 </div>
             </div>
@@ -457,7 +457,7 @@
             populateCharacterList();
             updateCollectionCounter();
             handleUrlParameter();
-            checkCookieConsent();
+            //checkCookieConsent();
             
             // Event listeners
             collectButton.addEventListener('click', toggleCollect);
@@ -465,9 +465,9 @@
             cookieDismiss.addEventListener('click', dismissCookieBanner);
             
             // Initial selection if no URL parameter
-            if (!selectedCharacter && characters.length > 0) {
+            /*if (!selectedCharacter && characters.length > 0) {
                 selectCharacter(characters[0].id);
-            }
+            }*/
         }
 
         // Check cookie consent
