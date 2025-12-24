@@ -1,0 +1,2740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Downhill Dash - Holiday Sledding Race</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --thomas-blue: #4A90D9;
+            --thomas-dark: #2E5A8A;
+            --amelia-pink: #E875A4;
+            --amelia-dark: #B54D7A;
+            --joseph-red: #E85D5D;
+            --joseph-dark: #B33A3A;
+            --snow-white: #F8FAFC;
+            --ice-blue: #E0F2FE;
+            --pine-green: #2D5A3D;
+            --pine-dark: #1A3D28;
+            --wood-brown: #8B5A2B;
+            --sky-gradient-top: #1a365d;
+            --sky-gradient-bottom: #4A90D9;
+            --gold: #FFD700;
+            --silver: #C0C0C0;
+            --bronze: #CD7F32;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(180deg, var(--sky-gradient-top) 0%, var(--sky-gradient-bottom) 100%);
+        }
+
+        #game-container {
+            width: 100%;
+            height: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, #0f172a 0%, #1e3a5f 30%, #3b82a0 70%, #93c5d8 100%);
+        }
+
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Menu Screens */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            background: linear-gradient(180deg, #0f172a 0%, #1e3a5f 50%, #2d4a6f 100%);
+            z-index: 10;
+        }
+
+        .screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px);
+            z-index: -1;
+        }
+        
+        .screen:not(.hidden) {
+            pointer-events: auto;
+        }
+        
+        .screen button {
+            cursor: pointer;
+            -webkit-tap-highlight-color: rgba(255,255,255,0.2);
+        }
+
+        .hud-hidden {
+            display: none !important;
+        }
+
+        .game-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: clamp(2rem, 8vw, 3rem);
+            font-weight: 700;
+            color: var(--snow-white);
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3), 0 0 40px rgba(255,255,255,0.2);
+            margin: 20px 0 10px;
+            text-align: center;
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .game-subtitle {
+            font-family: 'Fredoka', sans-serif;
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
+            color: var(--ice-blue);
+            margin-bottom: 30px;
+            text-align: center;
+            opacity: 0.9;
+        }
+
+        /* Character Selection */
+        .character-grid {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+            width: 100%;
+            max-width: 400px;
+            justify-content: center;
+        }
+
+        .character-card {
+            flex: 1;
+            max-width: 120px;
+            background: rgba(255,255,255,0.1);
+            border: 3px solid transparent;
+            border-radius: 16px;
+            padding: 12px 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .character-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255,255,255,0.15);
+        }
+
+        .character-card.selected {
+            border-color: var(--gold);
+            background: rgba(255,215,0,0.15);
+            box-shadow: 0 0 20px rgba(255,215,0,0.3);
+        }
+
+        .character-card.thomas.selected { border-color: var(--thomas-blue); background: rgba(74,144,217,0.2); }
+        .character-card.amelia.selected { border-color: var(--amelia-pink); background: rgba(232,117,164,0.2); }
+        .character-card.joseph.selected { border-color: var(--joseph-red); background: rgba(232,93,93,0.2); }
+
+        .character-avatar {
+            width: 50px;
+            height: 60px;
+            margin: 0 auto 8px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .character-card.thomas .character-avatar { background: var(--thomas-blue); }
+        .character-card.amelia .character-avatar { background: var(--amelia-pink); }
+        .character-card.joseph .character-avatar { background: var(--joseph-red); }
+
+        .character-name {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--snow-white);
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .character-stats {
+            font-size: 0.65rem;
+            color: var(--ice-blue);
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .stat-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin: 3px 0;
+        }
+
+        .stat-label {
+            font-size: 0.6rem;
+            width: 32px;
+            text-align: left;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .stat-bar {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .stat-bar-fill.accel { background: linear-gradient(90deg, #22c55e, #86efac); }
+        .stat-bar-fill.speed { background: linear-gradient(90deg, #f59e0b, #fcd34d); }
+
+        /* Mode Selection */
+        .mode-section {
+            width: 100%;
+            max-width: 350px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1rem;
+            color: var(--ice-blue);
+            margin-bottom: 10px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .mode-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .mode-btn {
+            width: 100%;
+            padding: 14px 20px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mode-btn:active {
+            transform: scale(0.98);
+        }
+
+        .mode-btn.easy {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+        }
+
+        .mode-btn.medium {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .mode-btn.hard {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .mode-btn.endless {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+        }
+
+        .mode-btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        .mode-icon {
+            font-size: 1.2rem;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: var(--snow-white);
+            padding: 12px 24px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 10px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Leaderboard Screen */
+        .leaderboard-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            padding: 8px 14px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: transparent;
+            color: var(--snow-white);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--snow-white);
+            color: var(--sky-gradient-top);
+            border-color: var(--snow-white);
+        }
+
+        .leaderboard-list {
+            width: 100%;
+            max-width: 350px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .leaderboard-entry {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .leaderboard-entry:last-child {
+            margin-bottom: 0;
+        }
+
+        .entry-rank {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-right: 12px;
+        }
+
+        .entry-rank.gold { background: var(--gold); color: #1a1a1a; }
+        .entry-rank.silver { background: var(--silver); color: #1a1a1a; }
+        .entry-rank.bronze { background: var(--bronze); color: #1a1a1a; }
+        .entry-rank.other { background: rgba(255,255,255,0.2); color: var(--snow-white); }
+
+        .entry-details {
+            flex: 1;
+        }
+
+        .entry-score {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--snow-white);
+        }
+
+        .entry-meta {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .entry-character {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+        }
+
+        .entry-character.thomas { background: var(--thomas-blue); }
+        .entry-character.amelia { background: var(--amelia-pink); }
+        .entry-character.joseph { background: var(--joseph-red); }
+
+        .no-scores {
+            text-align: center;
+            color: rgba(255,255,255,0.5);
+            padding: 30px;
+            font-style: italic;
+        }
+
+        /* HUD */
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .hud-box {
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 10px 16px;
+        }
+
+        .hud-label {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.7);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hud-value {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--snow-white);
+        }
+
+        #pause-btn {
+            pointer-events: auto;
+            background: rgba(0,0,0,0.4);
+            border: none;
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Results Screen */
+        .results-content {
+            text-align: center;
+            width: 100%;
+            max-width: 350px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .result-main {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--gold);
+            text-shadow: 0 4px 20px rgba(255,215,0,0.4);
+            margin: 20px 0;
+        }
+
+        .result-label {
+            font-size: 1rem;
+            color: var(--ice-blue);
+            margin-bottom: 5px;
+        }
+
+        .result-position {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.2rem;
+            color: var(--snow-white);
+            margin-bottom: 30px;
+        }
+
+        .result-position.new-record {
+            color: var(--gold);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .result-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            z-index: 100;
+        }
+        
+        .result-buttons button {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+        }
+        
+        #results-screen,
+        #pause-screen {
+            background: linear-gradient(180deg, #0f172a 0%, #1e3a5f 50%, #2d4a6f 100%);
+        }
+        
+        #results-screen:not(.hidden),
+        #pause-screen:not(.hidden) {
+            z-index: 100;
+        }
+        
+        #retry-btn,
+        #results-menu-btn,
+        #resume-btn,
+        #pause-menu-btn {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            position: relative;
+            z-index: 101;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px 24px;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            position: relative;
+            z-index: 5;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        /* Snowflakes in menu */
+        .menu-snow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .screen > *:not(.menu-snow) {
+            position: relative;
+            z-index: 1;
+        }
+
+        .snowflake {
+            position: absolute;
+            color: white;
+            opacity: 0.6;
+            animation: fall linear infinite;
+            font-size: 1rem;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-10px) rotate(0deg);
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        /* Instructions overlay */
+        .instructions {
+            position: absolute;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: none;
+            animation: fadeInOut 2s ease-in-out infinite;
+        }
+
+        .instructions-text {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.2rem;
+            color: var(--snow-white);
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Countdown */
+        #countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Fredoka', sans-serif;
+            font-size: 6rem;
+            font-weight: 700;
+            color: var(--snow-white);
+            text-shadow: 0 4px 30px rgba(0,0,0,0.5);
+            z-index: 20;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        #countdown.show {
+            opacity: 1;
+        }
+
+        /* Progress bar for timed courses */
+        #progress-container {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            height: 8px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        #progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), #fcd34d);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* Sprite info modal */
+        .sprite-info {
+            background: rgba(0,0,0,0.9);
+            padding: 20px;
+            border-radius: 16px;
+            max-width: 350px;
+            max-height: 60vh;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .sprite-info h3 {
+            font-family: 'Fredoka', sans-serif;
+            color: var(--snow-white);
+            margin-bottom: 15px;
+        }
+
+        .sprite-table {
+            width: 100%;
+            font-size: 0.75rem;
+            color: var(--ice-blue);
+        }
+
+        .sprite-table th {
+            text-align: left;
+            padding: 6px 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            color: var(--snow-white);
+        }
+
+        .sprite-table td {
+            padding: 6px 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sprite-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .sprite-status.loaded { background: #22c55e; }
+        .sprite-status.fallback { background: #f59e0b; }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Responsive adjustments */
+        @media (max-height: 600px) {
+            .game-title {
+                font-size: 1.8rem;
+                margin: 10px 0 5px;
+            }
+            .game-subtitle {
+                margin-bottom: 15px;
+            }
+            .character-card {
+                padding: 8px 6px;
+            }
+            .character-avatar {
+                width: 40px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        
+        <!-- Main Menu Screen -->
+        <div id="menu-screen" class="screen">
+            <div class="menu-snow" id="menu-snow"></div>
+            <h1 class="game-title">❄️ Downhill Dash</h1>
+            <p class="game-subtitle">Holiday Sledding Race</p>
+            
+            <div class="character-grid">
+                <div class="character-card thomas selected" data-character="thomas">
+                    <div class="character-avatar">
+                        <svg width="30" height="40" viewBox="0 0 30 40">
+                            <ellipse cx="15" cy="10" rx="8" ry="9" fill="#fff"/>
+                            <rect x="5" y="18" width="20" height="18" rx="4" fill="#fff"/>
+                        </svg>
+                    </div>
+                    <div class="character-name">Thomas</div>
+                    <div class="character-stats">
+                        <div class="stat-bar-container">
+                            <span class="stat-label">Accel</span>
+                            <div class="stat-bar"><div class="stat-bar-fill accel" style="width: 30%"></div></div>
+                        </div>
+                        <div class="stat-bar-container">
+                            <span class="stat-label">Speed</span>
+                            <div class="stat-bar"><div class="stat-bar-fill speed" style="width: 90%"></div></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="character-card amelia" data-character="amelia">
+                    <div class="character-avatar">
+                        <svg width="30" height="40" viewBox="0 0 30 40">
+                            <ellipse cx="15" cy="10" rx="8" ry="9" fill="#fff"/>
+                            <rect x="5" y="18" width="20" height="18" rx="4" fill="#fff"/>
+                        </svg>
+                    </div>
+                    <div class="character-name">Amelia</div>
+                    <div class="character-stats">
+                        <div class="stat-bar-container">
+                            <span class="stat-label">Accel</span>
+                            <div class="stat-bar"><div class="stat-bar-fill accel" style="width: 60%"></div></div>
+                        </div>
+                        <div class="stat-bar-container">
+                            <span class="stat-label">Speed</span>
+                            <div class="stat-bar"><div class="stat-bar-fill speed" style="width: 60%"></div></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="character-card joseph" data-character="joseph">
+                    <div class="character-avatar">
+                        <svg width="24" height="32" viewBox="0 0 24 32">
+                            <ellipse cx="12" cy="8" rx="6" ry="7" fill="#fff"/>
+                            <rect x="4" y="14" width="16" height="14" rx="3" fill="#fff"/>
+                        </svg>
+                    </div>
+                    <div class="character-name">Joseph</div>
+                    <div class="character-stats">
+                        <div class="stat-bar-container">
+                            <span class="stat-label">Accel</span>
+                            <div class="stat-bar"><div class="stat-bar-fill accel" style="width: 90%"></div></div>
+                        </div>
+                        <div class="stat-bar-container">
+                            <span class="stat-label">Speed</span>
+                            <div class="stat-bar"><div class="stat-bar-fill speed" style="width: 30%"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mode-section">
+                <div class="section-title">Select Course</div>
+                <div class="mode-buttons">
+                    <button class="mode-btn easy" data-mode="easy">
+                        <span>Easy Course</span>
+                        <span class="mode-icon">🌲</span>
+                    </button>
+                    <button class="mode-btn medium" data-mode="medium">
+                        <span>Medium Course</span>
+                        <span class="mode-icon">⛷️</span>
+                    </button>
+                    <button class="mode-btn hard" data-mode="hard">
+                        <span>Hard Course</span>
+                        <span class="mode-icon">🏔️</span>
+                    </button>
+                    <button class="mode-btn endless" data-mode="endless">
+                        <span>Endless Mode</span>
+                        <span class="mode-icon">∞</span>
+                    </button>
+                </div>
+            </div>
+            
+            <button class="btn-secondary" id="leaderboard-btn">🏆 Leaderboards</button>
+            <button class="btn-secondary" id="sprites-btn" style="margin-top: 8px;">📦 Sprite Info</button>
+        </div>
+        
+        <!-- Leaderboard Screen -->
+        <div id="leaderboard-screen" class="screen hidden">
+            <div class="menu-snow"></div>
+            <h1 class="game-title">🏆 Leaderboards</h1>
+            
+            <div class="leaderboard-tabs">
+                <button class="tab-btn active" data-tab="easy">Easy</button>
+                <button class="tab-btn" data-tab="medium">Medium</button>
+                <button class="tab-btn" data-tab="hard">Hard</button>
+                <button class="tab-btn" data-tab="endless">Endless</button>
+            </div>
+            
+            <div class="leaderboard-list" id="leaderboard-list">
+                <!-- Populated by JS -->
+            </div>
+            
+            <button class="btn-secondary" id="back-to-menu">← Back to Menu</button>
+        </div>
+        
+        <!-- Sprite Info Screen -->
+        <div id="sprites-screen" class="screen hidden">
+            <div class="menu-snow"></div>
+            <h1 class="game-title">📦 Sprite Assets</h1>
+            <p class="game-subtitle">Custom sprites replace code-drawn graphics</p>
+            
+            <div class="sprite-info">
+                <h3>Character Sprites</h3>
+                <table class="sprite-table">
+                    <tr><th>Asset</th><th>Filename</th><th>Size</th><th>Status</th></tr>
+                    <tr><td>Thomas</td><td>thomas.png</td><td>64×80</td><td><span class="sprite-status fallback"></span>Code</td></tr>
+                    <tr><td>Amelia</td><td>amelia.png</td><td>64×80</td><td><span class="sprite-status fallback"></span>Code</td></tr>
+                    <tr><td>Joseph</td><td>joseph.png</td><td>48×56</td><td><span class="sprite-status fallback"></span>Code</td></tr>
+                </table>
+                
+                <h3 style="margin-top: 20px;">Environment Sprites</h3>
+                <table class="sprite-table">
+                    <tr><th>Asset</th><th>Filename</th><th>Size</th><th>Status</th></tr>
+                    <tr><td>Tree (S)</td><td>tree_small.png</td><td>48×96</td><td><span class="sprite-status fallback"></span>Code</td></tr>
+                    <tr><td>Tree (M)</td><td>tree_medium.png</td><td>64×128</td><td><span class="sprite-status fallback"></span>Code</td></tr>
+                    <tr><td>Tree (L)</td><td>tree_large.png</td><td>96×192</td><td><span class="sprite-status fallback"></span>Code</td></tr>
+                    <tr><td>Jump Obstacle</td><td>obstacle_jump.png</td><td>40×32</td><td><span class="sprite-status fallback"></span>Code</td></tr>
+                    <tr><td>Duck Obstacle</td><td>obstacle_duck.png</td><td>64×40</td><td><span class="sprite-status fallback"></span>Code</td></tr>
+                    <tr><td>Snowflake</td><td>snowflake.png</td><td>16×16</td><td><span class="sprite-status fallback"></span>Code</td></tr>
+                    <tr><td>Finish Line</td><td>finish_line.png</td><td>128×192</td><td><span class="sprite-status fallback"></span>Code</td></tr>
+                </table>
+                
+                <h3 style="margin-top: 20px;">Backgrounds</h3>
+                <table class="sprite-table">
+                    <tr><th>Asset</th><th>Filename</th><th>Size</th></tr>
+                    <tr><td>Easy BG</td><td>bg_easy.png</td><td>1080×1920</td></tr>
+                    <tr><td>Medium BG</td><td>bg_medium.png</td><td>1080×1920</td></tr>
+                    <tr><td>Hard BG</td><td>bg_hard.png</td><td>1080×1920</td></tr>
+                    <tr><td>Endless BG</td><td>bg_endless.png</td><td>1080×1920</td></tr>
+                </table>
+            </div>
+            
+            <button class="btn-secondary" id="back-from-sprites">← Back to Menu</button>
+        </div>
+        
+        <!-- Game HUD -->
+        <div id="hud" class="hud-hidden">
+            <div class="hud-box">
+                <div class="hud-label" id="hud-label">Time</div>
+                <div class="hud-value" id="hud-value">0:00.00</div>
+            </div>
+            <button id="pause-btn">⏸</button>
+        </div>
+        
+        <div id="countdown"></div>
+        
+        <div id="progress-container" class="hud-hidden">
+            <div id="progress-bar"></div>
+        </div>
+        
+        <!-- Results Screen -->
+        <div id="results-screen" class="screen hidden">
+            <div class="menu-snow"></div>
+            <h1 class="game-title" id="results-title">🎉 Finished!</h1>
+            
+            <div class="results-content">
+                <div class="result-label" id="result-label">Your Time</div>
+                <div class="result-main" id="result-main">0:00.00</div>
+                <div class="result-position" id="result-position"></div>
+                
+                <div class="result-buttons">
+                    <button class="btn-primary" id="retry-btn">🔄 Try Again</button>
+                    <button class="btn-secondary" id="results-menu-btn">← Main Menu</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pause Overlay -->
+        <div id="pause-screen" class="screen hidden">
+            <h1 class="game-title">⏸ Paused</h1>
+            <div class="result-buttons" style="max-width: 300px; width: 100%;">
+                <button class="btn-primary" id="resume-btn">▶ Resume</button>
+                <button class="btn-secondary" id="pause-menu-btn">← Main Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // GAME CONFIGURATION
+        // ============================================
+        const CONFIG = {
+            // Physics (normalized - independent of screen size)
+            GRAVITY: 3500,
+            BASE_SPEED: 300,
+            
+            // Character stats (multipliers)
+            CHARACTERS: {
+                thomas: {
+                    name: 'Thomas',
+                    color: '#4A90D9',
+                    colorDark: '#2E5A8A',
+                    acceleration: 0.3,
+                    maxSpeed: 1.4,
+                    jumpPower: 0.85,
+                    width: 64,
+                    height: 80
+                },
+                amelia: {
+                    name: 'Amelia',
+                    color: '#E875A4',
+                    colorDark: '#B54D7A',
+                    acceleration: 0.6,
+                    maxSpeed: 1.0,
+                    jumpPower: 1.0,
+                    width: 64,
+                    height: 80
+                },
+                joseph: {
+                    name: 'Joseph',
+                    color: '#E85D5D',
+                    colorDark: '#B33A3A',
+                    acceleration: 0.9,
+                    maxSpeed: 0.7,
+                    jumpPower: 1.15,
+                    width: 48,
+                    height: 56
+                }
+            },
+            
+            // Course settings
+            COURSES: {
+                easy: {
+                    name: 'Easy',
+                    length: 5000,
+                    hillFrequency: 0.003,
+                    hillAmplitude: 80,
+                    obstacleFrequency: 0.4,
+                    treeFrequency: 0.4
+                },
+                medium: {
+                    name: 'Medium',
+                    length: 7500,
+                    hillFrequency: 0.004,
+                    hillAmplitude: 120,
+                    obstacleFrequency: 0.55,
+                    treeFrequency: 0.5
+                },
+                hard: {
+                    name: 'Hard',
+                    length: 10000,
+                    hillFrequency: 0.005,
+                    hillAmplitude: 160,
+                    obstacleFrequency: 0.7,
+                    treeFrequency: 0.6
+                },
+                endless: {
+                    name: 'Endless',
+                    length: Infinity,
+                    hillFrequency: 0.003,
+                    hillAmplitude: 80,
+                    obstacleFrequency: 0.4,
+                    treeFrequency: 0.4
+                }
+            },
+            
+            // Sprites (with fallback support)
+            SPRITES: {
+                thomas: { file: 'thomas.png', width: 64, height: 80 },
+                amelia: { file: 'amelia.png', width: 64, height: 80 },
+                joseph: { file: 'joseph.png', width: 48, height: 56 },
+                tree_small: { file: 'tree_small.png', width: 48, height: 96 },
+                tree_medium: { file: 'tree_medium.png', width: 64, height: 128 },
+                tree_large: { file: 'tree_large.png', width: 96, height: 192 },
+                obstacle_jump: { file: 'obstacle_jump.png', width: 40, height: 32 },
+                obstacle_duck: { file: 'obstacle_duck.png', width: 64, height: 40 },
+                snowflake: { file: 'snowflake.png', width: 16, height: 16 },
+                finish_line: { file: 'finish_line.png', width: 128, height: 192 },
+                bg_easy: { file: 'bg_easy.png', width: 1080, height: 1920 },
+                bg_medium: { file: 'bg_medium.png', width: 1080, height: 1920 },
+                bg_hard: { file: 'bg_hard.png', width: 1080, height: 1920 },
+                bg_endless: { file: 'bg_endless.png', width: 1080, height: 1920 }
+            }
+        };
+
+        // ============================================
+        // SPRITE LOADER WITH FALLBACK
+        // ============================================
+        class SpriteManager {
+            constructor() {
+                this.sprites = {};
+                this.loaded = {};
+            }
+
+            async loadSprite(key) {
+                return new Promise((resolve) => {
+                    const config = CONFIG.SPRITES[key];
+                    if (!config) {
+                        resolve(null);
+                        return;
+                    }
+
+                    const img = new Image();
+                    img.onload = () => {
+                        this.sprites[key] = img;
+                        this.loaded[key] = true;
+                        resolve(img);
+                    };
+                    img.onerror = () => {
+                        this.loaded[key] = false;
+                        resolve(null);
+                    };
+                    img.src = config.file;
+                });
+            }
+
+            async loadAll() {
+                const keys = Object.keys(CONFIG.SPRITES);
+                await Promise.all(keys.map(key => this.loadSprite(key)));
+            }
+
+            hasSprite(key) {
+                return this.loaded[key] === true;
+            }
+
+            getSprite(key) {
+                return this.sprites[key] || null;
+            }
+        }
+
+        const spriteManager = new SpriteManager();
+
+        // ============================================
+        // DRAWING FALLBACKS (Code-generated graphics)
+        // ============================================
+        const Fallbacks = {
+            drawCharacter(ctx, character, x, y, angle, scale = 1) {
+                const config = CONFIG.CHARACTERS[character];
+                const w = config.width * scale;
+                const h = config.height * scale;
+                
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(angle);
+                
+                // Draw character with sled bottom at origin (y=0)
+                // Sled
+                ctx.fillStyle = config.colorDark;
+                ctx.beginPath();
+                ctx.ellipse(0, -h * 0.15, w * 0.5, h * 0.12, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Sled runners
+                ctx.strokeStyle = '#5a3d1a';
+                ctx.lineWidth = 3 * scale;
+                ctx.beginPath();
+                ctx.moveTo(-w * 0.4, -h * 0.08);
+                ctx.quadraticCurveTo(-w * 0.5, -h * 0.05, -w * 0.45, -h * 0.02);
+                ctx.moveTo(w * 0.4, -h * 0.08);
+                ctx.quadraticCurveTo(w * 0.5, -h * 0.05, w * 0.45, -h * 0.02);
+                ctx.stroke();
+                
+                // Body (winter coat)
+                ctx.fillStyle = config.color;
+                ctx.beginPath();
+                ctx.ellipse(0, -h * 0.4, w * 0.3, h * 0.25, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Head
+                ctx.fillStyle = '#FFE4C4';
+                ctx.beginPath();
+                ctx.arc(0, -h * 0.7, w * 0.2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Winter hat
+                ctx.fillStyle = config.color;
+                ctx.beginPath();
+                ctx.arc(0, -h * 0.78, w * 0.22, Math.PI, 0);
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(0, -h * 0.92, w * 0.08, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Eyes
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.arc(-w * 0.08, -h * 0.72, w * 0.03, 0, Math.PI * 2);
+                ctx.arc(w * 0.08, -h * 0.72, w * 0.03, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Smile
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2 * scale;
+                ctx.beginPath();
+                ctx.arc(0, -h * 0.68, w * 0.08, 0.2, Math.PI - 0.2);
+                ctx.stroke();
+                
+                ctx.restore();
+            },
+
+            drawTree(ctx, x, y, size, scale = 1) {
+                const sizes = {
+                    small: { w: 48, h: 96 },
+                    medium: { w: 64, h: 128 },
+                    large: { w: 96, h: 192 }
+                };
+                const { w, h } = sizes[size] || sizes.medium;
+                const sw = w * scale;
+                const sh = h * scale;
+
+                ctx.save();
+                ctx.translate(x, y);
+
+                // Trunk
+                ctx.fillStyle = '#5a3d1a';
+                ctx.fillRect(-sw * 0.1, -sh * 0.15, sw * 0.2, sh * 0.15);
+
+                // Tree layers
+                const layers = 3;
+                for (let i = 0; i < layers; i++) {
+                    const layerH = sh * 0.35;
+                    const layerW = sw * (0.9 - i * 0.15);
+                    const yOffset = -sh * 0.15 - i * layerH * 0.6;
+                    
+                    ctx.fillStyle = i % 2 === 0 ? '#2D5A3D' : '#1A3D28';
+                    ctx.beginPath();
+                    ctx.moveTo(0, yOffset - layerH);
+                    ctx.lineTo(layerW / 2, yOffset);
+                    ctx.lineTo(-layerW / 2, yOffset);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                // Snow on top
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(0, -sh * 0.85, sw * 0.08, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            },
+
+            drawJumpObstacle(ctx, x, y, scale = 1) {
+                const w = 40 * scale;
+                const h = 32 * scale;
+
+                ctx.save();
+                ctx.translate(x, y);
+
+                // Stone/rock - centered at bottom so it sits on ground
+                ctx.fillStyle = '#6b7280';
+                ctx.beginPath();
+                ctx.ellipse(0, -h * 0.5, w * 0.5, h * 0.5, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Darker shadow/detail
+                ctx.fillStyle = '#4b5563';
+                ctx.beginPath();
+                ctx.ellipse(w * 0.08, -h * 0.45, w * 0.25, h * 0.25, 0.3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Snow cap on top
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.ellipse(0, -h * 0.85, w * 0.3, h * 0.18, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            },
+
+            drawDuckObstacle(ctx, x, y, scale = 1) {
+                const w = 64 * scale;
+                const h = 40 * scale;
+
+                ctx.save();
+                ctx.translate(x, y);
+
+                // Branch/candy cane
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = h * 0.3;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(-w/2, 0);
+                ctx.lineTo(w/2, 0);
+                ctx.stroke();
+
+                // Red stripes
+                ctx.strokeStyle = '#c41e3a';
+                ctx.lineWidth = h * 0.15;
+                ctx.setLineDash([w * 0.15, w * 0.15]);
+                ctx.beginPath();
+                ctx.moveTo(-w/2, 0);
+                ctx.lineTo(w/2, 0);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.restore();
+            },
+
+            drawSnowflake(ctx, x, y, size, alpha = 1) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = '#fff';
+                
+                // Simple snowflake
+                const r = size / 2;
+                ctx.beginPath();
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i / 6) * Math.PI * 2;
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+                }
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(0, 0, r * 0.3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            },
+
+            drawFinishLine(ctx, x, y, scale = 1) {
+                const w = 128 * scale;
+                const h = 192 * scale;
+
+                ctx.save();
+                ctx.translate(x, y);
+
+                // Poles
+                ctx.fillStyle = '#c41e3a';
+                ctx.fillRect(-w/2, -h, w * 0.08, h);
+                ctx.fillRect(w/2 - w * 0.08, -h, w * 0.08, h);
+
+                // Banner
+                ctx.fillStyle = '#ffd700';
+                ctx.fillRect(-w/2, -h * 0.9, w, h * 0.2);
+                
+                // Checkered pattern
+                const squareSize = w * 0.1;
+                ctx.fillStyle = '#000';
+                for (let i = 0; i < 10; i++) {
+                    for (let j = 0; j < 2; j++) {
+                        if ((i + j) % 2 === 0) {
+                            ctx.fillRect(
+                                -w/2 + i * squareSize,
+                                -h * 0.9 + j * squareSize,
+                                squareSize,
+                                squareSize
+                            );
+                        }
+                    }
+                }
+
+                // Lights
+                const colors = ['#ff0', '#f00', '#0f0', '#00f', '#f0f'];
+                for (let i = 0; i < 12; i++) {
+                    ctx.fillStyle = colors[i % colors.length];
+                    ctx.beginPath();
+                    ctx.arc(
+                        -w/2 + (i + 0.5) * (w / 12),
+                        -h * 0.65,
+                        w * 0.03,
+                        0, Math.PI * 2
+                    );
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+        };
+
+        // ============================================
+        // TERRAIN GENERATOR
+        // ============================================
+        class TerrainGenerator {
+            constructor(course, seed = Date.now()) {
+                this.course = CONFIG.COURSES[course];
+                this.seed = seed;
+                this.segments = [];
+                this.obstacles = [];
+                this.trees = [];
+                this.generateTerrain();
+            }
+
+            seededRandom() {
+                this.seed = (this.seed * 9301 + 49297) % 233280;
+                return this.seed / 233280;
+            }
+
+            getHeightAt(x) {
+                const freq = this.course.hillFrequency;
+                const amp = this.course.hillAmplitude;
+                
+                // Smoother sine waves - avoid high frequency bumps
+                let height = 0;
+                height += Math.sin(x * freq) * amp * 0.6;
+                height += Math.sin(x * freq * 0.5) * amp * 0.3;
+                height += Math.sin(x * freq * 0.25) * amp * 0.1;
+                
+                // Flatten terrain near finish line for timed courses
+                if (this.course.length !== Infinity) {
+                    const finishZone = 400;
+                    const distanceToFinish = this.course.length - x;
+                    if (distanceToFinish < finishZone && distanceToFinish > -600) {
+                        if (distanceToFinish > 0) {
+                            const flattenFactor = Math.max(0, distanceToFinish / finishZone);
+                            height *= flattenFactor;
+                        } else {
+                            height = 0;
+                        }
+                    }
+                }
+                
+                return height;
+            }
+
+            getSlopeAt(x) {
+                const delta = 15;
+                const h1 = this.getHeightAt(x - delta);
+                const h2 = this.getHeightAt(x + delta);
+                return Math.atan2(h2 - h1, delta * 2);
+            }
+
+            generateTerrain() {
+                // For endless mode, only generate initial chunk
+                const isEndless = this.course.length === Infinity;
+                const length = isEndless ? 3000 : Math.min(this.course.length + 1200, 51200);
+                const segmentWidth = 50;
+                
+                // Generate terrain segments
+                for (let x = 0; x < length; x += segmentWidth) {
+                    this.segments.push({
+                        x,
+                        y: this.getHeightAt(x)
+                    });
+                }
+
+                // Generate obstacles (hard-coded positions based on course)
+                const obstacleLength = isEndless ? 2500 : this.course.length - 200;
+                this.generateObstacles(obstacleLength);
+                
+                // Generate trees (extend past finish)
+                this.generateTrees(length);
+            }
+
+            generateObstacles(length) {
+                const minSpacing = 350; // Reduced spacing for more obstacles
+                let lastObstacle = 600; // Start after some distance
+                let lastType = null;
+
+                while (lastObstacle < length - 500) {
+                    if (this.seededRandom() < this.course.obstacleFrequency) {
+                        const slope = this.getSlopeAt(lastObstacle);
+                        const slopeAbs = Math.abs(slope);
+                        
+                        // Don't place obstacles on steep slopes
+                        if (slopeAbs < 0.35) {
+                            // Mostly jump obstacles (stones), occasional duck
+                            let type;
+                            if (lastType === 'duck') {
+                                type = 'jump'; // Always jump after duck
+                            } else {
+                                type = this.seededRandom() > 0.2 ? 'jump' : 'duck';
+                            }
+                            
+                            // Don't place jump obstacles at bottom of hills (hard to react)
+                            const slopeBefore = this.getSlopeAt(lastObstacle - 100);
+                            
+                            if (type === 'jump' && slopeBefore < -0.25 && slope > -0.1) {
+                                // Skip this position - it's at the bottom of a hill
+                                lastObstacle += 150;
+                                continue;
+                            }
+                            
+                            this.obstacles.push({
+                                x: lastObstacle,
+                                y: this.getHeightAt(lastObstacle),
+                                type
+                            });
+                            lastType = type;
+                        }
+                    }
+                    lastObstacle += minSpacing + this.seededRandom() * 200;
+                }
+            }
+
+            generateTrees(length) {
+                for (let x = 100; x < length; x += 80) {
+                    if (this.seededRandom() < this.course.treeFrequency) {
+                        const sizes = ['small', 'medium', 'large'];
+                        const size = sizes[Math.floor(this.seededRandom() * 3)];
+                        const side = this.seededRandom() > 0.5 ? 1 : -1;
+                        
+                        this.trees.push({
+                            x,
+                            y: this.getHeightAt(x),
+                            size,
+                            depth: 0.3 + this.seededRandom() * 0.7,
+                            side
+                        });
+                    }
+                }
+            }
+        }
+
+        // ============================================
+        // GAME STATE
+        // ============================================
+        const GameState = {
+            screen: 'menu',
+            selectedCharacter: 'thomas',
+            selectedMode: null,
+            isPlaying: false,
+            isPaused: false,
+            
+            // Player state
+            playerX: 0,
+            playerY: 0,
+            playerVelX: 0,
+            playerVelY: 0,
+            playerAngle: 0,
+            isJumping: false,
+            isOnGround: true,
+            jumpHeld: false,
+            jumpTime: 0,
+            coyoteTime: 0,        // Time since last grounded (for late jumps)
+            jumpBufferTime: 0,   // Time since jump was pressed (for early jumps)
+            crestJump: false,    // Whether jump was initiated at a hill crest
+            
+            // Game metrics
+            startTime: 0,
+            elapsedTime: 0,
+            distance: 0,
+            isFinished: false,
+            
+            // Terrain
+            terrain: null,
+            
+            // Particles
+            snowflakes: [],
+            confetti: [],
+            
+            // Scale factor for rendering (maintains gameplay consistency)
+            scale: 1,
+            baseWidth: 400,
+            baseHeight: 700,
+            
+            // Camera
+            cameraX: 0,
+            cameraY: 0
+        };
+
+        // ============================================
+        // LEADERBOARD MANAGER
+        // ============================================
+        const LeaderboardManager = {
+            STORAGE_KEY: 'downhill_dash_leaderboards',
+            
+            getAll() {
+                try {
+                    const data = localStorage.getItem(this.STORAGE_KEY);
+                    return data ? JSON.parse(data) : {
+                        easy: [],
+                        medium: [],
+                        hard: [],
+                        endless: []
+                    };
+                } catch {
+                    return { easy: [], medium: [], hard: [], endless: [] };
+                }
+            },
+            
+            save(data) {
+                try {
+                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+                } catch (e) {
+                    console.warn('Could not save to localStorage:', e);
+                }
+            },
+            
+            addScore(mode, score, character) {
+                const data = this.getAll();
+                const entry = {
+                    score,
+                    character,
+                    date: new Date().toISOString()
+                };
+                
+                data[mode].push(entry);
+                
+                // Sort and keep top 5
+                if (mode === 'endless') {
+                    data[mode].sort((a, b) => b.score - a.score);
+                } else {
+                    data[mode].sort((a, b) => a.score - b.score);
+                }
+                data[mode] = data[mode].slice(0, 5);
+                
+                this.save(data);
+                
+                // Return position (1-indexed, or 0 if not in top 5)
+                const position = data[mode].findIndex(e => 
+                    e.score === score && e.character === character && e.date === entry.date
+                );
+                return position >= 0 ? position + 1 : 0;
+            },
+            
+            getScores(mode) {
+                return this.getAll()[mode] || [];
+            }
+        };
+
+        // ============================================
+        // CANVAS & RENDERING
+        // ============================================
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const container = document.getElementById('game-container');
+            const rect = container.getBoundingClientRect();
+            
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = rect.height + 'px';
+            
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            
+            // Calculate scale to maintain consistent gameplay
+            GameState.scale = Math.min(
+                rect.width / GameState.baseWidth,
+                rect.height / GameState.baseHeight
+            );
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // ============================================
+        // RENDERING FUNCTIONS
+        // ============================================
+        function drawBackground() {
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+            
+            // Sky gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, h);
+            gradient.addColorStop(0, '#0f172a');
+            gradient.addColorStop(0.3, '#1e3a5f');
+            gradient.addColorStop(0.7, '#3b82a0');
+            gradient.addColorStop(1, '#93c5d8');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, w, h);
+            
+            // Distant mountains
+            ctx.fillStyle = 'rgba(100, 150, 180, 0.3)';
+            ctx.beginPath();
+            ctx.moveTo(0, h * 0.4);
+            for (let x = 0; x <= w; x += 50) {
+                const mountainY = h * 0.4 + Math.sin(x * 0.02) * 30 + Math.sin(x * 0.01) * 50;
+                ctx.lineTo(x, mountainY);
+            }
+            ctx.lineTo(w, h);
+            ctx.lineTo(0, h);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawTerrain() {
+            if (!GameState.terrain) return;
+            
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+            const scale = GameState.scale;
+            const groundY = h * 0.65;
+            
+            // Draw terrain path
+            ctx.save();
+            
+            // Snow surface
+            const snowGradient = ctx.createLinearGradient(0, groundY - 100, 0, h);
+            snowGradient.addColorStop(0, '#f0f8ff');
+            snowGradient.addColorStop(0.3, '#e8f4f8');
+            snowGradient.addColorStop(1, '#d0e8f0');
+            ctx.fillStyle = snowGradient;
+            
+            ctx.beginPath();
+            ctx.moveTo(0, h);
+            
+            for (let screenX = -50; screenX <= w + 50; screenX += 5) {
+                const worldX = screenX / scale + GameState.cameraX;
+                const terrainY = GameState.terrain.getHeightAt(worldX);
+                const screenY = groundY + terrainY * scale * 0.5;
+                
+                if (screenX === -50) {
+                    ctx.moveTo(screenX, screenY);
+                } else {
+                    ctx.lineTo(screenX, screenY);
+                }
+            }
+            
+            ctx.lineTo(w + 50, h);
+            ctx.lineTo(-50, h);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Snow surface highlight
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            for (let screenX = -50; screenX <= w + 50; screenX += 5) {
+                const worldX = screenX / scale + GameState.cameraX;
+                const terrainY = GameState.terrain.getHeightAt(worldX);
+                const screenY = groundY + terrainY * scale * 0.5;
+                
+                if (screenX === -50) {
+                    ctx.moveTo(screenX, screenY);
+                } else {
+                    ctx.lineTo(screenX, screenY);
+                }
+            }
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+
+        function drawTrees() {
+            if (!GameState.terrain) return;
+            
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+            const scale = GameState.scale;
+            const groundY = h * 0.65;
+            
+            // Sort trees by depth for proper layering
+            const visibleTrees = GameState.terrain.trees.filter(tree => {
+                const screenX = (tree.x - GameState.cameraX) * scale;
+                const buffer = 400 + (tree.depth * 200); // Larger buffer for trees with more parallax offset
+                return screenX > -buffer && screenX < w + buffer;
+            }).sort((a, b) => a.depth - b.depth);
+            
+            for (const tree of visibleTrees) {
+                const screenX = (tree.x - GameState.cameraX) * scale;
+                const terrainY = GameState.terrain.getHeightAt(tree.x);
+                const screenY = groundY + terrainY * scale * 0.5;
+                const offset = tree.side * (80 + tree.depth * 50) * scale;
+                
+                // Tree is drawn at offset position but grounded at terrain height
+                const treeScale = scale * (0.5 + tree.depth * 0.5);
+                ctx.globalAlpha = 0.6 + tree.depth * 0.4;
+                
+                // Calculate the actual ground position where the tree base will be
+                const treeBaseX = tree.x + (tree.side * (80 + tree.depth * 50));
+                const treeBaseTerrainY = GameState.terrain.getHeightAt(treeBaseX);
+                const treeBaseScreenY = groundY + treeBaseTerrainY * scale * 0.5;
+                
+                if (spriteManager.hasSprite('tree_' + tree.size)) {
+                    const sprite = spriteManager.getSprite('tree_' + tree.size);
+                    const config = CONFIG.SPRITES['tree_' + tree.size];
+                    ctx.drawImage(
+                        sprite,
+                        screenX + offset - config.width * treeScale / 2,
+                        treeBaseScreenY - config.height * treeScale,
+                        config.width * treeScale,
+                        config.height * treeScale
+                    );
+                } else {
+                    Fallbacks.drawTree(ctx, screenX + offset, treeBaseScreenY, tree.size, treeScale);
+                }
+                
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function drawObstacles() {
+            if (!GameState.terrain) return;
+            
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+            const scale = GameState.scale;
+            const groundY = h * 0.65;
+            
+            for (const obstacle of GameState.terrain.obstacles) {
+                const screenX = (obstacle.x - GameState.cameraX) * scale;
+                
+                if (screenX < -100 || screenX > w + 100) continue;
+                
+                const terrainY = GameState.terrain.getHeightAt(obstacle.x);
+                const screenY = groundY + terrainY * scale * 0.5;
+                
+                if (obstacle.type === 'jump') {
+                    if (spriteManager.hasSprite('obstacle_jump')) {
+                        const sprite = spriteManager.getSprite('obstacle_jump');
+                        const config = CONFIG.SPRITES.obstacle_jump;
+                        ctx.drawImage(
+                            sprite,
+                            screenX - config.width * scale / 2,
+                            screenY - config.height * scale,
+                            config.width * scale,
+                            config.height * scale
+                        );
+                    } else {
+                        Fallbacks.drawJumpObstacle(ctx, screenX, screenY, scale);
+                    }
+                } else {
+                    // Duck obstacle - positioned above ground
+                    const duckHeight = 60 * scale;
+                    if (spriteManager.hasSprite('obstacle_duck')) {
+                        const sprite = spriteManager.getSprite('obstacle_duck');
+                        const config = CONFIG.SPRITES.obstacle_duck;
+                        ctx.drawImage(
+                            sprite,
+                            screenX - config.width * scale / 2,
+                            screenY - duckHeight - config.height * scale / 2,
+                            config.width * scale,
+                            config.height * scale
+                        );
+                    } else {
+                        Fallbacks.drawDuckObstacle(ctx, screenX, screenY - duckHeight, scale);
+                    }
+                }
+            }
+        }
+
+        function drawFinishLine() {
+            if (!GameState.terrain || GameState.selectedMode === 'endless') return;
+            
+            const course = CONFIG.COURSES[GameState.selectedMode];
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+            const scale = GameState.scale;
+            const groundY = h * 0.65;
+            
+            const screenX = (course.length - GameState.cameraX) * scale;
+            if (screenX < -200 || screenX > w + 200) return;
+            
+            // Finish line is at flat ground (terrain height = 0 at finish)
+            const screenY = groundY;
+            
+            if (spriteManager.hasSprite('finish_line')) {
+                const sprite = spriteManager.getSprite('finish_line');
+                const config = CONFIG.SPRITES.finish_line;
+                ctx.drawImage(
+                    sprite,
+                    screenX - config.width * scale / 2,
+                    screenY - config.height * scale,
+                    config.width * scale,
+                    config.height * scale
+                );
+            } else {
+                Fallbacks.drawFinishLine(ctx, screenX, screenY, scale);
+            }
+        }
+
+        function drawPlayer() {
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+            const scale = GameState.scale;
+            const groundY = h * 0.65;
+            
+            const screenX = (GameState.playerX - GameState.cameraX) * scale;
+            const screenY = groundY + GameState.playerY * scale * 0.5;
+            
+            const character = GameState.selectedCharacter;
+            const config = CONFIG.CHARACTERS[character];
+            
+            if (spriteManager.hasSprite(character)) {
+                const sprite = spriteManager.getSprite(character);
+                ctx.save();
+                ctx.translate(screenX, screenY);
+                ctx.rotate(GameState.playerAngle);
+                // Draw sprite with bottom edge at ground level (y=0)
+                ctx.drawImage(
+                    sprite,
+                    -config.width * scale / 2,
+                    -config.height * scale,  // Position so bottom is at origin
+                    config.width * scale,
+                    config.height * scale
+                );
+                ctx.restore();
+            } else {
+                Fallbacks.drawCharacter(ctx, character, screenX, screenY, GameState.playerAngle, scale);
+            }
+        }
+
+        function drawSnowflakes() {
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+            
+            for (const flake of GameState.snowflakes) {
+                if (spriteManager.hasSprite('snowflake')) {
+                    const sprite = spriteManager.getSprite('snowflake');
+                    ctx.globalAlpha = flake.alpha;
+                    ctx.drawImage(sprite, flake.x, flake.y, flake.size, flake.size);
+                    ctx.globalAlpha = 1;
+                } else {
+                    Fallbacks.drawSnowflake(ctx, flake.x, flake.y, flake.size, flake.alpha);
+                }
+            }
+        }
+
+        function spawnConfetti() {
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffd700', '#ff6b6b'];
+            
+            // Confetti burst
+            for (let i = 0; i < 80; i++) {
+                GameState.confetti.push({
+                    x: w * 0.3 + Math.random() * w * 0.4,
+                    y: h * 0.2 + Math.random() * h * 0.3,
+                    vx: (Math.random() - 0.5) * 400,
+                    vy: -300 + Math.random() * 150,
+                    size: 6 + Math.random() * 8,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: (Math.random() - 0.5) * 10,
+                    alpha: 1,
+                    isSnow: false
+                });
+            }
+            
+            // Snow flurry burst
+            for (let i = 0; i < 50; i++) {
+                GameState.confetti.push({
+                    x: Math.random() * w,
+                    y: -20 - Math.random() * 100,
+                    vx: (Math.random() - 0.5) * 100,
+                    vy: 150 + Math.random() * 200,
+                    size: 8 + Math.random() * 12,
+                    color: '#ffffff',
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: (Math.random() - 0.5) * 3,
+                    alpha: 0.8,
+                    isSnow: true
+                });
+            }
+        }
+
+        function updateConfetti(dt) {
+            for (let i = GameState.confetti.length - 1; i >= 0; i--) {
+                const c = GameState.confetti[i];
+                
+                if (c.isSnow) {
+                    // Snow falls more gently with wobble
+                    c.vy += 100 * dt;
+                    c.vx += Math.sin(c.y * 0.02) * 50 * dt; // Wobble
+                    c.alpha -= 0.15 * dt;
+                } else {
+                    // Confetti has more gravity
+                    c.vy += 500 * dt;
+                    c.vx *= 0.99;
+                    c.alpha -= 0.4 * dt;
+                }
+                
+                c.x += c.vx * dt;
+                c.y += c.vy * dt;
+                c.rotation += c.rotationSpeed * dt;
+                
+                if (c.alpha <= 0 || c.y > canvas.height / window.devicePixelRatio + 50) {
+                    GameState.confetti.splice(i, 1);
+                }
+            }
+        }
+
+        function drawConfetti() {
+            for (const c of GameState.confetti) {
+                ctx.save();
+                ctx.translate(c.x, c.y);
+                ctx.rotate(c.rotation);
+                ctx.globalAlpha = c.alpha;
+                ctx.fillStyle = c.color;
+                
+                if (c.isSnow) {
+                    // Draw snowflake
+                    ctx.beginPath();
+                    ctx.arc(0, 0, c.size / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    // Draw confetti rectangle
+                    ctx.fillRect(-c.size / 2, -c.size / 4, c.size, c.size / 2);
+                }
+                ctx.restore();
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        function render() {
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+            
+            ctx.clearRect(0, 0, w, h);
+            
+            if (GameState.screen === 'game' || GameState.screen === 'results' || GameState.screen === 'pause') {
+                drawBackground();
+                drawTrees();
+                drawTerrain();
+                drawObstacles();
+                drawFinishLine();
+                drawPlayer();
+                drawSnowflakes();
+                drawConfetti();
+            }
+        }
+
+        // ============================================
+        // GAME LOGIC
+        // ============================================
+        function initSnowflakes() {
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+            
+            GameState.snowflakes = [];
+            for (let i = 0; i < 50; i++) {
+                GameState.snowflakes.push({
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    size: 4 + Math.random() * 12,
+                    speedY: 30 + Math.random() * 50,
+                    speedX: -20 + Math.random() * 40,
+                    alpha: 0.3 + Math.random() * 0.5
+                });
+            }
+        }
+
+        function updateSnowflakes(dt) {
+            const w = canvas.width / window.devicePixelRatio;
+            const h = canvas.height / window.devicePixelRatio;
+            
+            for (const flake of GameState.snowflakes) {
+                flake.y += flake.speedY * dt;
+                flake.x += flake.speedX * dt;
+                
+                if (flake.y > h) {
+                    flake.y = -10;
+                    flake.x = Math.random() * w;
+                }
+                if (flake.x < -20) flake.x = w + 10;
+                if (flake.x > w + 20) flake.x = -10;
+            }
+        }
+
+        function startGame(mode) {
+            GameState.selectedMode = mode;
+            GameState.terrain = new TerrainGenerator(mode);
+            
+            // Reset player
+            GameState.playerX = 100;
+            GameState.playerY = GameState.terrain.getHeightAt(100);
+            GameState.playerVelX = 0;
+            GameState.playerVelY = 0;
+            GameState.playerAngle = 0;
+            GameState.isJumping = false;
+            GameState.isOnGround = true;
+            GameState.jumpHeld = false;
+            GameState.jumpTime = 0;
+            GameState.coyoteTime = 0;
+            GameState.jumpBufferTime = 0;
+            GameState.crestJump = false;
+            
+            // Reset metrics
+            GameState.startTime = 0;
+            GameState.elapsedTime = 0;
+            GameState.distance = 0;
+            GameState.isFinished = false;
+            GameState.confetti = [];
+            
+            // Reset camera
+            GameState.cameraX = 0;
+            GameState.cameraY = 0;
+            
+            initSnowflakes();
+            
+            // Show game screen
+            showScreen('game');
+            GameState.isPlaying = false;
+            GameState.isPaused = false;
+            
+            // Update HUD labels
+            const hudLabel = document.getElementById('hud-label');
+            const progressContainer = document.getElementById('progress-container');
+            
+            if (mode === 'endless') {
+                hudLabel.textContent = 'Distance';
+                progressContainer.classList.add('hidden');
+            } else {
+                hudLabel.textContent = 'Time';
+                progressContainer.classList.remove('hidden');
+            }
+            
+            // Start countdown
+            startCountdown();
+        }
+
+        function startCountdown() {
+            const countdown = document.getElementById('countdown');
+            let count = 3;
+            
+            countdown.textContent = count;
+            countdown.classList.add('show');
+            
+            const countInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdown.textContent = count;
+                } else if (count === 0) {
+                    countdown.textContent = 'GO!';
+                } else {
+                    countdown.classList.remove('show');
+                    clearInterval(countInterval);
+                    GameState.isPlaying = true;
+                    GameState.startTime = performance.now();
+                }
+            }, 800);
+        }
+
+        function updatePlayer(dt) {
+            if (!GameState.isPlaying || GameState.isPaused) return;
+            
+            const character = CONFIG.CHARACTERS[GameState.selectedCharacter];
+            const course = CONFIG.COURSES[GameState.selectedMode];
+            
+            // Get terrain info at player position
+            const terrainY = GameState.terrain.getHeightAt(GameState.playerX);
+            const slope = GameState.terrain.getSlopeAt(GameState.playerX);
+            
+            // Check for jump timing bonus (jumping near hill crest)
+            // A crest is where slope transitions from uphill (negative) to downhill (positive)
+            const slopeAhead = GameState.terrain.getSlopeAt(GameState.playerX + 50);
+            const nearCrest = slope < 0.1 && slopeAhead > 0.1;
+            
+            // Acceleration based on slope and character stats
+            const baseAccel = CONFIG.BASE_SPEED * character.acceleration;
+            // Reduce the slope effect - downhill gives boost, uphill gives smaller penalty
+            const slopeAccel = Math.sin(slope) * CONFIG.GRAVITY * 0.15;
+            
+            // If finished, dramatically slow down instead of accelerating
+            if (GameState.isFinished) {
+                GameState.playerVelX *= (1 - 5.0 * dt); // Much stronger deceleration
+                GameState.playerVelX = Math.max(GameState.playerVelX, 10); // Allow very slow coasting
+            } else {
+                // Apply acceleration
+                GameState.playerVelX += (baseAccel + slopeAccel) * dt;
+                
+                // Air time momentum penalty - the longer you're in the air, the more speed you lose
+                if (!GameState.isOnGround && GameState.jumpTime > 0.2) {
+                    const airPenalty = Math.min(0.3, (GameState.jumpTime - 0.2) * 0.15);
+                    GameState.playerVelX *= (1 - airPenalty * dt);
+                }
+                
+                // Cap to max speed
+                const maxSpeed = CONFIG.BASE_SPEED * character.maxSpeed;
+                GameState.playerVelX = Math.min(GameState.playerVelX, maxSpeed * 1.15); // Smaller boost cap
+                GameState.playerVelX = Math.max(GameState.playerVelX, 100); // Higher minimum speed
+            }
+            
+            // Super Meat Boy style gravity - faster fall, variable jump
+            if (!GameState.isOnGround) {
+                let gravityMultiplier = 1.0;
+                
+                // If going up and holding jump, use lower gravity (higher jump)
+                if (GameState.playerVelY < 0 && GameState.jumpHeld) {
+                    gravityMultiplier = 0.6;
+                }
+                // If going down, use higher gravity (fast fall)
+                else if (GameState.playerVelY > 0) {
+                    gravityMultiplier = 1.4;
+                }
+                // If going up but released jump, fall faster
+                else if (GameState.playerVelY < 0 && !GameState.jumpHeld) {
+                    gravityMultiplier = 2.0;
+                }
+                
+                GameState.playerVelY += CONFIG.GRAVITY * gravityMultiplier * dt;
+                
+                // Track jump time
+                GameState.jumpTime += dt;
+                
+                // Check for crest jump bonus - if we just jumped near a crest, mark it
+                if (GameState.jumpTime < 0.1 && nearCrest) {
+                    GameState.crestJump = true;
+                }
+            }
+            
+            // Store pre-landing state
+            const wasInAir = !GameState.isOnGround;
+            
+            // Update position
+            GameState.playerX += GameState.playerVelX * dt;
+            GameState.playerY += GameState.playerVelY * dt;
+            
+            // Simple ground collision - player is grounded if at or below terrain
+            const groundMargin = 3;
+            
+            if (GameState.playerY >= terrainY - groundMargin) {
+                // Snap to ground
+                GameState.playerY = terrainY;
+                
+                // LANDING MECHANICS - this is where skill comes in!
+                if (wasInAir && !GameState.isFinished) {
+                    const landingSlope = slope;
+                    
+                    // Landing on downhill = speed boost!
+                    if (landingSlope > 0.15) {
+                        const slopeBonus = Math.min(landingSlope * 80, 40);
+                        GameState.playerVelX += slopeBonus;
+                    }
+                    
+                    // Crest jump bonus - jumped at the right time
+                    if (GameState.crestJump) {
+                        GameState.playerVelX += 25;
+                        GameState.crestJump = false;
+                    }
+                    
+                    // Perfect short hop bonus - quick jumps that barely clear obstacles
+                    if (GameState.jumpTime < 0.25) {
+                        GameState.playerVelX += 10;
+                    }
+                    
+                    // Landing on uphill = speed penalty
+                    if (landingSlope < -0.2) {
+                        const uphillPenalty = Math.min(Math.abs(landingSlope) * 60, 35);
+                        GameState.playerVelX -= uphillPenalty;
+                    }
+                }
+                
+                GameState.playerVelY = 0;
+                GameState.isOnGround = true;
+                GameState.isJumping = false;
+                GameState.jumpHeld = false;
+                GameState.coyoteTime = 0.1;
+            } else {
+                // In air
+                if (GameState.isOnGround) {
+                    GameState.coyoteTime = 0.1;
+                }
+                GameState.isOnGround = false;
+            }
+            
+            // Decrement timers
+            if (GameState.coyoteTime > 0) {
+                GameState.coyoteTime -= dt;
+            }
+            if (GameState.jumpBufferTime > 0) {
+                GameState.jumpBufferTime -= dt;
+                // Try to execute buffered jump
+                tryExecuteJump();
+            }
+            
+            // Update angle (smooth rotation)
+            const angleSmoothing = GameState.isOnGround ? 0.15 : 0.08;
+            const targetAngle = GameState.isOnGround ? slope : slope * 0.3;
+            GameState.playerAngle += (targetAngle - GameState.playerAngle) * angleSmoothing;
+            
+            // Update camera
+            const w = canvas.width / window.devicePixelRatio;
+            GameState.cameraX = GameState.playerX - w * 0.3 / GameState.scale;
+            
+            // Update distance/time (but freeze time after finishing)
+            GameState.distance = Math.max(GameState.distance, GameState.playerX);
+            if (!GameState.isFinished) {
+                GameState.elapsedTime = (performance.now() - GameState.startTime) / 1000;
+            }
+            
+            // Check collisions with obstacles
+            checkObstacleCollisions();
+            
+            // Check finish line (only once)
+            if (GameState.selectedMode !== 'endless' && !GameState.isFinished && GameState.playerX >= course.length) {
+                finishGame();
+            }
+            
+            // Progressive difficulty for endless mode
+            if (GameState.selectedMode === 'endless') {
+                updateEndlessDifficulty();
+            }
+            
+            // Update HUD
+            updateHUD();
+        }
+
+        function jump() {
+            if (!GameState.isPlaying || GameState.isPaused) return;
+            if (GameState.isFinished) return;
+            
+            // Buffer the jump input
+            GameState.jumpBufferTime = 0.15; // 150ms buffer window
+            
+            tryExecuteJump();
+        }
+        
+        function tryExecuteJump() {
+            const character = CONFIG.CHARACTERS[GameState.selectedCharacter];
+            
+            // Can jump if: on ground OR within coyote time (just left ground)
+            const canJump = GameState.isOnGround || GameState.coyoteTime > 0;
+            
+            if (canJump && GameState.jumpBufferTime > 0) {
+                // Execute the jump
+                GameState.playerVelY = -850 * character.jumpPower;
+                GameState.isJumping = true;
+                GameState.isOnGround = false;
+                GameState.jumpHeld = true;
+                GameState.jumpTime = 0;
+                GameState.coyoteTime = 0;      // Consume coyote time
+                GameState.jumpBufferTime = 0;  // Consume buffer
+            }
+        }
+        
+        function releaseJump() {
+            // Cut jump short when released for variable jump height
+            if (GameState.jumpHeld && GameState.playerVelY < -200) {
+                GameState.playerVelY *= 0.5; // Cut velocity for short hop
+            }
+            GameState.jumpHeld = false;
+        }
+
+        function checkObstacleCollisions() {
+            if (GameState.isFinished) return; // No collisions after finish
+            
+            const character = CONFIG.CHARACTERS[GameState.selectedCharacter];
+            const playerHeight = character.height * 0.5;
+            
+            for (const obstacle of GameState.terrain.obstacles) {
+                const dx = Math.abs(GameState.playerX - obstacle.x);
+                
+                if (dx > 35) continue; // Skip if too far
+                
+                const obstacleY = GameState.terrain.getHeightAt(obstacle.x);
+                
+                if (obstacle.type === 'jump') {
+                    // Stone obstacle - player Y must be above the stone top
+                    const stoneHeight = 32;
+                    
+                    if (dx < 20 && GameState.playerY > obstacleY - stoneHeight + 5) {
+                        // Collision!
+                        gameOver();
+                        return;
+                    }
+                } else {
+                    // Duck obstacle - player must stay low
+                    const duckHeight = 55;
+                    
+                    if (dx < 30 && GameState.playerY < obstacleY - duckHeight + 15) {
+                        // Collision with overhead obstacle!
+                        gameOver();
+                        return;
+                    }
+                }
+            }
+        }
+
+        function updateEndlessDifficulty() {
+            const distance = GameState.distance;
+            const course = CONFIG.COURSES.endless;
+            
+            // Increase difficulty based on distance
+            const difficultyMultiplier = 1 + distance / 5000;
+            
+            course.hillFrequency = 0.003 + (distance / 100000) * 0.002;
+            course.hillAmplitude = 80 + (distance / 5000) * 20;
+            course.obstacleFrequency = Math.min(0.5, 0.15 + distance / 20000);
+            
+            // Generate more terrain/obstacles as needed
+            if (distance > GameState.terrain.segments.length * 50 - 2000) {
+                extendEndlessTerrain();
+            }
+        }
+
+        function extendEndlessTerrain() {
+            const terrain = GameState.terrain;
+            const lastX = terrain.segments[terrain.segments.length - 1]?.x || 0;
+            const segmentWidth = 50;
+            
+            // Add more segments
+            for (let i = 0; i < 40; i++) {
+                const x = lastX + (i + 1) * segmentWidth;
+                terrain.segments.push({
+                    x,
+                    y: terrain.getHeightAt(x)
+                });
+            }
+            
+            // Add more obstacles
+            const lastObstacleX = terrain.obstacles[terrain.obstacles.length - 1]?.x || lastX;
+            let nextObstacle = lastObstacleX + 350;
+            let lastType = terrain.obstacles[terrain.obstacles.length - 1]?.type || null;
+            
+            while (nextObstacle < lastX + 2000) {
+                if (terrain.seededRandom() < terrain.course.obstacleFrequency) {
+                    const slope = terrain.getSlopeAt(nextObstacle);
+                    const slopeAbs = Math.abs(slope);
+                    
+                    if (slopeAbs < 0.35) {
+                        let type;
+                        if (lastType === 'duck') {
+                            type = 'jump';
+                        } else {
+                            type = terrain.seededRandom() > 0.2 ? 'jump' : 'duck';
+                        }
+                        
+                        // Avoid placing jumps at valley bottoms
+                        const slopeBefore = terrain.getSlopeAt(nextObstacle - 100);
+                        if (type === 'jump' && slopeBefore < -0.25 && slope > -0.1) {
+                            nextObstacle += 150;
+                            continue;
+                        }
+                        
+                        terrain.obstacles.push({
+                            x: nextObstacle,
+                            y: terrain.getHeightAt(nextObstacle),
+                            type
+                        });
+                        lastType = type;
+                    }
+                }
+                nextObstacle += 350 + terrain.seededRandom() * 200;
+            }
+            
+            // Add more trees
+            for (let x = lastX; x < lastX + 2000; x += 80) {
+                if (terrain.seededRandom() < terrain.course.treeFrequency) {
+                    const sizes = ['small', 'medium', 'large'];
+                    terrain.trees.push({
+                        x,
+                        y: terrain.getHeightAt(x),
+                        size: sizes[Math.floor(terrain.seededRandom() * 3)],
+                        depth: 0.3 + terrain.seededRandom() * 0.7,
+                        side: terrain.seededRandom() > 0.5 ? 1 : -1
+                    });
+                }
+            }
+        }
+
+        function updateHUD() {
+            const hudValue = document.getElementById('hud-value');
+            const progressBar = document.getElementById('progress-bar');
+            
+            if (GameState.selectedMode === 'endless') {
+                hudValue.textContent = Math.floor(GameState.distance) + 'm';
+            } else {
+                const time = GameState.elapsedTime;
+                const mins = Math.floor(time / 60);
+                const secs = Math.floor(time % 60);
+                const ms = Math.floor((time % 1) * 100);
+                hudValue.textContent = `${mins}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+                
+                // Update progress bar
+                const course = CONFIG.COURSES[GameState.selectedMode];
+                const progress = (GameState.playerX / course.length) * 100;
+                progressBar.style.width = Math.min(100, progress) + '%';
+            }
+        }
+
+        function finishGame() {
+            // Stop the timer but allow player to coast
+            const score = GameState.selectedMode === 'endless' 
+                ? Math.floor(GameState.distance)
+                : GameState.elapsedTime;
+            
+            const position = LeaderboardManager.addScore(
+                GameState.selectedMode,
+                score,
+                GameState.selectedCharacter
+            );
+            
+            // Mark as finished but still allow movement
+            GameState.isFinished = true;
+            
+            // Spawn celebration confetti!
+            spawnConfetti();
+            
+            // Add delay before showing results (player coasts during this time)
+            setTimeout(() => {
+                GameState.isPlaying = false;
+                showResults(score, position);
+            }, 2500);
+        }
+
+        function gameOver() {
+            GameState.isPlaying = false;
+            
+            if (GameState.selectedMode === 'endless') {
+                const score = Math.floor(GameState.distance);
+                const position = LeaderboardManager.addScore(
+                    'endless',
+                    score,
+                    GameState.selectedCharacter
+                );
+                showResults(score, position, true);
+            } else {
+                // For timed courses, show failure
+                showResults(null, 0, true);
+            }
+        }
+
+        function showResults(score, position, crashed = false) {
+            const resultsTitle = document.getElementById('results-title');
+            const resultLabel = document.getElementById('result-label');
+            const resultMain = document.getElementById('result-main');
+            const resultPosition = document.getElementById('result-position');
+            
+            if (crashed && GameState.selectedMode !== 'endless') {
+                resultsTitle.textContent = '💥 Crashed!';
+                resultLabel.textContent = 'Distance reached';
+                resultMain.textContent = Math.floor(GameState.distance) + 'm';
+                resultPosition.textContent = 'Try again!';
+                resultPosition.classList.remove('new-record');
+            } else {
+                resultsTitle.textContent = crashed ? '💥 Crashed!' : '🎉 Finished!';
+                
+                if (GameState.selectedMode === 'endless') {
+                    resultLabel.textContent = 'Distance';
+                    resultMain.textContent = score + 'm';
+                } else {
+                    resultLabel.textContent = 'Your Time';
+                    const mins = Math.floor(score / 60);
+                    const secs = Math.floor(score % 60);
+                    const ms = Math.floor((score % 1) * 100);
+                    resultMain.textContent = `${mins}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+                }
+                
+                if (position > 0) {
+                    const ordinal = ['', '1st', '2nd', '3rd', '4th', '5th'][position];
+                    resultPosition.textContent = `🏆 ${ordinal} Place!`;
+                    resultPosition.classList.add('new-record');
+                } else {
+                    resultPosition.textContent = '';
+                    resultPosition.classList.remove('new-record');
+                }
+            }
+            
+            showScreen('results');
+        }
+
+        // ============================================
+        // GAME LOOP
+        // ============================================
+        let lastTime = 0;
+
+        function gameLoop(timestamp) {
+            const dt = Math.min((timestamp - lastTime) / 1000, 0.1); // Cap delta time
+            lastTime = timestamp;
+            
+            if (GameState.screen === 'game' && !GameState.isPaused) {
+                updatePlayer(dt);
+                updateSnowflakes(dt);
+                updateConfetti(dt);
+            } else if (GameState.screen === 'menu' || GameState.screen === 'leaderboard') {
+                updateSnowflakes(dt);
+            } else if (GameState.screen === 'results') {
+                updateSnowflakes(dt);
+                updateConfetti(dt);
+            }
+            
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ============================================
+        // UI MANAGEMENT
+        // ============================================
+        function showScreen(screenName) {
+            GameState.screen = screenName;
+            
+            const screens = ['menu-screen', 'leaderboard-screen', 'sprites-screen', 'results-screen', 'pause-screen'];
+            const hud = document.getElementById('hud');
+            const progress = document.getElementById('progress-container');
+            const gameCanvas = document.getElementById('game-canvas');
+            
+            screens.forEach(id => {
+                const el = document.getElementById(id);
+                if (id === screenName + '-screen') {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            });
+            
+            // Only enable canvas interaction during active gameplay
+            if (screenName === 'game') {
+                hud.classList.remove('hud-hidden');
+                gameCanvas.style.pointerEvents = 'auto';
+                if (GameState.selectedMode !== 'endless') {
+                    progress.classList.remove('hud-hidden');
+                }
+            } else {
+                hud.classList.add('hud-hidden');
+                progress.classList.add('hud-hidden');
+                gameCanvas.style.pointerEvents = 'none';
+            }
+        }
+
+        function populateLeaderboard(mode) {
+            const list = document.getElementById('leaderboard-list');
+            const scores = LeaderboardManager.getScores(mode);
+            
+            if (scores.length === 0) {
+                list.innerHTML = '<div class="no-scores">No scores yet!</div>';
+                return;
+            }
+            
+            list.innerHTML = scores.map((entry, index) => {
+                const rankClass = ['gold', 'silver', 'bronze', 'other', 'other'][index];
+                const date = new Date(entry.date);
+                const dateStr = date.toLocaleDateString();
+                
+                let scoreDisplay;
+                if (mode === 'endless') {
+                    scoreDisplay = entry.score + 'm';
+                } else {
+                    const time = entry.score;
+                    const mins = Math.floor(time / 60);
+                    const secs = Math.floor(time % 60);
+                    const ms = Math.floor((time % 1) * 100);
+                    scoreDisplay = `${mins}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+                }
+                
+                return `
+                    <div class="leaderboard-entry">
+                        <div class="entry-rank ${rankClass}">${index + 1}</div>
+                        <div class="entry-details">
+                            <div class="entry-score">${scoreDisplay}</div>
+                            <div class="entry-meta">${entry.character} • ${dateStr}</div>
+                        </div>
+                        <div class="entry-character ${entry.character.toLowerCase()}"></div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function createMenuSnow() {
+            const containers = document.querySelectorAll('.menu-snow');
+            containers.forEach(container => {
+                container.innerHTML = '';
+                for (let i = 0; i < 30; i++) {
+                    const flake = document.createElement('div');
+                    flake.className = 'snowflake';
+                    flake.textContent = '❄';
+                    flake.style.left = Math.random() * 100 + '%';
+                    flake.style.animationDuration = (5 + Math.random() * 10) + 's';
+                    flake.style.animationDelay = Math.random() * 10 + 's';
+                    flake.style.fontSize = (0.5 + Math.random() * 1) + 'rem';
+                    container.appendChild(flake);
+                }
+            });
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        function setupEventListeners() {
+            // Character selection
+            document.querySelectorAll('.character-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    document.querySelectorAll('.character-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    GameState.selectedCharacter = card.dataset.character;
+                });
+            });
+            
+            // Mode buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    startGame(btn.dataset.mode);
+                });
+            });
+            
+            // Leaderboard button
+            document.getElementById('leaderboard-btn').addEventListener('click', () => {
+                showScreen('leaderboard');
+                populateLeaderboard('easy');
+                document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+                document.querySelector('.tab-btn[data-tab="easy"]').classList.add('active');
+            });
+            
+            // Leaderboard tabs
+            document.querySelectorAll('.tab-btn').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    populateLeaderboard(tab.dataset.tab);
+                });
+            });
+            
+            // Back buttons
+            document.getElementById('back-to-menu').addEventListener('click', () => showScreen('menu'));
+            document.getElementById('back-from-sprites').addEventListener('click', () => showScreen('menu'));
+            document.getElementById('pause-menu-btn').addEventListener('click', () => {
+                GameState.isPaused = false;
+                showScreen('menu');
+            });
+            
+            // Sprites button
+            document.getElementById('sprites-btn').addEventListener('click', () => showScreen('sprites'));
+            
+            // Retry button
+            const retryBtn = document.getElementById('retry-btn');
+            retryBtn.addEventListener('click', () => {
+                startGame(GameState.selectedMode);
+            });
+            retryBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                startGame(GameState.selectedMode);
+            });
+            
+            // Results menu button
+            const resultsMenuBtn = document.getElementById('results-menu-btn');
+            resultsMenuBtn.addEventListener('click', () => {
+                showScreen('menu');
+            });
+            resultsMenuBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                showScreen('menu');
+            });
+            
+            // Pause button
+            document.getElementById('pause-btn').addEventListener('click', () => {
+                if (GameState.isPlaying) {
+                    GameState.isPaused = true;
+                    showScreen('pause');
+                }
+            });
+            
+            // Resume button
+            document.getElementById('resume-btn').addEventListener('click', () => {
+                GameState.isPaused = false;
+                showScreen('game');
+            });
+            
+            // Jump controls - tap/hold for variable jump height
+            const jumpStart = (e) => {
+                e.preventDefault();
+                if (GameState.screen === 'game' && GameState.isPlaying && !GameState.isPaused) {
+                    jump();
+                }
+            };
+            
+            const jumpEnd = (e) => {
+                if (GameState.screen === 'game') {
+                    releaseJump();
+                }
+            };
+            
+            canvas.addEventListener('touchstart', jumpStart, { passive: false });
+            canvas.addEventListener('touchend', jumpEnd, { passive: false });
+            canvas.addEventListener('mousedown', jumpStart);
+            canvas.addEventListener('mouseup', jumpEnd);
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' && !e.repeat) {
+                    e.preventDefault();
+                    if (GameState.screen === 'game' && GameState.isPlaying && !GameState.isPaused) {
+                        jump();
+                    }
+                }
+                if (e.code === 'Escape' && GameState.screen === 'game' && GameState.isPlaying) {
+                    GameState.isPaused = true;
+                    showScreen('pause');
+                }
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                if (e.code === 'Space') {
+                    releaseJump();
+                }
+            });
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        async function init() {
+            // Try to load sprites (will fall back to code-drawn if not found)
+            await spriteManager.loadAll();
+            
+            // Update sprite info display
+            const spriteTable = document.querySelectorAll('.sprite-table');
+            // Could update status indicators here based on spriteManager.loaded
+            
+            createMenuSnow();
+            initSnowflakes();
+            setupEventListeners();
+            showScreen('menu');
+            
+            // Start game loop
+            requestAnimationFrame(gameLoop);
+        }
+
+        init();
+    </script>
+</body>
+</html>
