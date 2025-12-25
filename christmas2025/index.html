@@ -822,7 +822,7 @@
             </div>
             
             <button class="btn-secondary" id="leaderboard-btn">🏆 Leaderboards</button>
-            <button class="btn-secondary" id="sprites-btn" style="margin-top: 8px;">📦 Sprite Info</button>
+            <button class="btn-secondary" id="sprites-btn" style="display: none;">📦 Sprite Info</button>
         </div>
         
         <!-- Leaderboard Screen -->
@@ -1389,9 +1389,8 @@
             }
 
             generateObstacles(length) {
-                const minSpacing = 350; // Reduced spacing for more obstacles
-                let lastObstacle = 600; // Start after some distance
-                let lastType = null;
+                const minSpacing = 350;
+                let lastObstacle = 600;
 
                 while (lastObstacle < length - 500) {
                     if (this.seededRandom() < this.course.obstacleFrequency) {
@@ -1400,18 +1399,10 @@
                         
                         // Don't place obstacles on steep slopes
                         if (slopeAbs < 0.35) {
-                            // Mostly jump obstacles (stones), occasional duck
-                            let type;
-                            if (lastType === 'duck') {
-                                type = 'jump'; // Always jump after duck
-                            } else {
-                                type = this.seededRandom() > 0.2 ? 'jump' : 'duck';
-                            }
-                            
                             // Don't place jump obstacles at bottom of hills (hard to react)
                             const slopeBefore = this.getSlopeAt(lastObstacle - 100);
                             
-                            if (type === 'jump' && slopeBefore < -0.25 && slope > -0.1) {
+                            if (slopeBefore < -0.25 && slope > -0.1) {
                                 // Skip this position - it's at the bottom of a hill
                                 lastObstacle += 150;
                                 continue;
@@ -1420,9 +1411,8 @@
                             this.obstacles.push({
                                 x: lastObstacle,
                                 y: this.getHeightAt(lastObstacle),
-                                type
+                                type: 'jump'
                             });
-                            lastType = type;
                         }
                     }
                     lastObstacle += minSpacing + this.seededRandom() * 200;
@@ -1736,18 +1726,20 @@
                 const screenY = groundY + terrainY * scale * 0.5;
                 
                 if (obstacle.type === 'jump') {
+                    // Small offset to sink stone into terrain on curves
+                    const sinkOffset = 2 * scale;
                     if (spriteManager.hasSprite('obstacle_jump')) {
                         const sprite = spriteManager.getSprite('obstacle_jump');
                         const config = CONFIG.SPRITES.obstacle_jump;
                         ctx.drawImage(
                             sprite,
                             screenX - config.width * scale / 2,
-                            screenY - config.height * scale,
+                            screenY - config.height * scale + sinkOffset,
                             config.width * scale,
                             config.height * scale
                         );
                     } else {
-                        Fallbacks.drawJumpObstacle(ctx, screenX, screenY, scale);
+                        Fallbacks.drawJumpObstacle(ctx, screenX, screenY + sinkOffset, scale);
                     }
                 } else {
                     // Duck obstacle - positioned above ground
@@ -2331,7 +2323,6 @@
             // Add more obstacles
             const lastObstacleX = terrain.obstacles[terrain.obstacles.length - 1]?.x || lastX;
             let nextObstacle = lastObstacleX + 350;
-            let lastType = terrain.obstacles[terrain.obstacles.length - 1]?.type || null;
             
             while (nextObstacle < lastX + 2000) {
                 if (terrain.seededRandom() < terrain.course.obstacleFrequency) {
@@ -2339,16 +2330,9 @@
                     const slopeAbs = Math.abs(slope);
                     
                     if (slopeAbs < 0.35) {
-                        let type;
-                        if (lastType === 'duck') {
-                            type = 'jump';
-                        } else {
-                            type = terrain.seededRandom() > 0.2 ? 'jump' : 'duck';
-                        }
-                        
                         // Avoid placing jumps at valley bottoms
                         const slopeBefore = terrain.getSlopeAt(nextObstacle - 100);
-                        if (type === 'jump' && slopeBefore < -0.25 && slope > -0.1) {
+                        if (slopeBefore < -0.25 && slope > -0.1) {
                             nextObstacle += 150;
                             continue;
                         }
@@ -2356,9 +2340,8 @@
                         terrain.obstacles.push({
                             x: nextObstacle,
                             y: terrain.getHeightAt(nextObstacle),
-                            type
+                            type: 'jump'
                         });
-                        lastType = type;
                     }
                 }
                 nextObstacle += 350 + terrain.seededRandom() * 200;
