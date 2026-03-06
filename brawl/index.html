@@ -296,7 +296,7 @@ html, body {
     <div class="game-title">Paper Brawl</div>
     <div class="subtitle">demo</div>
     <button class="btn" onclick="Game.startSinglePlayer()">Single Player</button>
-    <!-- <button class="btn" onclick="Game.showMultiplayer()">Multiplayer</button> -->
+    <button class="btn" onclick="Game.showMultiplayer()">Multiplayer</button>
   </div>
 
   <!-- Multiplayer Lobby -->
@@ -358,8 +358,8 @@ html, body {
   <div id="resultsScreen" class="screen paper-bg">
     <div class="winner-text" id="winnerText">Player 1 Wins!</div>
     <canvas id="winnerCanvas" width="200" height="200" style="margin:16px"></canvas>
-    <button class="btn" onclick="Game.rematch()">Rematch</button>
-    <button class="btn small" onclick="Game.quit()">Quit</button>
+    <button class="btn" id="rematchBtn" onclick="Game.rematch()">Rematch</button>
+    <button class="btn small" id="quitBtn" onclick="Game.quit()">Quit</button>
   </div>
 
   <!-- Touch Controls -->
@@ -2144,10 +2144,11 @@ const Projectiles = (() => {
   }
   
   function getAll() { return projs; }
+  function setAll(arr) { projs = arr; }
   function countForOwner(owner) { return projs.filter(p => p.owner === owner).length; }
   function clear() { projs = []; }
   
-  return { spawn, update, draw, getAll, countForOwner, clear };
+  return { spawn, update, draw, getAll, setAll, countForOwner, clear };
 })();
 
 // ============================================================
@@ -2234,9 +2235,11 @@ const Mines = (() => {
     }
   }
   
+  function getAll() { return mines; }
+  function setAll(arr) { mines = arr; }
   function clear() { mines = []; }
   
-  return { place, update, draw, clear };
+  return { place, update, draw, getAll, setAll, clear };
 })();
 
 // ============================================================
@@ -2301,6 +2304,58 @@ class Player {
     this.usedUpB = false;
     this.counterActive = 0;  // frames remaining in counter window
     this.armorFrames = 0;    // super armor frames remaining
+  }
+  
+  serialize() {
+    return {
+      x: this.x, y: this.y, vx: this.vx, vy: this.vy,
+      facing: this.facing, grounded: this.grounded,
+      damage: this.damage, stocks: this.stocks,
+      state: this.state, stateFrame: this.stateFrame,
+      hasDoubleJump: this.hasDoubleJump, fastFalling: this.fastFalling,
+      shieldHP: this.shieldHP, shieldActive: this.shieldActive,
+      shieldDropLag: this.shieldDropLag, invFrames: this.invFrames,
+      hitstunFrames: this.hitstunFrames, diWindow: this.diWindow,
+      attackPhase: this.attackPhase, attackFrame: this.attackFrame,
+      comboHit: this.comboHit, currentMoveKey: this.currentMoveKey,
+      grabTargetIdx: this.grabTarget ? this.grabTarget.index : -1,
+      grabTimer: this.grabTimer,
+      ledgeSide: this.ledgeSide, ledgeClimbFrame: this.ledgeClimbFrame,
+      ledgeHangTimer: this.ledgeHangTimer, ledgeRegrabTimer: this.ledgeRegrabTimer,
+      ledgeSettleTimer: this.ledgeSettleTimer, ledgeX: this.ledgeX, ledgeY: this.ledgeY,
+      shieldBreakTimer: this.shieldBreakTimer, respawnTimer: this.respawnTimer,
+      landingLag: this.landingLag, dropThrough: this.dropThrough,
+      hitlagFrames: this.hitlagFrames, hitFlashFrames: this.hitFlashFrames,
+      dashTimer: this.dashTimer, prevLx: this.prevLx,
+      usedUpB: this.usedUpB, counterActive: this.counterActive,
+      armorFrames: this.armorFrames
+    };
+  }
+  
+  deserialize(d, allPlayers) {
+    this.x = d.x; this.y = d.y; this.vx = d.vx; this.vy = d.vy;
+    this.facing = d.facing; this.grounded = d.grounded;
+    this.damage = d.damage; this.stocks = d.stocks;
+    this.state = d.state; this.stateFrame = d.stateFrame;
+    this.hasDoubleJump = d.hasDoubleJump; this.fastFalling = d.fastFalling;
+    this.shieldHP = d.shieldHP; this.shieldActive = d.shieldActive;
+    this.shieldDropLag = d.shieldDropLag; this.invFrames = d.invFrames;
+    this.hitstunFrames = d.hitstunFrames; this.diWindow = d.diWindow;
+    this.attackPhase = d.attackPhase; this.attackFrame = d.attackFrame;
+    this.comboHit = d.comboHit;
+    this.currentMoveKey = d.currentMoveKey;
+    this.currentMove = d.currentMoveKey ? this.char.moves[d.currentMoveKey] : null;
+    this.grabTarget = d.grabTargetIdx >= 0 ? allPlayers[d.grabTargetIdx] : null;
+    this.grabTimer = d.grabTimer;
+    this.ledgeSide = d.ledgeSide; this.ledgeClimbFrame = d.ledgeClimbFrame;
+    this.ledgeHangTimer = d.ledgeHangTimer; this.ledgeRegrabTimer = d.ledgeRegrabTimer;
+    this.ledgeSettleTimer = d.ledgeSettleTimer; this.ledgeX = d.ledgeX; this.ledgeY = d.ledgeY;
+    this.shieldBreakTimer = d.shieldBreakTimer; this.respawnTimer = d.respawnTimer;
+    this.landingLag = d.landingLag; this.dropThrough = d.dropThrough;
+    this.hitlagFrames = d.hitlagFrames; this.hitFlashFrames = d.hitFlashFrames;
+    this.dashTimer = d.dashTimer; this.prevLx = d.prevLx;
+    this.usedUpB = d.usedUpB; this.counterActive = d.counterActive;
+    this.armorFrames = d.armorFrames;
   }
   
   get hurtbox() {
@@ -3169,8 +3224,14 @@ const Input = (() => {
   function init() {
     isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     
-    document.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; e.preventDefault(); });
-    document.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+    document.addEventListener('keydown', e => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      keys[e.key.toLowerCase()] = true; e.preventDefault();
+    });
+    document.addEventListener('keyup', e => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      keys[e.key.toLowerCase()] = false;
+    });
     
     // Gamepad connection events (required by Chrome before getGamepads works)
     window.addEventListener('gamepadconnected', e => {
@@ -3365,8 +3426,9 @@ const Input = (() => {
 // ============================================================
 const Network = (() => {
   let peer = null, conn = null, isHost = false, roomCode = '', connected = false;
-  let onRemoteInput = null, onMessage = null;
-  let remoteInput = { lx: 0, ly: 0, a: false, b: false, jump: false, shield: false, grab: false };
+  let onMessage = null;
+  let onClose = null;
+  let remoteInputBuffer = {};  // frame -> input
   
   function createRoom() {
     roomCode = genCode();
@@ -3419,24 +3481,46 @@ const Network = (() => {
       setTimeout(() => Game.onNetworkConnected(), 500);
     });
     conn.on('data', data => {
-      if (data.type === 'input') remoteInput = data.input;
-      if (onMessage) onMessage(data);
+      if (data.type === 'frame_input') {
+        remoteInputBuffer[data.frame] = data.input;
+      } else if (onMessage) {
+        onMessage(data);
+      }
     });
     conn.on('close', () => {
+      const wasConnected = connected;
       connected = false;
       document.getElementById('lobbyStatus').textContent = 'Disconnected';
+      if (wasConnected && onClose) onClose();
     });
   }
   
   function send(data) { if (conn && connected) conn.send(data); }
-  function getRemoteInput() { return remoteInput; }
-  function isConnected() { return connected; }
-  function getIsHost() { return isHost; }
+  
+  function sendFrameInput(frame, input) {
+    send({ type: 'frame_input', frame, input });
+  }
+  
+  function hasInputForFrame(frame) {
+    return frame in remoteInputBuffer;
+  }
+  
+  function getInputForFrame(frame) {
+    const inp = remoteInputBuffer[frame];
+    delete remoteInputBuffer[frame];
+    return inp || { lx: 0, ly: 0, a: false, b: false, jump: false, shield: false, grab: false };
+  }
+  
+  function clearInputBuffer() {
+    remoteInputBuffer = {};
+  }
   
   function disconnect() {
+    connected = false;  // set before close so onClose callback doesn't fire
     if (conn) conn.close();
     if (peer) peer.destroy();
-    peer = null; conn = null; connected = false;
+    peer = null; conn = null;
+    remoteInputBuffer = {};
     document.getElementById('lobbyCreate').style.display = 'block';
     document.getElementById('lobbyWaiting').style.display = 'none';
   }
@@ -3460,8 +3544,12 @@ const Network = (() => {
   }
   
   function setOnMessage(fn) { onMessage = fn; }
+  function setOnClose(fn) { onClose = fn; }
+  function isConnected() { return connected; }
+  function getIsHost() { return isHost; }
   
-  return { createRoom, joinRoom, send, getRemoteInput, isConnected, getIsHost, disconnect, setOnMessage };
+  return { createRoom, joinRoom, send, sendFrameInput, hasInputForFrame,
+    getInputForFrame, clearInputBuffer, isConnected, getIsHost, disconnect, setOnMessage, setOnClose };
 })();
 
 // ============================================================
@@ -3487,6 +3575,15 @@ const Game = (() => {
   // Multiplayer state
   let myCharConfirmed = false, remoteCharConfirmed = false;
   let remoteCharId = 0;
+  let myCharId = 0;  // local player's character pick (survives remote overwrites)
+  
+  // Lockstep state
+  const NET_INPUT_DELAY = 3;
+  const CHECKSUM_INTERVAL = 30;
+  let syncFrame = 0;
+  let localInputBuffer = {};
+  let multiCountdown = 0;  // frame-based countdown for multiplayer
+  let pendingSyncChecks = {};  // frame -> { hash, state? }
   
   function init() {
     canvas = document.getElementById('gameCanvas');
@@ -3507,6 +3604,11 @@ const Game = (() => {
     });
     
     Network.setOnMessage(handleNetMessage);
+    Network.setOnClose(() => {
+      if (gameState === 'match' || gameState === 'results' || gameState === 'charSelect' || gameState === 'stageSelect') {
+        onDisconnect();
+      }
+    });
     
     buildCharSelectUI();
     buildStageSelectUI();
@@ -3534,12 +3636,99 @@ const Game = (() => {
     while (accumulator >= FRAME_TIME) {
       accumulator -= FRAME_TIME;
       if (gameState === 'match' && matchActive) {
-        // KO slow-mo: skip every other update frame
-        if (koSlowmoTimer > 0) {
-          koSlowmoTimer--;
-          if (koSlowmoTimer % 2 === 0) continue; // half speed
+        if (mode === 'multi') {
+          // ---- LOCKSTEP MULTIPLAYER ----
+          // Copy current input for the frame we're sending ahead
+          const inp = Input.getState();
+          const sendFrame = syncFrame + NET_INPUT_DELAY;
+          if (!localInputBuffer[sendFrame]) {
+            localInputBuffer[sendFrame] = {
+              lx: inp.lx, ly: inp.ly, a: inp.a, b: inp.b,
+              jump: inp.jump, shield: inp.shield, grab: inp.grab
+            };
+            Network.sendFrameInput(sendFrame, localInputBuffer[sendFrame]);
+          }
+          
+          // Can we simulate this frame?
+          if (localInputBuffer[syncFrame] && Network.hasInputForFrame(syncFrame)) {
+            const localInp = localInputBuffer[syncFrame];
+            const remoteInp = Network.getInputForFrame(syncFrame);
+            delete localInputBuffer[syncFrame];
+            
+            // Countdown phase: consume inputs but don't simulate gameplay
+            if (multiCountdown > 0) {
+              multiCountdown--;
+              const sec = Math.ceil(multiCountdown / 60);
+              const overlay = document.getElementById('matchStartOverlay');
+              const text = document.getElementById('matchStartText');
+              if (multiCountdown > 0 && sec >= 1 && sec <= 3) {
+                text.textContent = '' + sec;
+              } else if (multiCountdown === 0) {
+                text.textContent = 'GO!';
+                setTimeout(() => overlay.classList.remove('active'), 500);
+              }
+              syncFrame++;
+              continue;
+            }
+            
+            const p1Input = Network.getIsHost() ? localInp : remoteInp;
+            const p2Input = Network.getIsHost() ? remoteInp : localInp;
+            
+            // KO slow-mo: skip simulation but still advance frame
+            let skipSim = false;
+            if (koSlowmoTimer > 0) {
+              koSlowmoTimer--;
+              if (koSlowmoTimer % 2 === 0) skipSim = true;
+            }
+            
+            if (!skipSim) {
+              updateMatch(p1Input, p2Input);
+            }
+            
+            // Periodic checksum — host sends hash + state snapshot
+            if (syncFrame > 0 && syncFrame % CHECKSUM_INTERVAL === 0) {
+              const hash = computeChecksum();
+              if (Network.getIsHost()) {
+                Network.send({ type: 'sync_check', frame: syncFrame, hash, state: serializeGameState() });
+              } else {
+                Network.send({ type: 'sync_check', frame: syncFrame, hash });
+              }
+            }
+            
+            // Process any buffered sync checks up to this frame
+            const checkFrames = Object.keys(pendingSyncChecks).map(Number).filter(f => f <= syncFrame);
+            for (const cf of checkFrames) {
+              const remote = pendingSyncChecks[cf];
+              delete pendingSyncChecks[cf];
+              // Only compare if we're at the exact frame (skip stale ones)
+              if (cf === syncFrame) {
+                const localHash = computeChecksum();
+                if (localHash !== remote.hash) {
+                  console.warn('DESYNC at frame ' + syncFrame +
+                    ': local=' + localHash + ' remote=' + remote.hash);
+                  if (remote.state && !Network.getIsHost()) {
+                    deserializeGameState(remote.state);
+                  } else if (Network.getIsHost() && !remote.state) {
+                    Network.send({ type: 'state_sync', frame: syncFrame, state: serializeGameState() });
+                  }
+                }
+              }
+            }
+            
+            syncFrame++;
+          } else {
+            // Waiting for remote input — give back time and stop
+            accumulator += FRAME_TIME;
+            break;
+          }
+        } else {
+          // ---- SINGLE PLAYER ----
+          if (koSlowmoTimer > 0) {
+            koSlowmoTimer--;
+            if (koSlowmoTimer % 2 === 0) continue; // half speed
+          }
+          updateMatch();
         }
-        updateMatch();
       }
     }
     
@@ -3600,6 +3789,7 @@ const Game = (() => {
         Audio.menuSelect();
         if (myCharConfirmed) return;
         selectedChars[0] = i;
+        myCharId = i;  // track locally in case remote overwrites selectedChars
         grid.querySelectorAll('.char-card').forEach(cc => cc.classList.remove('selected'));
         card.classList.add('selected');
       };
@@ -3637,14 +3827,18 @@ const Game = (() => {
     myCharConfirmed = true;
     
     if (mode === 'multi') {
-      Network.send({ type: 'char_select', character_id: selectedChars[0] });
+      Network.send({ type: 'char_select', character_id: myCharId });
       document.getElementById('charSelectStatus').textContent = remoteCharConfirmed ? 'Both confirmed!' : 'Waiting for opponent...';
       if (remoteCharConfirmed) {
         setTimeout(() => {
           gameState = 'stageSelect';
           showScreen('stageSelectScreen');
+          document.getElementById('stageGrid').style.display = '';
+          document.getElementById('stageConfirmBtn').style.display = '';
+          document.getElementById('stageSelectScreen').querySelector('.game-title').textContent = 'Choose a Stage';
           if (!Network.getIsHost()) {
             document.getElementById('stageConfirmBtn').style.display = 'none';
+            document.getElementById('stageGrid').style.display = 'none';
             document.getElementById('stageSelectScreen').querySelector('.game-title').textContent = 'Host is choosing stage...';
           }
         }, 500);
@@ -3698,6 +3892,17 @@ const Game = (() => {
   
   // ---- MATCH ----
   function startMatch() {
+    // Assemble character selections for multiplayer
+    if (mode === 'multi') {
+      if (Network.getIsHost()) {
+        selectedChars[0] = myCharId;
+        selectedChars[1] = remoteCharId;
+      } else {
+        selectedChars[0] = remoteCharId;
+        selectedChars[1] = myCharId;
+      }
+    }
+    
     stage = STAGES[selectedStage];
     players = [
       new Player(0, CHARACTERS[selectedChars[0]], stage.spawns[0]),
@@ -3724,50 +3929,110 @@ const Game = (() => {
     if (Input.isMobileDevice()) document.getElementById('touchControls').style.display = 'block';
     
     updateHUD();
-    
-    // Countdown
-    countdownPhase = 0;
-    countdownTimer = 180; // 3 seconds
-    document.getElementById('matchStartOverlay').classList.add('active');
-    document.getElementById('matchStartText').textContent = '3';
     Audio.matchStart();
     Music.play(stage.id);
     
-    const countdownInterval = setInterval(() => {
-      countdownPhase++;
-      if (countdownPhase === 1) document.getElementById('matchStartText').textContent = '2';
-      else if (countdownPhase === 2) document.getElementById('matchStartText').textContent = '1';
-      else if (countdownPhase === 3) {
-        document.getElementById('matchStartText').textContent = 'GO!';
-        matchActive = true;
+    if (mode === 'multi') {
+      // Lockstep: initialize sync state
+      syncFrame = 0;
+      localInputBuffer = {};
+      pendingSyncChecks = {};
+      Network.clearInputBuffer();
+      
+      // Pre-send INPUT_DELAY frames of idle input
+      const idle = { lx: 0, ly: 0, a: false, b: false, jump: false, shield: false, grab: false };
+      for (let i = 0; i < NET_INPUT_DELAY; i++) {
+        localInputBuffer[i] = idle;
+        Network.sendFrameInput(i, idle);
       }
-      else {
-        document.getElementById('matchStartOverlay').classList.remove('active');
-        clearInterval(countdownInterval);
-      }
-    }, 600);
+      
+      // Frame-based countdown (180 frames = 3 sec at 60fps)
+      multiCountdown = 180;
+      matchActive = true; // start lockstep immediately (countdown runs inside it)
+      document.getElementById('matchStartOverlay').classList.add('active');
+      document.getElementById('matchStartText').textContent = '3';
+    } else {
+      // Single player: timer-based countdown
+      countdownPhase = 0;
+      countdownTimer = 180;
+      document.getElementById('matchStartOverlay').classList.add('active');
+      document.getElementById('matchStartText').textContent = '3';
+      
+      const countdownInterval = setInterval(() => {
+        countdownPhase++;
+        if (countdownPhase === 1) document.getElementById('matchStartText').textContent = '2';
+        else if (countdownPhase === 2) document.getElementById('matchStartText').textContent = '1';
+        else if (countdownPhase === 3) {
+          document.getElementById('matchStartText').textContent = 'GO!';
+          matchActive = true;
+        }
+        else {
+          document.getElementById('matchStartOverlay').classList.remove('active');
+          clearInterval(countdownInterval);
+        }
+      }, 600);
+    }
+  }
+  
+  // ---- LOCKSTEP CHECKSUM & STATE SYNC ----
+  function computeChecksum() {
+    let h = 0;
+    for (const p of players) {
+      h = (h * 31 + Math.round(p.x * 100)) | 0;
+      h = (h * 31 + Math.round(p.y * 100)) | 0;
+      h = (h * 31 + Math.round(p.vx * 100)) | 0;
+      h = (h * 31 + Math.round(p.vy * 100)) | 0;
+      h = (h * 31 + Math.round(p.damage * 10)) | 0;
+      h = (h * 31 + p.stocks) | 0;
+      h = (h * 31 + p.hitstunFrames) | 0;
+    }
+    return h;
+  }
+  
+  function serializeGameState() {
+    return {
+      players: players.map(p => p.serialize()),
+      projectiles: Projectiles.getAll().map(p => ({
+        owner: p.owner, x: p.x, y: p.y, vx: p.vx, vy: p.vy,
+        dmg: p.dmg, baseKB: p.baseKB, kbGrowth: p.kbGrowth,
+        angle: p.angle, life: p.life, maxLife: p.maxLife, w: p.w, h: p.h
+      })),
+      mines: Mines.getAll().map(m => ({
+        owner: m.owner, x: m.x, y: m.y, dmg: m.dmg,
+        baseKB: m.baseKB, kbGrowth: m.kbGrowth, angle: m.angle,
+        age: m.age, life: m.life
+      })),
+      matchFrame,
+      koSlowmoTimer
+    };
+  }
+  
+  function deserializeGameState(state) {
+    for (let i = 0; i < players.length; i++) {
+      players[i].deserialize(state.players[i], players);
+    }
+    Projectiles.setAll(state.projectiles);
+    Mines.setAll(state.mines);
+    matchFrame = state.matchFrame;
+    koSlowmoTimer = state.koSlowmoTimer;
+    console.log('State resync applied at frame ' + syncFrame);
   }
   
   // ---- MATCH UPDATE ----
-  function updateMatch() {
+  function updateMatch(p1In, p2In) {
     matchFrame++;
     
-    const inp = Input.getState();
     let p1Input, p2Input;
     
-    if (mode === 'single') {
+    if (p1In !== undefined) {
+      // Lockstep: inputs provided by caller
+      p1Input = p1In;
+      p2Input = p2In;
+    } else {
+      // Single player: read local input + AI
+      const inp = Input.getState();
       p1Input = inp;
       p2Input = AI.getInput(players[1], players[0], stage);
-    } else {
-      if (Network.getIsHost()) {
-        p1Input = inp;
-        p2Input = Network.getRemoteInput();
-        Network.send({ type: 'input', input: inp });
-      } else {
-        p1Input = Network.getRemoteInput();
-        p2Input = inp;
-        Network.send({ type: 'input', input: inp });
-      }
     }
     
     updatePlayer(players[0], p1Input, players[1]);
@@ -3962,6 +4227,27 @@ const Game = (() => {
           // Armor frames
           if (m.armor) {
             p.armorFrames = m.armor.end - m.armor.start;
+          }
+          // Projectile spawn (deterministic — replaces old setTimeout)
+          if (m.projectile) {
+            const scatter = m.scatter || 1;
+            const spread = m.scatterSpread || 0;
+            for (let si = 0; si < scatter; si++) {
+              const spreadAngle = scatter > 1 ? ((si / (scatter - 1)) - 0.5) * spread : 0;
+              const ang = ((m.projAngle || 0) + spreadAngle) * Math.PI / 180;
+              const pvx = Math.cos(ang) * (m.projSpeed || 8) * p.facing;
+              const pvy = Math.sin(ang) * (m.projSpeed || 8);
+              Projectiles.spawn(p.index, p.x + p.facing * 30, p.y - p.char.hurtbox.h * 0.5,
+                pvx, pvy, m.dmg, m.baseKB, m.kbGrowth, m.angle, m.projLife || 90);
+            }
+            Audio.projectileFire();
+          }
+          // Up-B impulse (deterministic — replaces old setTimeout)
+          if (m.recovery_move && m.impulse) {
+            p.vy = m.impulse.vy;
+            p.vx += m.impulse.vx * p.facing;
+            p.usedUpB = true;
+            p.grounded = false;
           }
         } else if (p.attackPhase === 'active' && p.attackFrame >= (m.active || 0)) {
           p.attackPhase = 'recovery';
@@ -4465,38 +4751,8 @@ const Game = (() => {
     player.attackPhase = 'startup';
     player.attackFrame = 0;
     
-    // Schedule projectile spawn
-    if (player.currentMove.projectile) {
-      const m = player.currentMove;
-      const scatter = m.scatter || 1;
-      const spread = m.scatterSpread || 0;
-      setTimeout(() => {
-        if (player.attackPhase === 'active' || player.attackPhase === 'recovery') {
-          for (let si = 0; si < scatter; si++) {
-            const spreadAngle = scatter > 1 ? ((si / (scatter - 1)) - 0.5) * spread : 0;
-            const angle = ((m.projAngle || 0) + spreadAngle) * Math.PI / 180;
-            const vx = Math.cos(angle) * (m.projSpeed || 8) * player.facing;
-            const vy = Math.sin(angle) * (m.projSpeed || 8);
-            Projectiles.spawn(player.index, player.x + player.facing * 30, player.y - player.char.hurtbox.h * 0.5,
-              vx, vy, m.dmg, m.baseKB, m.kbGrowth, m.angle, m.projLife || 90);
-          }
-          Audio.projectileFire();
-        }
-      }, (player.currentMove.startup || 0) * FRAME_TIME);
-    }
-    
-    // Up-B impulse (recovery move)
-    if (moveDef.recovery_move && moveDef.impulse) {
-      const imp = moveDef.impulse;
-      setTimeout(() => {
-        if (player.attackPhase === 'active') {
-          player.vy = imp.vy;
-          player.vx += imp.vx * player.facing;
-          player.usedUpB = true;
-          player.grounded = false;
-        }
-      }, (player.currentMove.startup || 0) * FRAME_TIME);
-    }
+    // NOTE: Projectile spawn and Up-B impulse are handled deterministically
+    // at the startup→active phase transition in updatePlayer, NOT via setTimeout.
     
     // Motion line VFX
     let vfxAngle = player.facing > 0 ? 0 : Math.PI;
@@ -5051,6 +5307,10 @@ const Game = (() => {
       const img = CharRenderer.drawChar(players[winner].char.id, 'idle', 0, 1, winW, 180);
       wctx.drawImage(img, (200 - winW) / 2, 10);
       
+      // Reset buttons (may have been hidden by disconnect)
+      document.getElementById('rematchBtn').style.display = '';
+      document.getElementById('quitBtn').textContent = 'Quit';
+      
       showScreen('resultsScreen');
     }, 2000);
   }
@@ -5065,11 +5325,32 @@ const Game = (() => {
     myCharConfirmed = false;
     remoteCharConfirmed = false;
     showScreen('charSelectScreen');
+    document.getElementById('charSelectStatus').textContent = mode === 'multi' ? 'Both players must confirm' : '';
+  }
+  
+  function onDisconnect() {
+    matchActive = false;
+    Music.play('menu');
+    Network.disconnect();
+    document.getElementById('touchControls').style.display = 'none';
+    document.getElementById('hud').classList.remove('visible');
+    document.getElementById('muteBtn').style.display = 'none';
+    // Show results screen with disconnect message
+    document.getElementById('winnerText').textContent = 'Opponent disconnected';
+    const wc = document.getElementById('winnerCanvas');
+    wc.getContext('2d').clearRect(0, 0, 200, 200);
+    document.getElementById('rematchBtn').style.display = 'none';
+    document.getElementById('quitBtn').textContent = 'Return to Menu';
+    showScreen('resultsScreen');
+    gameState = 'results';
   }
   
   function quit() {
     Audio.menuSelect();
     Music.play('menu');
+    if (mode === 'multi') {
+      Network.send({ type: 'opponent_quit' });
+    }
     Network.disconnect();
     showScreen('titleScreen');
     gameState = 'title';
@@ -5364,26 +5645,42 @@ const Game = (() => {
     if (data.type === 'char_select') {
       remoteCharConfirmed = true;
       remoteCharId = data.character_id;
-      if (Network.getIsHost()) {
-        selectedChars[1] = remoteCharId;
-      } else {
-        selectedChars[0] = remoteCharId;
-      }
       document.getElementById('charSelectStatus').textContent = 'Opponent confirmed!';
       if (myCharConfirmed) {
         setTimeout(() => {
           gameState = 'stageSelect';
           showScreen('stageSelectScreen');
+          document.getElementById('stageGrid').style.display = '';
+          document.getElementById('stageConfirmBtn').style.display = '';
+          document.getElementById('stageSelectScreen').querySelector('.game-title').textContent = 'Choose a Stage';
           if (!Network.getIsHost()) {
             document.getElementById('stageConfirmBtn').style.display = 'none';
+            document.getElementById('stageGrid').style.display = 'none';
+            document.getElementById('stageSelectScreen').querySelector('.game-title').textContent = 'Host is choosing stage...';
           }
         }, 500);
       }
     } else if (data.type === 'stage_select') {
       selectedStage = data.stage_id;
       startMatch();
+    } else if (data.type === 'sync_check') {
+      // Buffer — will be compared at the correct frame inside lockstep loop
+      pendingSyncChecks[data.frame] = { hash: data.hash, state: data.state || null };
+    } else if (data.type === 'state_sync') {
+      if (!Network.getIsHost()) {
+        deserializeGameState(data.state);
+      }
     } else if (data.type === 'rematch') {
-      rematch();
+      // Remote requested rematch — go to char select WITHOUT re-sending
+      Audio.menuConfirm();
+      Music.play('menu');
+      gameState = 'charSelect';
+      myCharConfirmed = false;
+      remoteCharConfirmed = false;
+      showScreen('charSelectScreen');
+      document.getElementById('charSelectStatus').textContent = 'Both players must confirm';
+    } else if (data.type === 'opponent_quit') {
+      onDisconnect();
     }
   }
   
