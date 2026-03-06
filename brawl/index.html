@@ -3584,6 +3584,8 @@ const Game = (() => {
   let localInputBuffer = {};
   let multiCountdown = 0;  // frame-based countdown for multiplayer
   let pendingSyncChecks = {};  // frame -> { hash, state? }
+  let netStallFrames = 0;
+  const NET_STALL_TIMEOUT = 180;  // 3 seconds at 60fps
   
   function init() {
     canvas = document.getElementById('gameCanvas');
@@ -3651,6 +3653,7 @@ const Game = (() => {
           
           // Can we simulate this frame?
           if (localInputBuffer[syncFrame] && Network.hasInputForFrame(syncFrame)) {
+            netStallFrames = 0;  // reset stall counter
             const localInp = localInputBuffer[syncFrame];
             const remoteInp = Network.getInputForFrame(syncFrame);
             delete localInputBuffer[syncFrame];
@@ -3718,6 +3721,12 @@ const Game = (() => {
             syncFrame++;
           } else {
             // Waiting for remote input — give back time and stop
+            netStallFrames++;
+            if (netStallFrames >= NET_STALL_TIMEOUT) {
+              console.warn('Net stall timeout — treating as disconnect');
+              onDisconnect();
+              break;
+            }
             accumulator += FRAME_TIME;
             break;
           }
@@ -3937,6 +3946,7 @@ const Game = (() => {
       syncFrame = 0;
       localInputBuffer = {};
       pendingSyncChecks = {};
+      netStallFrames = 0;
       Network.clearInputBuffer();
       
       // Pre-send INPUT_DELAY frames of idle input
