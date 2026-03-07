@@ -397,6 +397,7 @@ const SHIELD_BREAK_STUN = 180;
 const SHIELD_DROP_LAG = 8;
 const GRAB_RANGE = 60;
 const GRAB_HOLD_FRAMES = 30;
+const THROW_STARTUP = 10;
 const GRAB_WHIFF_LAG = 30;
 const THROW_BASE_KB = 6;
 const THROW_KB_GROWTH = 0.06;
@@ -469,9 +470,9 @@ const CHARACTERS = [
       // --- Grab & Throws ---
       grab: { startup: 4, active: 5, recovery: 20, range: 75 },
       throwF: { dmg: 6, baseKB: 5, kbGrowth: 0.05, angle: 30 },
-      throwB: { dmg: 7, baseKB: 5.5, kbGrowth: 0.06, angle: 145 },
+      throwB: { dmg: 7, baseKB: 5.5, kbGrowth: 0.06, angle: 35 },
       throwU: { dmg: 5, baseKB: 5, kbGrowth: 0.06, angle: 85 },
-      throwD: { dmg: 6, baseKB: 2, kbGrowth: 0.03, angle: 70 }
+      throwD: { dmg: 6, baseKB: 2, kbGrowth: 0.03, angle: 50 }
     }
   },
   {
@@ -502,9 +503,9 @@ const CHARACTERS = [
       // --- Grab & Throws ---
       grab: { startup: 5, active: 5, recovery: 22, range: 70 },
       throwF: { dmg: 7, baseKB: 5.5, kbGrowth: 0.06, angle: 30 },
-      throwB: { dmg: 8, baseKB: 6, kbGrowth: 0.07, angle: 140 },
+      throwB: { dmg: 8, baseKB: 6, kbGrowth: 0.07, angle: 35 },
       throwU: { dmg: 6, baseKB: 5, kbGrowth: 0.06, angle: 88 },
-      throwD: { dmg: 7, baseKB: 2.5, kbGrowth: 0.04, angle: 75 }
+      throwD: { dmg: 7, baseKB: 2.5, kbGrowth: 0.04, angle: 50 }
     }
   },
   {
@@ -532,9 +533,9 @@ const CHARACTERS = [
       // --- Grab & Throws ---
       grab: { startup: 5, active: 5, recovery: 22, range: 65 },
       throwF: { dmg: 5, baseKB: 7, kbGrowth: 0.06, angle: 30 },
-      throwB: { dmg: 6, baseKB: 7.5, kbGrowth: 0.07, angle: 145 },
+      throwB: { dmg: 6, baseKB: 7.5, kbGrowth: 0.07, angle: 35 },
       throwU: { dmg: 4, baseKB: 6, kbGrowth: 0.06, angle: 80 },
-      throwD: { dmg: 5, baseKB: 2, kbGrowth: 0.03, angle: 65 }
+      throwD: { dmg: 5, baseKB: 2, kbGrowth: 0.03, angle: 45 }
     }
   }
 ];
@@ -893,13 +894,16 @@ const CharRenderer = (() => {
     const moveKey = (extraData && extraData.moveKey) || '';
     const isHelpless = (extraData && extraData.isHelpless) || false;
     const isHolding = (extraData && extraData.isHolding) || false;
+    const throwKey = (extraData && extraData.throwKey) || null;
+    const throwProg = (extraData && extraData.throwProgress) || 0;
     // Quantize continuous values to reduce unique keys
     const qAtk = (atkProg * 10 | 0); // 0-10 steps instead of 0-1000
     const qSq = (squash * 10 | 0);
     const qSt = (stretch * 10 | 0);
     const qClimb = (climbProg * 5 | 0);
     const qSway = (hangSway * 5 | 0);
-    const key = `${charId}_${state}_${frame}_${facing}_${w}_${h}_${qSq}_${qSt}_${qAtk}_${atkPhase}_${moveKey}_${qClimb}_${qSway}_${isHelpless?1:0}_${isHolding?1:0}`;
+    const qThrow = (throwProg * 5 | 0);
+    const key = `${charId}_${state}_${frame}_${facing}_${w}_${h}_${qSq}_${qSt}_${qAtk}_${atkPhase}_${moveKey}_${qClimb}_${qSway}_${isHelpless?1:0}_${isHolding?1:0}_${throwKey||'n'}_${qThrow}`;
     
     if (cache.has(key)) {
       const val = cache.get(key);
@@ -930,7 +934,7 @@ const CharRenderer = (() => {
     ctx.lineJoin = 'round';
     ctx.fillStyle = CHAR_FILL;
     
-    const extra = { climbProg, hangSway, moveKey, isHelpless, isHolding };
+    const extra = { climbProg, hangSway, moveKey, isHelpless, isHolding, throwKey, throwProg };
     if (charId === 'scrapper') drawScrapper(ctx, cx, cy, s, state, frame, atkProg, atkPhase, extra);
     else if (charId === 'blade') drawBlade(ctx, cx, cy, s, state, frame, atkProg, atkPhase, extra);
     else if (charId === 'bolt') drawBolt(ctx, cx, cy, s, state, frame, atkProg, atkPhase, extra);
@@ -1160,12 +1164,37 @@ const CharRenderer = (() => {
       rArmAngle = Math.PI / 2 - 0.6;
     } else if (state === 'grab') {
       if (extra && extra.isHolding) {
-        // Grab hold: arms close, gripping
-        lArmAngle = Math.PI / 2 - 0.6;
-        rArmAngle = Math.PI / 2 - 0.6;
-        rArmLen = armLen * 1.0;
-        lArmLen = armLen * 1.0;
-        bodyTopY += 2 * s; // slight crouch
+        if (extra.throwKey) {
+          // Throw windup animation
+          const tp = extra.throwProg || 0;
+          if (extra.throwKey === 'throwU') {
+            lArmAngle = Math.PI / 2 - 0.6 - tp * 1.8;  // swing up
+            rArmAngle = Math.PI / 2 - 0.6 - tp * 1.8;
+            bodyTopY -= tp * 4 * s;
+          } else if (extra.throwKey === 'throwD') {
+            lArmAngle = Math.PI / 2 - 0.6 - tp * 0.8;  // lift up before slam
+            rArmAngle = Math.PI / 2 - 0.6 - tp * 0.8;
+            bodyTopY -= tp * 3 * s;
+          } else if (extra.throwKey === 'throwB') {
+            lArmAngle = Math.PI / 2 - 0.6 + tp * 1.2;  // swing behind
+            rArmAngle = Math.PI / 2 - 0.6 + tp * 1.2;
+            lArmLen = armLen * (1.0 + tp * 0.3);
+            rArmLen = armLen * (1.0 + tp * 0.3);
+          } else {
+            // throwF: push forward
+            lArmAngle = Math.PI / 2 - 0.6 - tp * 0.6;
+            rArmAngle = Math.PI / 2 - 0.6 - tp * 0.6;
+            lArmLen = armLen * (1.0 + tp * 0.3);
+            rArmLen = armLen * (1.0 + tp * 0.3);
+          }
+        } else {
+          // Grab hold: arms close, gripping
+          lArmAngle = Math.PI / 2 - 0.6;
+          rArmAngle = Math.PI / 2 - 0.6;
+          rArmLen = armLen * 1.0;
+          lArmLen = armLen * 1.0;
+          bodyTopY += 2 * s;
+        }
       } else {
         // Grab attempt: arms reaching
         lArmAngle = Math.PI / 2 - 1.0;
@@ -1428,10 +1457,27 @@ const CharRenderer = (() => {
       lArmAngle = Math.PI / 2 - 0.5;
     } else if (state === 'grab') {
       if (extra && extra.isHolding) {
-        // Holding: sword behind back, free hand gripping close
-        swordAngle = 2.0; rArmAngle = 1.3;
-        lArmAngle = Math.PI / 2 - 0.4;
-        bodyTopY += 2 * s;
+        if (extra.throwKey) {
+          const tp = extra.throwProg || 0;
+          swordAngle = 2.0; rArmAngle = 1.3; // sword stays behind
+          if (extra.throwKey === 'throwU') {
+            lArmAngle = Math.PI / 2 - 0.4 - tp * 1.8;
+            bodyTopY -= tp * 4 * s;
+          } else if (extra.throwKey === 'throwD') {
+            lArmAngle = Math.PI / 2 - 0.4 - tp * 0.8;
+            bodyTopY -= tp * 3 * s;
+          } else if (extra.throwKey === 'throwB') {
+            lArmAngle = Math.PI / 2 - 0.4 + tp * 1.2;
+          } else {
+            lArmAngle = Math.PI / 2 - 0.4 - tp * 0.6;
+            lArmLen = armLen * (1.0 + tp * 0.3);
+          }
+        } else {
+          // Holding: sword behind back, free hand gripping close
+          swordAngle = 2.0; rArmAngle = 1.3;
+          lArmAngle = Math.PI / 2 - 0.4;
+          bodyTopY += 2 * s;
+        }
       } else {
         // Reaching: sword tucked, arm reaching
         swordAngle = 1.5; rArmAngle = 1.0;
@@ -1696,11 +1742,34 @@ const CharRenderer = (() => {
       rArmAngle = Math.PI / 2 - 0.6;
     } else if (state === 'grab') {
       if (extra && extra.isHolding) {
-        // Holding: arms close, gripping opponent
-        lArmAngle = Math.PI / 2 - 0.5;
-        rArmAngle = Math.PI / 2 - 0.5;
-        rArmLen = armLen * 0.9;
-        bodyTopY += 2 * s;
+        if (extra.throwKey) {
+          const tp = extra.throwProg || 0;
+          if (extra.throwKey === 'throwU') {
+            lArmAngle = Math.PI / 2 - 0.5 - tp * 1.8;
+            rArmAngle = Math.PI / 2 - 0.5 - tp * 1.8;
+            bodyTopY -= tp * 4 * s;
+          } else if (extra.throwKey === 'throwD') {
+            lArmAngle = Math.PI / 2 - 0.5 - tp * 0.8;
+            rArmAngle = Math.PI / 2 - 0.5 - tp * 0.8;
+            bodyTopY -= tp * 3 * s;
+          } else if (extra.throwKey === 'throwB') {
+            lArmAngle = Math.PI / 2 - 0.5 + tp * 1.2;
+            rArmAngle = Math.PI / 2 - 0.5 + tp * 1.2;
+            lArmLen = armLen * (0.9 + tp * 0.3);
+            rArmLen = armLen * (0.9 + tp * 0.3);
+          } else {
+            lArmAngle = Math.PI / 2 - 0.5 - tp * 0.6;
+            rArmAngle = Math.PI / 2 - 0.5 - tp * 0.6;
+            lArmLen = armLen * (0.9 + tp * 0.3);
+            rArmLen = armLen * (0.9 + tp * 0.3);
+          }
+        } else {
+          // Holding: arms close, gripping opponent
+          lArmAngle = Math.PI / 2 - 0.5;
+          rArmAngle = Math.PI / 2 - 0.5;
+          rArmLen = armLen * 0.9;
+          bodyTopY += 2 * s;
+        }
       } else {
         // Reaching: arms extended
         lArmAngle = Math.PI / 2 - 0.9;
@@ -2272,6 +2341,8 @@ class Player {
     this.currentMove = null;
     this.grabTarget = null;
     this.grabTimer = 0;
+    this.throwKey = null;
+    this.throwFrame = 0;
     this.ledgeSide = null;
     this.ledgeClimbFrame = 0;
     this.ledgeHangTimer = 0;
@@ -2320,6 +2391,7 @@ class Player {
       comboHit: this.comboHit, currentMoveKey: this.currentMoveKey,
       grabTargetIdx: this.grabTarget ? this.grabTarget.index : -1,
       grabTimer: this.grabTimer,
+      throwKey: this.throwKey, throwFrame: this.throwFrame,
       ledgeSide: this.ledgeSide, ledgeClimbFrame: this.ledgeClimbFrame,
       ledgeHangTimer: this.ledgeHangTimer, ledgeRegrabTimer: this.ledgeRegrabTimer,
       ledgeSettleTimer: this.ledgeSettleTimer, ledgeX: this.ledgeX, ledgeY: this.ledgeY,
@@ -2347,6 +2419,8 @@ class Player {
     this.currentMove = d.currentMoveKey ? this.char.moves[d.currentMoveKey] : null;
     this.grabTarget = d.grabTargetIdx >= 0 ? allPlayers[d.grabTargetIdx] : null;
     this.grabTimer = d.grabTimer;
+    this.throwKey = d.throwKey || null;
+    this.throwFrame = d.throwFrame || 0;
     this.ledgeSide = d.ledgeSide; this.ledgeClimbFrame = d.ledgeClimbFrame;
     this.ledgeHangTimer = d.ledgeHangTimer; this.ledgeRegrabTimer = d.ledgeRegrabTimer;
     this.ledgeSettleTimer = d.ledgeSettleTimer; this.ledgeX = d.ledgeX; this.ledgeY = d.ledgeY;
@@ -2398,6 +2472,8 @@ class Player {
     this.armorFrames = 0;
     this.grabTarget = null;
     this.grabTimer = 0;
+    this.throwKey = null;
+    this.throwFrame = 0;
     this.ledgeSide = null;
     this.ledgeHangTimer = 0;
     this.ledgeRegrabTimer = 0;
@@ -2433,6 +2509,8 @@ class Player {
     this.counterActive = 0;
     this.armorFrames = 0;
     this.grabTarget = null;
+    this.throwKey = null;
+    this.throwFrame = 0;
     this.ledgeSide = null;
     this.ledgeHangTimer = 0;
     this.ledgeRegrabTimer = 0;
@@ -4352,16 +4430,73 @@ const Game = (() => {
     
     // Grab hold / throw
     if (p.state === 'grabHold') {
-      p.grabTimer--;
       p.vx = 0; // Grabber stays planted
       
       if (p.grabTarget) {
+        const t = p.grabTarget;
+        
+        // ---- THROW IN PROGRESS (startup animation) ----
+        if (p.throwKey) {
+          p.throwFrame++;
+          
+          // Position target based on throw direction during windup
+          const prog = Math.min(p.throwFrame / THROW_STARTUP, 1);
+          if (p.throwKey === 'throwU') {
+            t.x = p.x + p.facing * (38 - prog * 15);
+            t.y = p.y - prog * 30;
+          } else if (p.throwKey === 'throwD') {
+            t.x = p.x + p.facing * (38 - prog * 10);
+            t.y = p.y - prog * 5;  // slight lift before slamming down
+          } else if (p.throwKey === 'throwB') {
+            t.x = p.x + p.facing * (38 - prog * 50);
+            t.y = p.y - prog * 10;
+          } else {
+            // throwF
+            t.x = p.x + p.facing * (38 + prog * 15);
+            t.y = p.y - prog * 10;
+          }
+          t.vx = 0; t.vy = 0;
+          
+          // Execute launch when startup completes
+          if (p.throwFrame >= THROW_STARTUP) {
+            const throwData = c.moves[p.throwKey] || c.moves.throwF;
+            t.damage += throwData.dmg;
+            const kb = calcKnockback(throwData.baseKB, throwData.kbGrowth, t.damage, t.char.weight);
+            const throwAngle = throwData.angle * Math.PI / 180;
+            const throwDir = p.throwKey === 'throwB' ? -p.facing : p.facing;
+            t.vx = throwDir * kb * Math.cos(throwAngle);
+            t.vy = -kb * Math.sin(throwAngle);
+            t.hitstunFrames = calcHitstun(kb, throwData.dmg);
+            t.diWindow = t.hitstunFrames - 1;
+            t.state = 'hitstun';
+            t.grounded = false;
+            p.throwKey = null;
+            p.throwFrame = 0;
+            p.grabTarget = null;
+            p.state = 'idle';
+            Audio.throwSfx();
+            VFX.add('hit', t.x, t.y - t.char.hurtbox.h / 2);
+            VFX.addShake(5);
+            VFX.setSquash(t.index, 0.7, 1.3);
+            const launchAngle = Math.atan2(t.vy, t.vx);
+            for (let sl = 0; sl < 4; sl++) {
+              VFX.add('speedLine', t.x, t.y - t.char.hurtbox.h / 2, {
+                angle: launchAngle + Math.PI, len: 25 + Math.random() * 20,
+                offsetY: (Math.random() - 0.5) * 25, duration: 12
+              });
+            }
+          }
+          return;
+        }
+        
+        // ---- HOLDING (no throw initiated yet) ----
+        p.grabTimer--;
+        
         // Position target in front, with struggle shake
         const shakeAmt = 2 + Math.sin(p.grabTimer * 0.8) * 3;
-        p.grabTarget.x = p.x + p.facing * 38 + (Math.random() - 0.5) * shakeAmt;
-        p.grabTarget.y = p.y + (Math.random() - 0.5) * shakeAmt * 0.5;
-        p.grabTarget.vx = 0;
-        p.grabTarget.vy = 0;
+        t.x = p.x + p.facing * 38 + (Math.random() - 0.5) * shakeAmt;
+        t.y = p.y + (Math.random() - 0.5) * shakeAmt * 0.5;
+        t.vx = 0; t.vy = 0;
         
         // Periodic struggle dust
         if (p.grabTimer % 6 === 0) {
@@ -4369,7 +4504,7 @@ const Game = (() => {
             p.y - 15, { vx: (Math.random()-0.5)*2, vy: -1 - Math.random()*2, size: 3 + Math.random()*3, duration: 12 });
         }
         
-        // Determine if player wants to throw (press A, B, or strong direction)
+        // Determine if player wants to throw
         let wantsThrow = input.a || input.b;
         let throwKey = 'throwF'; // default forward
         if (input.ly < -0.5) { throwKey = 'throwU'; wantsThrow = true; }
@@ -4381,49 +4516,23 @@ const Game = (() => {
         
         // Timer expired = opponent breaks free (no throw)
         if (p.grabTimer <= 0 && !wantsThrow) {
-          const t = p.grabTarget;
           t.state = 'idle';
-          t.vx = -p.facing * 3; // push away slightly
+          t.vx = -p.facing * 3;
           p.grabTarget = null;
           p.state = 'idle';
-          // Small break-free VFX
           VFX.add('dustPuff', p.x + p.facing * 20, p.y - 20, { vx: -p.facing * 2, vy: -2, size: 5, duration: 10 });
           Audio.grabBreakFree();
           return;
         }
         
-        // Execute throw on input (or auto-throw if timer just expired while holding direction)
+        // Initiate throw (enters startup, committed — can't cancel)
         if (wantsThrow || p.grabTimer <= 0) {
-          const throwData = c.moves[throwKey] || c.moves.throwF;
-          const t = p.grabTarget;
-          t.damage += throwData.dmg;
-          const kb = calcKnockback(throwData.baseKB, throwData.kbGrowth, t.damage, t.char.weight);
-          const throwAngle = throwData.angle * Math.PI / 180;
-          const throwDir = throwKey === 'throwB' ? -p.facing : p.facing;
-          t.vx = throwDir * kb * Math.cos(throwAngle);
-          t.vy = -kb * Math.sin(throwAngle);
-          t.hitstunFrames = calcHitstun(kb, throwData.dmg);
-          t.diWindow = t.hitstunFrames - 1;
-          t.state = 'hitstun';
-          t.grounded = false;
-          p.grabTarget = null;
-          p.state = 'idle';
-          Audio.throwSfx();
-          VFX.add('hit', t.x, t.y - t.char.hurtbox.h / 2);
-          VFX.addShake(5);
-          VFX.setSquash(t.index, 0.7, 1.3);
-          // Throw speed lines
-          const launchAngle = Math.atan2(t.vy, t.vx);
-          for (let sl = 0; sl < 4; sl++) {
-            VFX.add('speedLine', t.x, t.y - t.char.hurtbox.h / 2, {
-              angle: launchAngle + Math.PI, len: 25 + Math.random() * 20,
-              offsetY: (Math.random() - 0.5) * 25, duration: 12
-            });
-          }
+          p.throwKey = throwKey;
+          p.throwFrame = 0;
         }
       } else {
         // Lost grab target somehow
-        if (p.grabTimer <= 0) p.state = 'idle';
+        if (p.grabTimer <= 0) { p.state = 'idle'; p.throwKey = null; p.throwFrame = 0; }
       }
       return;
     }
@@ -5468,7 +5577,9 @@ const Game = (() => {
         ledgeClimbProgress: p.state === 'ledgeClimb' ? p.ledgeClimbFrame / LEDGE_CLIMB_UP_FRAMES : 0,
         ledgeHangSway: p.state === 'ledgeHang' ? Math.sin((LEDGE_HANG_MAX - p.ledgeHangTimer) * 0.06) : 0,
         isHelpless: p.state === 'helpless',
-        isHolding: p.state === 'grabHold'
+        isHolding: p.state === 'grabHold',
+        throwKey: p.throwKey || null,
+        throwProgress: p.throwKey ? Math.min(p.throwFrame / THROW_STARTUP, 1) : 0
       });
       
       const drawX = p.x - charW / 2;
