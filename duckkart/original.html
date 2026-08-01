@@ -1486,44 +1486,6 @@ const SFX={ctx:null,on:true,eng:null,engG:null,filt:null,
   }
 };
 
-const MUSIC = {
-  tracks: {},
-  current: null,
-  on: true,
-  inited: false,
-  init() {
-    if (this.inited) return;
-    ['menu', 'lido', 'promenade', 'boardwalk', 'results'].forEach(t => {
-      this.tracks[t] = new Audio(t + '.mp3');
-      this.tracks[t].loop = true;
-      this.tracks[t].volume = 0.15; // Kept quiet relative to SFX
-    });
-    this.inited = true;
-  },
-  play(id) {
-    this.init();
-    // Prevent duplicate plays if the track is already active
-    if (this.current === this.tracks[id]) {
-      if (this.on && this.current.paused) this.current.play().catch(()=>{});
-      return;
-    }
-    
-    // Pause the old track and transition
-    if (this.current) this.current.pause();
-    this.current = this.tracks[id];
-    
-    if (this.current && this.on) {
-      this.current.currentTime = 0;
-      this.current.play().catch(()=>{}); // Safely swallow autoplay errors
-    }
-  },
-  setMute(isMuted) {
-    this.on = !isMuted;
-    if (isMuted && this.current) this.current.pause();
-    else if (!isMuted && this.current) this.current.play().catch(()=>{});
-  }
-};
-
 /* =============================== NETWORK ================================= */
 /* Host-authoritative star topology over WebRTC (PeerJS).
    Clients predict locally and replay inputs when the host corrects them. */
@@ -1766,12 +1728,6 @@ const UI={screen:'s-title',soloChar:'classic',soloCourse:'lido',cpus:3,portraits
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));
   UI.screen=id;$('hud').classList.toggle('on',id==='none');
-
-  if (['s-title', 's-solo', 's-name', 's-lobby', 's-wait'].includes(id)) {
-    if (typeof MUSIC !== 'undefined') MUSIC.play('menu');
-  } else if (id === 's-results') {
-    if (typeof MUSIC !== 'undefined') MUSIC.play('results');
-  }
 }
 let toastT=0;
 function toast(msg){
@@ -1937,8 +1893,6 @@ function stopRace(){
   W.karts=[];W.objs=[];W.meKart=null;disposeScene();
 }
 function beginRace(courseId,karts,cd){
-  if (typeof MUSIC !== 'undefined') MUSIC.play(courseId);
-
   W.karts=karts;W.laps=LAPS;W.finishAt=0;W.events.length=0;W.objs=[];W.objId=1;
   W.rng=mulberry(Date.now()&0xffff);
   buildScene(CO(courseId));
@@ -2000,8 +1954,6 @@ function initInput(){
   const up=()=>{IN.active=false;IN.target=0;};
   c.addEventListener('touchstart',e=>{
     SFX.init();SFX.resume();
-    if (typeof MUSIC !== 'undefined' && MUSIC.current && MUSIC.current.paused && MUSIC.on) MUSIC.current.play().catch(()=>{});
-    
     if(UI.screen!=='none')return;
     const t=e.changedTouches[0];down(t.clientX,t.clientY,t.identifier);
   },{passive:true});
@@ -2012,11 +1964,7 @@ function initInput(){
     for(const t of e.changedTouches)if(t.identifier===IN.id)up();
   },{passive:true});
   c.addEventListener('touchcancel',up,{passive:true});
-  c.addEventListener('mousedown',e=>{
-    SFX.init();SFX.resume();
-    if (typeof MUSIC !== 'undefined' && MUSIC.current && MUSIC.current.paused && MUSIC.on) MUSIC.current.play().catch(()=>{});
-    down(e.clientX,e.clientY,'m');
-  });
+  c.addEventListener('mousedown',e=>{SFX.init();SFX.resume();down(e.clientX,e.clientY,'m');});
   addEventListener('mousemove',e=>move(e.clientX));
   addEventListener('mouseup',up);
   addEventListener('keydown',e=>{
@@ -2226,15 +2174,7 @@ function wire(){
   $('codeIn').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');});
   // mute
   const mb=el('button','mut','🔊');mb.style.pointerEvents='auto';
-  mb.onclick=e=>{
-    e.stopPropagation();
-    SFX.on=!SFX.on;
-    mb.textContent=SFX.on?'🔊':'🔇';
-    if(!SFX.on)SFX.engineAt(0,false);
-    
-    // Toggle music volume alongside sound effects
-    if (typeof MUSIC !== 'undefined') MUSIC.setMute(!SFX.on);
-  };
+  mb.onclick=e=>{e.stopPropagation();SFX.on=!SFX.on;mb.textContent=SFX.on?'🔊':'🔇';if(!SFX.on)SFX.engineAt(0,false);};
   document.querySelectorAll('.screen').forEach(s=>{});
   $('hud').appendChild(mb);
   mb.style.top='calc(var(--safeT) + 172px)';mb.style.right='38px';
