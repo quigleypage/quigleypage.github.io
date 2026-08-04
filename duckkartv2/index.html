@@ -604,6 +604,8 @@ const MT_TIME=[0,.60,1.20,2.10], MT_DUR=[0,.70,1.15,1.80], MT_POW=[1,1.22,1.38,1
    to buy back — the whole one-input loop hangs off this. Drifting scrubs less
    than hard steering does, so the fast line through a corner is to drift it. */
 const CORNER_SCRUB=.30, DRIFT_SCRUB=.88;
+/* How far a projectile must get from its thrower before it can hit them. */
+const ARM_DIST=11;
 const SNAP_HZ=20, INTERP_MS=110;
 /* Rendering / feel tuning.
    The three lights used to sum to ~1.65 irradiance against Lambert, which
@@ -1102,24 +1104,26 @@ function buildTrack(course){
    reuse an existing prop palette without touching buildWorldMeshes. */
 const THEME={
   lido:{sky:'skyDay',fog:0xBFE3F0,fogN:120,fogF:520,road:'tile',roadRep:8,apron:0x2E9BC4,deck:0xF0EFE6,
-        base:0xE9E6DA,rail:0xFFFFFF,ocean:true,amb:.62,sun:0xFFF3D6,sunI:.85,props:'lido'},
+        base:0xE9E6DA,rail:0xFFFFFF,ocean:true,amb:.62,sun:0xFFF3D6,sunI:.85,props:'lido',
+        waterBase:0x11577D,waterTint:0xEAF6FF},
   prom:{sky:'skyIn',fog:0x2C4257,fogN:60,fogF:300,road:'carpet',roadRep:10,apron:0xC9B896,deck:0xEDE3CE,
         base:0x3A3128,rail:0xC9A227,ocean:false,amb:.75,sun:0xFFE7C0,sunI:.5,props:'prom',fxScale:.7,
         clouds:false,sunR:0},
   board:{sky:'skyDusk',fog:0xE0A07A,fogN:110,fogF:480,road:'plank',roadRep:9,apron:0x8C6239,deck:0xB98A55,
         base:0x6E4B26,rail:0xF4F1EA,ocean:true,amb:.6,sun:0xFFC07A,sunI:.9,props:'board',
-        cloudA:.30,sunDisc:0xFFB070,sunR:30},
+        cloudA:.30,sunDisc:0xFFB070,sunR:30,waterBase:0x123F5A,waterTint:0xFFD6AE},
   sundeck:{sky:'skyGold',fog:0xF3C892,fogN:130,fogF:560,road:'tile',roadRep:8,apron:0x1F7FA8,deck:0xF6ECD8,
         base:0xEDDFC2,rail:0xFFF3DC,ocean:true,amb:.58,sun:0xFFC178,sunI:.95,props:'lido',
         gnd:0x6B5340,skirt:0xE7D3AE,rib:0xF0DFC0,cabin:0xFFF0D8,
-        cloudA:.34,sunDisc:0xFFC178,sunR:34},
+        cloudA:.34,sunDisc:0xFFC178,sunR:34,waterBase:0x14506E,waterTint:0xFFE2BC},
   /* A night course still has to be readable: dropping the lights alone put 91%
      of the frame under luma 40. The road carries its own light instead, so the
      neon lines read as emissive while the deck stays dark. */
   neon:{sky:'skyNight',fog:0x271C55,fogN:110,fogF:520,road:'neon',roadRep:9,apron:0x37276B,deck:0x3A2F72,
         base:0x241B52,rail:0x53E4FF,ocean:true,amb:.60,sun:0xC5A0FF,sunI:.52,props:'lido',
         gnd:0x241858,skirt:0x3B3070,rib:0x4E3F8C,cabin:0x4C4090,fxScale:.55,glowRoad:.55,
-        cloudA:.13,sunDisc:0xCFC0FF,sunR:18,bloom:1.5,bloomT:.52}
+        cloudA:.13,sunDisc:0xCFC0FF,sunR:18,bloom:1.5,bloomT:.52,
+        waterBase:0x0E1038,waterTint:0xBFA8FF}
 };
 /* Scenery colours used to be hardcoded light beige, which made the night and
    golden-hour themes look like daytime assets dropped into a dark scene. */
@@ -1469,16 +1473,15 @@ function buildWorldMeshes(scene,T,course){
   const gp=new THREE.Mesh(new THREE.PlaneGeometry(span,span),
       MAT({color:LC(th.base)},'deck'));
   gp.rotation.x=-Math.PI/2;gp.position.set((bb.minx+bb.maxx)/2,baseY-.4,(bb.minz+bb.maxz)/2);
-  gp.receiveShadow=true;scene.add(gp);out.objs.push(gp);
+  gp.receiveShadow=true;scene.add(gp);out.objs.push(gp);out.groundPlate=gp;
   if(th.ocean){ // hull sides so the deck plate does not float
     const hull=new THREE.Mesh(new THREE.BoxGeometry(span*.98,26,span*.98),
       MAT({color:LC(0x14324A)},'deck'));
     hull.position.set(gp.position.x,baseY-13.6,gp.position.z);scene.add(hull);out.objs.push(hull);
+    out.hull=hull;
   }
   if(th.ocean){
-    const om=new THREE.Mesh(new THREE.PlaneGeometry(4000,4000),
-      MAT({map:TEX.water,normalMap:TEX.waterN,normalScale:new THREE.Vector2(.9,.9),
-           emissive:LC(th.sunDisc||0xFFF3D6),emissiveIntensity:.05},'water'));
+    const om=new THREE.Mesh(new THREE.PlaneGeometry(4000,4000),makeWaterMaterial(th));
     om.rotation.x=-Math.PI/2;om.position.y=baseY-9;scene.add(om);out.objs.push(om);out.ocean=om;
   }
   // sky
@@ -1850,7 +1853,8 @@ function useItem(k){
   else if(it===2){
     const sp=k.spd+34;
     const a=aimAssist(k,.50,80,sp);         // wide-ish cone with lead, not a lock-on
-    W.objs.push({id:W.objId++,ty:2,own:k.id,x:k.x+Math.sin(a)*3.2,y:k.y+1,z:k.z+Math.cos(a)*3.2,
+    W.objs.push({id:W.objId++,ty:2,own:k.id,armed:false,
+      x:k.x+Math.sin(a)*3.2,y:k.y+1,z:k.z+Math.cos(a)*3.2,
       vx:Math.sin(a)*sp,vz:Math.cos(a)*sp,life:3.6});
     pushEv(4,k.id,2);
   }else if(it===3){
@@ -1861,8 +1865,13 @@ function useItem(k){
     // seeks whoever is one place ahead; falls back to a straight shot if leading
     let tgt=-1;
     for(const o of W.karts) if(!o.fin&&o.place===k.place-1){tgt=o.id;break;}
-    W.objs.push({id:W.objId++,ty:4,own:k.id,tgt,x:k.x+Math.sin(k.yaw)*3.4,y:k.y+1,z:k.z+Math.cos(k.yaw)*3.4,
-      vx:Math.sin(k.yaw)*46,vz:Math.cos(k.yaw)*46,life:6.5});
+    /* Speed has to be relative to the thrower. At a fixed 46 it was slower
+       than a boosting kart (which reaches ~74), so it could never escape and
+       ended up travelling inside its own owner. */
+    const dsp=Math.max(56,k.spd+26);
+    W.objs.push({id:W.objId++,ty:4,own:k.id,tgt,armed:false,
+      x:k.x+Math.sin(k.yaw)*3.4,y:k.y+1,z:k.z+Math.cos(k.yaw)*3.4,
+      vx:Math.sin(k.yaw)*dsp,vz:Math.cos(k.yaw)*dsp,life:6.5});
     pushEv(4,k.id,4);
   }else if(it===5){
     // trails behind and absorbs one hit
@@ -1928,7 +1937,11 @@ function stepItems(dt,T){
       let head=Math.atan2(o.vx,o.vz);
       if(tk&&!tk.fin){
         const want=Math.atan2(tk.x-o.x,tk.z-o.z);
-        head=lerpAng(head,want,Math.min(1,3.4*dt));
+        /* Give up rather than U-turn. If the target ends up behind it — which
+           happens when positions swap right after launch — a homing item that
+           doubles back just flies into its own thrower, which feels terrible. */
+        if(Math.abs(angDiff(want,head))>1.25) o.tgt=-1;
+        else head=lerpAng(head,want,Math.min(1,3.4*dt));
       }
       const s0=T.sample(o.x,o.z,_s2);
       if(Math.abs(s0.off)>T.hw*.92){          // pulled back toward the racing line
@@ -1945,11 +1958,25 @@ function stepItems(dt,T){
       else{o.x=ow.x-Math.sin(ow.yaw)*3.4;o.z=ow.z-Math.cos(ow.yaw)*3.4;o.y=ow.y+.7;}
     }
     if(o.life<=0){o.dead=true;continue;}
+    // arm once clear of the thrower; after that it is fair game for everyone
+    if((o.ty===2||o.ty===4)&&!o.armed){
+      const ow=W.karts[o.own];
+      if(!ow)o.armed=true;
+      else{
+        const ax=o.x-ow.x,az=o.z-ow.z;
+        if(ax*ax+az*az>ARM_DIST*ARM_DIST)o.armed=true;
+      }
+    }
     if(o.ty===5)continue;                      // shields are absorbed, not collided
     for(let j=0;j<n;j++){
       const k=W.karts[j];
       if(k.spT>0||k.fin)continue;
-      if((o.ty===2||o.ty===4)&&o.own===k.id&&o.life>(o.ty===4?6.1:3.2))continue;
+      /* Owner immunity used to be a flat 0.4s window, which assumed the
+         projectile had left by then. It only holds if the projectile is
+         faster than you — a slow or U-turning one just sat on its thrower.
+         Now it must physically separate before it can ever hit the owner,
+         which also covers wall bounces and homing turn-backs. */
+      if((o.ty===2||o.ty===4)&&o.own===k.id&&!o.armed)continue;
       const dx=k.x-o.x,dz=k.z-o.z;
       /* These were being compared as `dist2 < r`, i.e. against an UNSQUARED
          radius — the ball's true hit radius was sqrt(7.5) = 2.74m against a
@@ -2163,17 +2190,39 @@ function bloomInit(){
           s+=texture2D(tex,vUv+3.*t).rgb*.0918;
           s+=texture2D(tex,vUv+4.*t).rgb*.051;
           gl_FragColor=vec4(s,1.);}`});
-    // final pass owns tone mapping + sRGB so the pipeline stays correct
+    /* Final pass owns tone mapping and sRGB, and now also the radial speed blur
+       and the per-course grade. Doing both here costs one extra pass of
+       nothing — the composite already had to read every pixel.
+       The blur taps collapse onto the same texel when rblur is 0, so there is
+       no branch and no cost difference between moving and stationary. */
     BLOOM.mComp=new THREE.ShaderMaterial({
       uniforms:{base:{value:null},blur:{value:null},amt:{value:BLOOM.strength},
-                exposure:{value:EXPOSURE}},
+                exposure:{value:EXPOSURE},rblur:{value:0},
+                contrast:{value:1},sat:{value:1},
+                lift:{value:new THREE.Vector3(0,0,0)},
+                gain:{value:new THREE.Vector3(1,1,1)}},
       vertexShader:_bloomVert,
       fragmentShader:`uniform sampler2D base;uniform sampler2D blur;
-        uniform float amt;uniform float exposure;varying vec2 vUv;
+        uniform float amt;uniform float exposure;uniform float rblur;
+        uniform float contrast;uniform float sat;uniform vec3 lift;uniform vec3 gain;
+        varying vec2 vUv;
         vec3 toSRGB(vec3 c){return mix(c*12.92,1.055*pow(max(c,vec3(1e-5)),vec3(1./2.4))-.055,step(.0031308,c));}
         void main(){
-          vec3 c=texture2D(base,vUv).rgb+texture2D(blur,vUv).rgb*amt;
-          c=clamp(c*exposure,0.,1.);
+          vec2 dir=vUv-vec2(0.5);
+          vec3 c=vec3(0.0);
+          for(int i=0;i<6;i++){
+            float t=float(i)/5.0;
+            c+=texture2D(base,vUv-dir*rblur*t).rgb;
+          }
+          c/=6.0;
+          c+=texture2D(blur,vUv).rgb*amt;
+          c*=exposure;
+          // grade: contrast about mid grey, then saturation, then lift/gain
+          c=(c-0.5)*contrast+0.5+lift;
+          float l=dot(c,vec3(0.2126,0.7152,0.0722));
+          c=mix(vec3(l),c,sat);
+          c*=gain;
+          c=clamp(c,0.0,1.0);
           gl_FragColor=vec4(toSRGB(c),1.);}`});
     BLOOM.quad=new THREE.Mesh(g,BLOOM.mComp);
     BLOOM.quad.frustumCulled=false;
@@ -2197,6 +2246,11 @@ function bloomResize(w,h){
 }
 function renderWithBloom(scene,cam){
   const r=W.ren;
+  if(W.world&&W.world.ocean&&W.world.ocean.material.uniforms){
+    const u=W.world.ocean.material.uniforms;
+    u.time.value=now()*0.001;
+    if(u.envMap&&!u.envMap.value)u.envMap.value=W.envMap;
+  }
   if(!BLOOM.ok||!BLOOM.on||W.quality===0){       // low-spec path: straight to screen
     r.toneMapping=THREE.LinearToneMapping;r.outputEncoding=THREE.sRGBEncoding;
     r.setRenderTarget(null);r.render(scene,cam);return;
@@ -2226,8 +2280,68 @@ function renderWithBloom(scene,cam){
   BLOOM.mComp.uniforms.blur.value=BLOOM.rtA.texture;
   BLOOM.mComp.uniforms.amt.value=BLOOM.strength;
   BLOOM.mComp.uniforms.exposure.value=EXPOSURE;
+  BLOOM.mComp.uniforms.rblur.value=BLOOM.rblur||0;
+  const G=BLOOM.grade||GRADE_DEF;
+  BLOOM.mComp.uniforms.contrast.value=G.contrast;
+  BLOOM.mComp.uniforms.sat.value=G.sat;
+  BLOOM.mComp.uniforms.lift.value.set(G.lift[0],G.lift[1],G.lift[2]);
+  BLOOM.mComp.uniforms.gain.value.set(G.gain[0],G.gain[1],G.gain[2]);
   BLOOM.quad.material=BLOOM.mComp;
   r.setRenderTarget(null);r.render(BLOOM.scene,BLOOM.cam);
+}
+/* ============================== WATER ===================================
+   Reflections come from the procedural sky cube, not a planar render.
+   Measured during real play, water covers only 1.4-2.9% of the frame on
+   average (peaking at 9-13%) because the deck plate hides it until the
+   horizon — a full extra scene pass for that is a bad trade, and at that
+   distance what the sea reflects is overwhelmingly sky anyway. Sampling the
+   env cube is effectively free and is correct at every angle, with none of
+   the screen-space artefacts a planar pass brings.
+======================================================================= */
+function makeWaterMaterial(th){
+  const uni=THREE.UniformsUtils.merge([THREE.UniformsLib.fog,{
+    base:{value:new THREE.Color()},tint:{value:new THREE.Color()},
+    time:{value:0},strength:{value:.78},distort:{value:.22}}]);
+  uni.tNorm={value:TEX.waterN};
+  uni.envMap={value:W.envMap||null};
+  const m=new THREE.ShaderMaterial({
+    uniforms:uni,fog:true,
+    vertexShader:`
+      varying vec2 vUvW; varying vec3 vWorld;
+      #include <fog_pars_vertex>
+      void main(){
+        vUvW=uv*44.0;
+        vec4 wp=modelMatrix*vec4(position,1.0);
+        vWorld=wp.xyz;
+        vec4 mvPosition=viewMatrix*wp;
+        gl_Position=projectionMatrix*mvPosition;
+        #include <fog_vertex>
+      }`,
+    fragmentShader:`
+      uniform samplerCube envMap; uniform sampler2D tNorm;
+      uniform vec3 base; uniform vec3 tint;
+      uniform float time; uniform float strength; uniform float distort;
+      varying vec2 vUvW; varying vec3 vWorld;
+      #include <fog_pars_fragment>
+      void main(){
+        // two normal fields scrolling against each other reads as moving swell
+        vec3 n1=texture2D(tNorm,vUvW+vec2(time*0.013,time*0.007)).rgb*2.0-1.0;
+        vec3 n2=texture2D(tNorm,vUvW*0.7-vec2(time*0.009,time*0.011)).rgb*2.0-1.0;
+        vec3 N=normalize(vec3((n1.x+n2.x)*distort,1.0,(n1.y+n2.y)*distort));
+        vec3 V=normalize(cameraPosition-vWorld);
+        vec3 R=reflect(-V,N);
+        vec3 refl=textureCube(envMap,R).rgb;
+        float f=pow(1.0-clamp(dot(V,N),0.0,1.0),3.0);   // grazing angles reflect most
+        vec3 c=mix(base,refl*tint,clamp(f*strength+0.05,0.0,1.0));
+        // a sharp specular glint so the sun actually sits on the water
+        float g=pow(max(dot(R,normalize(vec3(60.0,120.0,40.0))),0.0),140.0);
+        c+=tint*g*0.9;
+        gl_FragColor=vec4(c,1.0);
+        #include <fog_fragment>
+      }`});
+  m.uniforms.base.value.copy(LC(th.waterBase||0x11577D));
+  m.uniforms.tint.value.copy(LC(th.waterTint||0xFFFFFF));
+  return m;
 }
 function initRenderer(){
   W.ren=new THREE.WebGLRenderer({canvas:$('gl'),antialias:devicePixelRatio<2,powerPreference:'high-performance'});
@@ -2269,6 +2383,7 @@ function buildScene(course){
   // the neon course is built out of emissives, so it earns a stronger glow
   BLOOM.strength=th.bloom==null?.85:th.bloom;
   BLOOM.threshold=th.bloomT==null?.72:th.bloomT;
+  BLOOM.grade=GRADES[course.theme]||GRADE_DEF;
   sc.fog=new THREE.Fog(LC(th.fog),th.fogN,th.fogF*(W.quality?1:.72));
   sc.add(new THREE.HemisphereLight(0xFFFFFF,LC(THC(th,'gnd')),th.amb*LIGHT_SCALE.hemi));
   const dl=new THREE.DirectionalLight(LC(th.sun),th.sunI*LIGHT_SCALE.sun);
@@ -2522,7 +2637,7 @@ function rippleFlags(t){
   }
   P.needsUpdate=true;C.needsUpdate=true;
 }
-const _sh={};
+const _sh={},_ws={},_wp=new THREE.Vector3();
 /* Drape the shadow decal over the track. Local offsets are rotated into world
    using the same basis as the kart body, then each vertex takes its height
    from the same track sampler the road mesh was built from — so the clearance
@@ -2551,9 +2666,16 @@ function renderWorld(dt){
   for(const k of W.karts){
     if(!k.obj)continue;
     const s=T.sample(k.vx,k.vz,_sv);
-    const roll=Math.asin(clamp(-s.ry,-1,1))*1+ (k.dr?-k.dr*.16:0) - clamp(k.inp.steer,-1,1)*.04;
+    /* Split surface alignment from cosmetic lean. The drift/steer lean used to
+       be rolled into the whole kart, wheels included — at 0.16rad across a
+       1.2m half-track that lifts the outer wheels ~0.19m clear of the road.
+       Real karts lean the body over planted wheels, so that is what happens
+       now: the group tracks the surface, the body carries the lean. */
+    const surfRoll=Math.asin(clamp(-s.ry,-1,1));
+    const leanTarget=(k.dr?-k.dr*.16:0)-clamp(k.inp.steer,-1,1)*.04;
     const pitch=-Math.asin(clamp(s.fy,-1,1));
-    k.vroll=lerp(k.vroll||0,roll,smooth(dt,10));
+    k.vroll=lerp(k.vroll||0,surfRoll,smooth(dt,10));
+    k.vlean=lerp(k.vlean||0,leanTarget,smooth(dt,9));
     const o=k.obj;
     // sit the wheels a hair INTO the road surface so they always read as
     // touching; the old +.06 left a 4cm gap above the ribbon
@@ -2575,15 +2697,24 @@ function renderWorld(dt){
       wl.rotation.x-=ws;
       if(i<2)wl.rotation.y=lerp(wl.rotation.y,-steer*.45,smooth(dt,14));
       const load=(i<2? k._susp*.9 : k._susp*.5)+ (i<2?0:Math.abs(steer)*.02);
-      wl.position.y=wl.userData.restY-load*.13+bob;
+      /* Follow the ground per wheel. A rigid kart pinned to a single centre
+         sample lifts its ends over any crest or camber change; sampling under
+         each wheel keeps all four planted. Smoothed and clamped so a stray
+         sample can never launch one. */
+      wl.getWorldPosition(_wp);
+      const roadY=T.sample(_wp.x,_wp.z,_ws).y+ROAD_YOFF;
+      const want=clamp(roadY-(_wp.y-wl.userData.restY),-.34,.34);
+      wl.userData.adj=lerp(wl.userData.adj||0,want,smooth(dt,16));
+      wl.position.y=wl.userData.restY-load*.13+bob+wl.userData.adj;
     }
     ud.body.rotation.x=lerp(ud.body.rotation.x,k._susp*.055,smooth(dt,12));
+    ud.body.rotation.z=k.vlean;            // cosmetic lean lives on the body now
     ud.body.position.y=-k._susp*.05;
     /* Driver animation — only possible now the duck is its own object. */
     if(ud.duck){
       const dk=ud.duck, hd=dk.userData.head;
       const lean=-steer*.17-(k.dr?k.dr*.12:0);
-      dk.rotation.z=lerp(dk.rotation.z,lean,smooth(dt,9));
+      dk.rotation.z=lerp(dk.rotation.z,lean+k.vlean,smooth(dt,9));
       dk.rotation.x=lerp(dk.rotation.x,-spdF*.09+k._susp*.18,smooth(dt,7));
       hd.rotation.y=lerp(hd.rotation.y,-steer*.55,smooth(dt,8));   // look through the corner
       hd.rotation.z=lerp(hd.rotation.z,steer*.10,smooth(dt,8));
@@ -2726,7 +2857,9 @@ function renderWorld(dt){
     for(const s of W.world.spin) s.obj.rotation.z+=s.rate*dt;
   if(W.world&&W.world.clouds) W.world.clouds.rotation.y+=dt*.0035;
   if(W.world&&W.world.flags) rippleFlags(now()*.001);
-  if(W.world&&W.world.ocean){
+  // only the fallback Phong water scrolls a map; the reflective shader
+  // animates from its own `time` uniform instead
+  if(W.world&&W.world.ocean&&W.world.ocean.material.map){
     const t=now()*.00004;W.world.ocean.material.map.offset.set(t,t*.6);
   }
 }
@@ -2793,6 +2926,8 @@ function updateCamera(dt,k,instant){
   // drive the DOM speed overlays (only touch style when it actually moves)
   const fs=W.fxScale==null?1:W.fxScale;
   const vig=clamp((spdF-.62)/.65,0,1)*.60*fs, bst=clamp(b,0,1)*.55*fs;
+  // radial blur reads speed in the image itself, not just the HUD overlay
+  BLOOM.rblur=clamp((spdF-.90)/.42,0,1)*.020+b*.018;
   if(Math.abs((V.fxS||0)-vig)>.01){const e=$('speedfx');if(e)e.style.opacity=vig;V.fxS=vig;}
   if(Math.abs((V.fxB||0)-bst)>.01){const e=$('boostfx');if(e)e.style.opacity=bst;V.fxB=bst;}
 }
@@ -3036,6 +3171,18 @@ const SFX={
       if(s>.7){this.duck(.55,420);if(typeof MUSIC!=='undefined')MUSIC.duck(.45,650);}}
     else if(t===8)this.chord([523,659,784,1046],.3,.14,pan,s);
   }
+};
+/* Per-course colour grade. Same scene, different film stock — this is what
+   gives each course an identity beyond its palette. */
+const GRADE_DEF={contrast:1.00,sat:1.00,lift:[0,0,0],gain:[1,1,1]};
+const GRADES={
+  lido:    {contrast:1.06,sat:1.12,lift:[ .000, .002, .008],gain:[1.00,1.01,1.05]},
+  sundeck: {contrast:1.09,sat:1.16,lift:[ .012, .004,-.006],gain:[1.09,1.00,0.91]},
+  prom:    {contrast:1.12,sat:1.08,lift:[ .010, .004,-.002],gain:[1.06,1.00,0.95]},
+  board:   {contrast:1.09,sat:1.10,lift:[ .012, .002,-.006],gain:[1.09,0.99,0.91]},
+  // a night course has little headroom below mid grey: heavy contrast plus a
+  // negative lift crushed 81% of the frame under luma 40
+  neon:    {contrast:1.05,sat:1.18,lift:[ .016, .012, .028],gain:[1.02,0.97,1.12]}
 };
 /* Reverb amount per environment. Indoor courses are much wetter. */
 const SPACE={lido:.09,sundeck:.09,board:.12,neon:.17,prom:.30};
