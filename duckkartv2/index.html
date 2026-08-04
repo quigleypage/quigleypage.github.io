@@ -34,7 +34,12 @@ button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer
   padding:calc(var(--safeT) + 14px) 16px calc(var(--safeB) + 16px);
   background:radial-gradient(120% 80% at 50% -10%, #17608C 0%, #0A2E49 46%, #061A2A 100%);
   overflow:hidden;}
-.screen.on{display:flex;}
+.screen.on{display:flex;animation:screenIn .26s cubic-bezier(.2,.8,.3,1) both;}
+@keyframes screenIn{from{opacity:0;transform:translateY(10px) scale(.995)}
+                    to{opacity:1;transform:none}}
+/* the title carries a live 3D scene, so it must not fade its own backdrop */
+#s-title.on{animation:titleIn .45s ease-out both;}
+@keyframes titleIn{from{opacity:0}to{opacity:1}}
 .screen::after{content:"";position:absolute;inset:0;pointer-events:none;
   background:repeating-linear-gradient(180deg,rgba(255,255,255,.035) 0 2px,transparent 2px 5px);opacity:.5;}
 .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;}
@@ -68,8 +73,30 @@ input.field{width:100%;font-family:var(--disp);font-weight:800;font-size:20px;co
 input.field:focus{border-color:var(--pool);}
 input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-family:var(--mono);font-size:26px;}
 
-/* ---------- title ---------- */
-#s-title{justify-content:flex-end;}
+/* ---------- title ----------
+   Portrait-first: the live attract race fills the tall middle, with scrims top
+   and bottom so the wordmark and buttons stay legible over whatever is on
+   screen. The panel is transparent rather than the usual opaque gradient. */
+#s-title{justify-content:flex-end;background:none;}
+#s-title::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(180deg, rgba(4,16,26,.90) 0%, rgba(4,16,26,.55) 18%, rgba(4,16,26,0) 38%),
+    linear-gradient(0deg,  rgba(4,16,26,.94) 0%, rgba(4,16,26,.72) 20%, rgba(4,16,26,0) 46%);}
+#s-title::after{opacity:.22;}
+#s-title>*{position:relative;z-index:2;}
+/* the strip between wordmark and buttons is deliberately left clear */
+.attract-tag{display:flex;align-items:center;gap:7px;align-self:flex-start;
+  margin-bottom:10px;padding:5px 10px;border-radius:20px;
+  background:rgba(4,22,31,.55);border:1px solid var(--line);
+  font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  font-family:var(--disp);color:var(--cream);opacity:.85;}
+.attract-tag i{width:6px;height:6px;border-radius:50%;background:var(--coral);
+  display:block;animation:livedot 1.6s ease-in-out infinite;}
+@keyframes livedot{0%,100%{opacity:1}50%{opacity:.25}}
+@media (min-height:700px){
+  #s-title .brandmark{padding-top:9vh;}
+  #s-title .title-actions{padding-bottom:2vh;}
+}
 .brandmark{position:relative;z-index:1;margin-bottom:auto;padding-top:6vh;}
 .ring{width:66px;height:66px;border-radius:50%;border:11px solid var(--coral);position:relative;margin-bottom:18px;
   background:conic-gradient(var(--cream) 0 25%, var(--coral) 0 50%, var(--cream) 0 75%, var(--coral) 0);
@@ -96,6 +123,9 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
 .avatar{height:112px;border-radius:14px;margin-bottom:10px;position:relative;overflow:hidden;
   background:linear-gradient(180deg,#8FE3F5,#DFF7FF);}
 .avatar canvas{position:absolute;inset:0;width:100%;height:100%;}
+/* Live 3D preview canvas, parked in whichever card is selected. */
+.avatar canvas.live{position:absolute;inset:0;width:100%;height:100%;z-index:2;}
+.card.sel .avatar img{opacity:0;}
 .cname{font-family:var(--disp);font-weight:900;font-size:19px;line-height:1.05;margin:0;}
 .ctag{font-size:11.5px;opacity:.66;margin:2px 0 10px;}
 .stat{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
@@ -141,7 +171,8 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
 .plate .v{font-size:22px;font-weight:900;line-height:1.05;}
 .plate .v small{font-size:12px;opacity:.6;font-weight:800;}
 .pos .v{color:var(--sun);}
-#minimap{position:absolute;left:12px;top:calc(var(--safeT) + 74px);width:82px;height:82px;opacity:.92;}
+#minimap{position:absolute;left:12px;top:calc(var(--safeT) + 74px);width:104px;height:104px;opacity:.96;
+  filter:drop-shadow(0 3px 8px rgba(0,0,0,.45));}
 #itemBtn{position:absolute;right:12px;top:calc(var(--safeT) + 74px);width:88px;height:88px;border-radius:50%;
   pointer-events:auto;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,rgba(255,246,231,.2),rgba(6,26,42,.55));
   border:4px solid rgba(255,246,231,.28);transition:transform .1s;}
@@ -260,7 +291,7 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
     <div class="plate" style="margin-left:auto"><span class="k">Time</span><span class="v" id="hTime" style="font-size:18px">0:00</span></div>
   </div>
   <div class="sync" id="hSync"><i></i><span id="hSyncT">0 ms</span></div>
-  <canvas id="minimap" width="164" height="164"></canvas>
+  <canvas id="minimap" width="208" height="208"></canvas>
   <button id="itemBtn" aria-label="Use item"><span class="glyph" id="itemGlyph"></span></button>
   <div id="steerbar"><b></b></div>
   <div class="hint" id="hHint">Hold and drag anywhere to steer</div>
@@ -279,9 +310,9 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
     <p class="eyebrow">Oasis-class · Deck 15</p>
     <h1 class="title">Duck Kart<em>Deck Party</em></h1>
     <p class="sub" style="max-width:280px">Six rubber ducks. One very large ship. Drag to steer, hold the turn to drift.</p>
-    <div class="deckline">All aboard</div>
   </div>
   <div class="title-actions stack">
+    <div class="attract-tag"><i></i><span id="attractName">Sunset Helideck</span></div>
     <button class="btn go" id="bSolo">Race the crew <span>🦆</span></button>
     <button class="btn tealo" id="bHost">Host a room</button>
     <button class="btn" id="bJoin">Join with a code</button>
@@ -1128,13 +1159,33 @@ function texRibbon(T,a,b,yoff,repV){
 }
 /* ---- props ---- */
 function pPalm(mb,x,y,z,s,rng){
-  const h=6+rng()*3;
-  for(let i=0;i<5;i++)mb.add(G_CYL,M4(x+Math.sin(i)*.15*s,y+(i*h/5+h/10)*s,z,0,0,.05,.5*s,(h/5)*s,.5*s),0x8B6A3F);
-  for(let i=0;i<7;i++){
-    const a=i/7*TAU;
-    mb.add(G_BOX,M4(x+Math.cos(a)*2.1*s,y+h*s+.2,z+Math.sin(a)*2.1*s,-.25,-a,.32,.55*s,.16*s,4.2*s),i%2?0x2E8B57:0x3FA46A);
+  /* Was seven flat boxes radiating like a propeller. Now a leaning trunk with
+     ring segments and drooping two-part fronds, which reads as a palm from the
+     low chase camera instead of a fan. */
+  const h=6+rng()*3, lean=(rng()-.5)*.30;
+  const segs=6;
+  for(let i=0;i<segs;i++){
+    const t=i/segs, ty=y+(t*h+h/(segs*2))*s;
+    const tx=x+Math.sin(t*1.6)*lean*h*s*.42;
+    mb.add(G_CYL,M4(tx,ty,z,0,0,lean*t,(.58-t*.16)*s,(h/segs)*s*1.04,(.58-t*.16)*s),
+      i%2?0x8B6A3F:0x7C5D36);
   }
-  mb.add(G_SPH_LO,M4(x,y+h*s-.3,z,0,0,0,.8*s),0x9C7A45);
+  const topx=x+Math.sin(1.6)*lean*h*s*.42, topy=y+h*s;
+  const F=8;
+  for(let i=0;i<F;i++){
+    const a=i/F*TAU+rng()*.2, droop=.30+rng()*.34;
+    const col=i%2?0x2E8B57:0x3FA46A;
+    // inner half lifts away from the trunk, outer half falls
+    mb.add(G_BOX,M4(topx+Math.cos(a)*1.15*s, topy+.34*s, z+Math.sin(a)*1.15*s,
+      -.16,-a,.30,.52*s,.15*s,2.5*s),col);
+    mb.add(G_BOX,M4(topx+Math.cos(a)*3.1*s, topy+.34*s-droop*1.5*s, z+Math.sin(a)*3.1*s,
+      droop,-a,.24,.40*s,.13*s,2.6*s),col);
+  }
+  mb.add(G_SPH_LO,M4(topx,topy-.15*s,z,0,0,0,.78*s),0x9C7A45);
+  for(let i=0;i<3;i++){                                   // coconuts
+    const a=i/3*TAU;
+    mb.add(G_SPH_LO,M4(topx+Math.cos(a)*.62*s,topy-.42*s,z+Math.sin(a)*.62*s,0,0,0,.26*s),0x6B4E2A);
+  }
 }
 function pChair(mb,x,y,z,rot,col){
   mb.add(G_BOX,M4(x,y+.35,z,0,rot,0,1.1,.12,2.0),col);
@@ -1216,16 +1267,43 @@ function pCrate(mb,x,y,z,rot){
   mb.add(G_BOX,M4(x,y+1.62,z,0,rot,0,1.9,.16,1.9),0x8C6239);
 }
 function pCabins(mb,T,course,baseY){
-  // outer superstructure so the deck reads as a ship
+  /* The superstructure is the largest visual mass in every frame. It used to be
+     30 identical grey boxes, which read as placeholder. Now: varied block
+     heights and depths, a stepped roofline, balcony rails, and rows of window
+     panes — lit on the night course, dark elsewhere. Still one merged mesh. */
   const th=THEME[course.theme];
   const b=T.bounds,cx=(b.minx+b.maxx)/2,cz=(b.minz+b.maxz)/2;
   const R=Math.max(b.maxx-b.minx,b.maxz-b.minz)*.5+34;
-  const cab=THC(th,'cabin');
-  for(let i=0;i<30;i++){
-    const a=i/30*TAU, x=cx+Math.cos(a)*R, z=cz+Math.sin(a)*R;
-    const h=12+((i*7)%5)*3;
-    mb.add(G_BOX,M4(x,baseY+h/2,z,0,-a,0,16,h,10),cab);
-    for(let k=0;k<3;k++)mb.add(G_BOX,M4(x-Math.cos(a)*5.2,baseY+3+k*3.2,z-Math.sin(a)*5.2,0,-a,0,14,.4,1.2),0x2B3A46);
+  const cab=THC(th,'cabin'), rib=THC(th,'rib');
+  const night=!!th.glowRoad;
+  const litA=night?0xFFE7A8:0x9FC4D8, litB=night?0x8FD8F0:0x7FA8BE;
+  const rng=mulberry(course.id.length*104729+7);
+  const N=34;
+  for(let i=0;i<N;i++){
+    const a=i/N*TAU, x=cx+Math.cos(a)*R, z=cz+Math.sin(a)*R;
+    const tall=(i%5===0), h=(tall?20:11)+Math.floor(rng()*4)*2.4;
+    const wdt=13+rng()*5, dep=9+rng()*3;
+    const ox=-Math.cos(a), oz=-Math.sin(a);          // inward-facing normal
+    mb.add(G_BOX,M4(x,baseY+h/2,z,0,-a,0,wdt,h,dep),cab);
+    // stepped roof cap
+    mb.add(G_BOX,M4(x,baseY+h+.7,z,0,-a,0,wdt*.86,1.4,dep*.86),rib);
+    if(tall)mb.add(G_BOX,M4(x,baseY+h+3.4,z,0,-a,0,wdt*.4,4.2,dep*.4),cab);
+    // balcony rails + window rows on the inward face
+    const rows=Math.max(2,Math.floor(h/3.4));
+    for(let k=0;k<rows;k++){
+      const y=baseY+2.6+k*3.2;
+      if(y>baseY+h-1.6)break;
+      mb.add(G_BOX,M4(x+ox*(dep*.5+.15),y-.9,z+oz*(dep*.5+.15),0,-a,0,wdt*.88,.28,.5),rib);
+      const panes=Math.max(3,Math.round(wdt/3.4));
+      for(let p=0;p<panes;p++){
+        const t=(p+.5)/panes-.5;
+        const px=x+ox*(dep*.5+.05)+Math.cos(a+Math.PI/2)*t*wdt*.82;
+        const pz=z+oz*(dep*.5+.05)+Math.sin(a+Math.PI/2)*t*wdt*.82;
+        const on=night?(rng()<.55):false;
+        mb.add(G_BOX,M4(px,y,pz,0,-a,0,wdt*.62/panes,1.5,.22),
+          on?(rng()<.5?litA:litB):(night?0x1B1740:0x2B3A46));
+      }
+    }
   }
 }
 
@@ -1344,7 +1422,7 @@ function buildWorldMeshes(scene,T,course){
   }
   // props along the sides
   const props=th.props||course.theme;
-  for(let i=0;i<T.N;i+=7){
+  for(let i=0;i<T.N;i+=5){          // denser trackside dressing
     const side=(i%14===0)?1:-1, o=side*(T.hw+11+rng()*10);
     const x=T.px[i]+T.rx[i]*o, z=T.pz[i]+T.rz[i]*o, y=T.py[i]-.6;
     const r=rng(), rot=Math.atan2(T.rx[i]*side,T.rz[i]*side);
@@ -1399,7 +1477,8 @@ function buildWorldMeshes(scene,T,course){
   }
   if(th.ocean){
     const om=new THREE.Mesh(new THREE.PlaneGeometry(4000,4000),
-      MAT({map:TEX.water,normalMap:TEX.waterN,normalScale:new THREE.Vector2(.5,.5)},'water'));
+      MAT({map:TEX.water,normalMap:TEX.waterN,normalScale:new THREE.Vector2(.9,.9),
+           emissive:LC(th.sunDisc||0xFFF3D6),emissiveIntensity:.05},'water'));
     om.rotation.x=-Math.PI/2;om.position.y=baseY-9;scene.add(om);out.objs.push(om);out.ocean=om;
   }
   // sky
@@ -2550,16 +2629,31 @@ function renderWorld(dt){
       if(Math.random()<.9)spark(rearX-sx*.5,o.position.y+.55,rearZ-cz*.5,0x9FE6FF,2.2,1.2);
       if(Math.random()<.55)puff(rearX-sx*.9,o.position.y+.5,rearZ-cz*.9,0xCFEEFF,1.8,1.1,.42);
     }
+    /* Off-track: kick up dust tinted to whatever the course runs off onto, so
+       leaving the racing surface reads visually and not just through the squeal. */
+    if(Math.abs(k.off)>T.hw&&k.spd>10&&Math.random()<.7){
+      const th=THEME[W.course.theme], dust=THC(th,'skirt');
+      for(let w=-1;w<=1;w+=2)
+        puff(rearX-cz*1.15*w,s.y+.22,rearZ+sx*1.15*w,dust,2.2,1.0,.45+Math.random()*.4);
+    }
   }
-  // item boxes
-  const spin=now()*.002;
+  // item boxes: faster tumble, a breathing pulse, and a pop as they respawn
+  const spin=now()*.0032;
   for(let i=0;i<W.boxes.length;i++){
     const b=W.boxes[i],on=b.t<=0;
-    _bp.set(b.x,b.y+Math.sin(spin*1.4+i)*.25,b.z);
-    _be.set(spin*.7,spin,0);_bq.setFromEuler(_be);
-    _bs.set(on?1:.001,on?1:.001,on?1:.001);
+    // b.t counts down from 5; the last 0.45s scales it back up
+    const pop=on?(1+Math.sin(spin*2.2+i)*.07):0;
+    const grow=(!on&&b.t<.45)?(1-b.t/.45)*.9:0;
+    const sc=on?pop:(grow>0?grow:.001);
+    _bp.set(b.x,b.y+Math.sin(spin*1.1+i)*.30,b.z);
+    _be.set(spin*.9,spin*1.5,spin*.35);_bq.setFromEuler(_be);
+    _bs.set(sc,sc,sc);
     _m4.compose(_bp,_bq,_bs);
     V.boxMesh.setMatrixAt(i,_m4);
+    if(on&&W.meKart&&Math.random()<.05){          // faint sparkle near the player
+      const dx=b.x-W.meKart.vx,dz=b.z-W.meKart.vz;
+      if(dx*dx+dz*dz<3200)spark(b.x,b.y+.2,b.z,0xFFE8A8,1.6,.7);
+    }
   }
   V.boxMesh.instanceMatrix.needsUpdate=true;
   // thrown items
@@ -2709,19 +2803,43 @@ function drawMinimap(){
   const g=mmCtx,S=cv.width,T=W.T;if(!T)return;
   g.clearRect(0,0,S,S);
   g.save();
-  g.strokeStyle='rgba(4,22,31,.55)';g.lineWidth=15;g.beginPath();
-  for(let i=0;i<=T.N;i+=2){const p=T.mm(T.px[i%T.N],T.pz[i%T.N]);
-    const x=p[0]*S,y=p[1]*S;i?g.lineTo(x,y):g.moveTo(x,y);}
-  g.closePath();g.stroke();
-  g.strokeStyle='rgba(255,246,231,.55)';g.lineWidth=9;g.stroke();
-  const sp=T.mm(T.px[0],T.pz[0]);
-  g.fillStyle='#FFC93C';g.beginPath();g.arc(sp[0]*S,sp[1]*S,5,0,TAU);g.fill();
-  for(const k of W.karts){
-    const p=T.mm(k.vx,k.vz);
-    g.beginPath();g.arc(p[0]*S,p[1]*S,k.local?7.5:6,0,TAU);
-    g.fillStyle=k.local?'#FFFFFF':'#'+CH(k.c).kart.toString(16).padStart(6,'0');
-    g.fill();
-    if(k.local){g.lineWidth=3;g.strokeStyle='#08243A';g.stroke();}
+  const path=()=>{g.beginPath();
+    for(let i=0;i<=T.N;i+=2){const p=T.mm(T.px[i%T.N],T.pz[i%T.N]);
+      const x=p[0]*S,y=p[1]*S;i?g.lineTo(x,y):g.moveTo(x,y);}
+    g.closePath();};
+  /* Filled ribbon with an outline instead of a thin ring — at 82px the old
+     version was almost unreadable against a bright track. */
+  g.lineCap='round';g.lineJoin='round';
+  path();g.strokeStyle='rgba(3,18,30,.72)';g.lineWidth=19;g.stroke();
+  path();g.strokeStyle='rgba(255,246,231,.30)';g.lineWidth=13;g.stroke();
+  path();g.strokeStyle='rgba(255,246,231,.80)';g.lineWidth=2.4;g.stroke();
+  // start / finish tick across the ribbon
+  const s0=T.mm(T.px[0],T.pz[0]), s1=T.mm(T.px[3%T.N],T.pz[3%T.N]);
+  const ang=Math.atan2(s1[1]-s0[1],s1[0]-s0[0])+Math.PI/2;
+  g.strokeStyle='#FFC93C';g.lineWidth=3.4;
+  g.beginPath();
+  g.moveTo(s0[0]*S+Math.cos(ang)*8,s0[1]*S+Math.sin(ang)*8);
+  g.lineTo(s0[0]*S-Math.cos(ang)*8,s0[1]*S-Math.sin(ang)*8);
+  g.stroke();
+  // rivals first, player last so it always sits on top
+  const order=W.karts.slice().sort((a,b)=>(a.local?1:0)-(b.local?1:0));
+  for(const k of order){
+    const p=T.mm(k.vx,k.vz), x=p[0]*S, y=p[1]*S;
+    if(k.local){
+      // directional arrow, so you can read which way you are pointing
+      const a2=Math.atan2(T.mm(k.vx+Math.sin(k.vyaw),k.vz+Math.cos(k.vyaw))[1]-p[1],
+                          T.mm(k.vx+Math.sin(k.vyaw),k.vz+Math.cos(k.vyaw))[0]-p[0]);
+      g.save();g.translate(x,y);g.rotate(a2);
+      g.beginPath();g.moveTo(10,0);g.lineTo(-6.5,6.5);g.lineTo(-3,0);g.lineTo(-6.5,-6.5);
+      g.closePath();
+      g.fillStyle='#FFFFFF';g.fill();
+      g.lineWidth=2.6;g.strokeStyle='#08243A';g.stroke();
+      g.restore();
+    }else{
+      g.beginPath();g.arc(x,y,6.2,0,TAU);
+      g.fillStyle='#'+CH(k.c).kart.toString(16).padStart(6,'0');g.fill();
+      g.lineWidth=2.2;g.strokeStyle='rgba(3,18,30,.85)';g.stroke();
+    }
   }
   g.restore();
 }
@@ -3263,6 +3381,10 @@ const UI={screen:'s-title',soloChar:'classic',soloCourse:'helideck',cpus:3,portr
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));
   UI.screen=id;$('hud').classList.toggle('on',id==='none');
+  // the attract race only runs behind the title; everything else is opaque
+  if(id==='s-title'){attractStart();const n=$('attractName');
+    if(n&&W.course)n.textContent=W.course.name;}
+  else attractStop();
 
   if (['s-title', 's-solo', 's-name', 's-lobby', 's-wait'].includes(id)) {
     if (typeof MUSIC !== 'undefined') MUSIC.play('menu');
@@ -3276,24 +3398,90 @@ function toast(msg){
   clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2600);
 }
 /* one shared offscreen renderer builds all six portraits, then releases the GL context */
+/* ---------------------------------------------------------------------------
+   Live character preview. A pre-rendered sprite strip is a flipbook however
+   many frames you give it, and 14 read as stop-motion. This renders the
+   selected kart for real, every frame, into a small canvas that is moved into
+   whichever card is selected. One extra WebGL context, ~260x130, one kart of
+   roughly 2k triangles — far cheaper than the ~1.1MB of data URLs and 84 boot
+   renders the strip needed.
+--------------------------------------------------------------------------- */
+const PREVIEW={ren:null,scene:null,cam:null,cv:null,kart:null,cid:null,spin:0,ok:false};
+function previewInit(){
+  if(PREVIEW.ren||PREVIEW.ok===false&&PREVIEW.tried)return;
+  PREVIEW.tried=true;
+  try{
+    const cv=document.createElement('canvas');
+    cv.className='live';cv.width=520;cv.height=260;
+    const r=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:true});
+    r.setPixelRatio(1);r.setSize(520,260,false);
+    r.outputEncoding=THREE.sRGBEncoding;
+    r.toneMapping=THREE.LinearToneMapping;
+    r.toneMappingExposure=EXPOSURE;
+    const sc=new THREE.Scene();
+    const cam=new THREE.PerspectiveCamera(32,520/260,.1,60);
+    cam.position.set(0,3.1,6.4);cam.lookAt(0,1.15,0);
+    sc.add(new THREE.HemisphereLight(0xFFFFFF,LC(0x4A6B7C),.72));
+    const dl=new THREE.DirectionalLight(LC(0xFFF3D6),.82);dl.position.set(4,7,5);sc.add(dl);
+    const rim=new THREE.DirectionalLight(LC(0x9FD8FF),.34);rim.position.set(-5,3,-6);sc.add(rim);
+    sc.add(new THREE.AmbientLight(0xFFFFFF,.1));
+    PREVIEW.ren=r;PREVIEW.scene=sc;PREVIEW.cam=cam;PREVIEW.cv=cv;PREVIEW.ok=true;
+  }catch(e){PREVIEW.ok=false;}
+}
+function previewSet(cid){
+  previewInit();
+  if(!PREVIEW.ok||PREVIEW.cid===cid)return;
+  if(PREVIEW.kart){
+    PREVIEW.scene.remove(PREVIEW.kart);
+    PREVIEW.kart.traverse(o=>{
+      if(o.geometry)o.geometry.dispose();
+      if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());
+    });
+  }
+  PREVIEW.kart=buildRacer(CH(cid));
+  PREVIEW.scene.add(PREVIEW.kart);
+  PREVIEW.cid=cid;
+}
+// park the canvas inside whichever card is selected
+function previewAttach(host){
+  if(!PREVIEW.ok||!PREVIEW.cv)return;
+  const slot=host&&host.querySelector('.card.sel .avatar');
+  if(slot&&PREVIEW.cv.parentNode!==slot)slot.appendChild(PREVIEW.cv);
+  else if(!slot&&PREVIEW.cv.parentNode)PREVIEW.cv.parentNode.removeChild(PREVIEW.cv);
+}
+function previewFrame(dt){
+  if(!PREVIEW.ok||!PREVIEW.kart||!PREVIEW.cv.parentNode)return;
+  PREVIEW.spin+=dt*.6;
+  PREVIEW.kart.rotation.y=PREVIEW.spin;
+  PREVIEW.kart.position.y=Math.sin(PREVIEW.spin*1.7)*.045;
+  const ud=PREVIEW.kart.userData;
+  if(ud.wheels)for(const w of ud.wheels)w.rotation.x-=dt*2.2;
+  if(ud.duck&&ud.duck.userData.head)
+    ud.duck.userData.head.rotation.y=Math.sin(PREVIEW.spin*.8)*.22;
+  PREVIEW.ren.render(PREVIEW.scene,PREVIEW.cam);
+}
+
+/* One static pose per character, used by the podium and by unselected cards.
+   The selected card gets the live preview above instead. */
+const PORTRAIT_W=220, PORTRAIT_H=112;
 function makePortraits(){
-  const cv=document.createElement('canvas');cv.width=440;cv.height=224;
+  const cv=document.createElement('canvas');cv.width=PORTRAIT_W;cv.height=PORTRAIT_H;
   const r=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:true,preserveDrawingBuffer:true});
-  r.setPixelRatio(1);r.setSize(440,224,false);
+  r.setPixelRatio(1);r.setSize(PORTRAIT_W,PORTRAIT_H,false);
   // must match the main renderer or the cards drift off-palette from the race
   r.outputEncoding=THREE.sRGBEncoding;
   r.toneMapping=THREE.LinearToneMapping;
   r.toneMappingExposure=EXPOSURE;
-  const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(34,440/224,.1,60);
+  const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(34,PORTRAIT_W/PORTRAIT_H,.1,60);
   cam.position.set(3.6,3.0,5.6);cam.lookAt(0,1.25,0);
   sc.add(new THREE.HemisphereLight(0xFFFFFF,LC(0x4A6B7C),.72));
   const dl=new THREE.DirectionalLight(LC(0xFFF3D6),.78);dl.position.set(4,7,5);sc.add(dl);
   sc.add(new THREE.AmbientLight(0xFFFFFF,.1));
+  UI.portraitImgs=UI.portraitImgs||{};
   CHARS.forEach(c=>{
     const m=buildRacer(c);m.rotation.y=-.62;sc.add(m);
-    r.render(sc,cam);UI.portraits[c.id]=cv.toDataURL('image/png');
-    // decoded copies so the podium canvas can draw them synchronously
-    UI.portraitImgs=UI.portraitImgs||{};
+    r.render(sc,cam);
+    UI.portraits[c.id]=cv.toDataURL('image/png');
     const im=new Image();im.src=UI.portraits[c.id];UI.portraitImgs[c.id]=im;
     sc.remove(m);
   });
@@ -3341,6 +3529,7 @@ function renderChars(host,selId,taken,onPick){
   });
   const sel=host.querySelector('.card.sel');
   if(sel)host.scrollLeft=sel.offsetLeft-host.offsetLeft-20;
+  if(selId){previewSet(selId);previewAttach(host);}
 }
 function renderCourses(host,selId,locked,onPick){
   host.innerHTML='';
@@ -3508,6 +3697,7 @@ function stopRace(){
   W.karts=[];W.objs=[];W.meKart=null;disposeScene();
 }
 function beginRace(courseId,karts,cd){
+  attractStop();                      // never let the demo scene leak into a race
   if (typeof MUSIC !== 'undefined') {
     MUSIC.resetMix(); MUSIC.rate(1);
     MUSIC.play(CO(courseId).music || courseId);
@@ -3755,6 +3945,105 @@ function flash(v){
   requestAnimationFrame(()=>{f.style.transition='opacity .4s';f.style.opacity=0;});
 }
 
+/* ============================== ATTRACT MODE =============================
+   A real race runs behind the title menu: same course build, same AI, same
+   renderer. It uses W like any race but never enters phase 'race', so nothing
+   in the results/network flow can be triggered by it. `W.attract` is the flag
+   every other system checks to stay out of the way.
+========================================================================= */
+const ATTRACT={on:false,t:0,shotT:0,shot:0,course:0,acc:0,subject:null,
+  cam:new THREE.Vector3(),aim:new THREE.Vector3()};
+const ATTRACT_COURSES=['helideck','neonpool','boardwalk','lido'];
+function attractStart(){
+  if(ATTRACT.on)return;
+  try{
+    const cid=ATTRACT_COURSES[ATTRACT.course%ATTRACT_COURSES.length];
+    ATTRACT.course++;
+    const pool=CHARS.slice().sort(()=>Math.random()-.5).slice(0,4);
+    const karts=pool.map((c,i)=>newKart(i,'CPU'+i,c.id,true,false));
+    W.karts=karts;W.laps=99;W.finishAt=0;W.events.length=0;W.objs=[];W.objId=1;
+    W.rng=mulberry(Date.now()&0xffff);
+    buildScene(CO(cid));
+    placeGrid();
+    W.meKart=karts[0];
+    for(const k of W.karts){k.vx=k.x;k.vy=k.y;k.vz=k.z;k.vyaw=k.yaw;k.ex=k.ey=k.ez=0;k.spd=26;}
+    skidReset();
+    W.phase='attract';W.attract=true;W.t=0;W.cd=0;W.cdMax=0;
+    ATTRACT.on=true;ATTRACT.t=0;ATTRACT.shotT=0;ATTRACT.shot=0;
+    V.mmDirty=1;
+  }catch(e){ATTRACT.on=false;W.attract=false;}
+}
+function attractStop(){
+  if(!ATTRACT.on)return;
+  ATTRACT.on=false;W.attract=false;W.phase='idle';
+  for(const k of W.karts)k.obj=null;
+  W.karts=[];W.objs=[];W.meKart=null;
+  disposeScene();
+}
+/* Cuts between a few framings so it feels edited rather than aimless. */
+function attractCamera(dt){
+  const T=W.T;if(!T)return;
+  ATTRACT.t+=dt;ATTRACT.shotT+=dt;
+  const cut=ATTRACT.shotT>6.5;
+  if(cut){ATTRACT.shotT=0;ATTRACT.shot=(ATTRACT.shot+1)%4;}
+  /* Lock the subject for the whole shot. Re-picking the leader every frame
+     meant the camera snapped sideways every time two karts swapped places. */
+  if(cut||!ATTRACT.subject||W.karts.indexOf(ATTRACT.subject)<0)
+    ATTRACT.subject=W.karts.reduce((a,b)=>b.prog>a.prog?b:a,W.karts[0]);
+  const lead=ATTRACT.subject;
+  if(!lead)return;
+  const fx=Math.sin(lead.vyaw),fz=Math.cos(lead.vyaw);
+  let px,py,pz;
+  const s=ATTRACT.shot;
+  if(s===0){                                   // low chase, wide
+    px=lead.vx-fx*13;py=lead.vy+2.6;pz=lead.vz-fz*13;
+  }else if(s===1){                             // high sweeping crane
+    const a=ATTRACT.t*.22;
+    px=lead.vx+Math.sin(a)*26;py=lead.vy+15;pz=lead.vz+Math.cos(a)*26;
+  }else if(s===2){                             // trackside pass, camera static
+    const u=(lead.u+.035)%1, sp=T.atU(u,{});
+    const o=(T.hw+13);
+    px=sp.px+sp.rx*o;py=sp.py+3.4;pz=sp.pz+sp.rz*o;
+  }else{                                       // low nose-on, ahead looking back
+    px=lead.vx+fx*15;py=lead.vy+2.2;pz=lead.vz+fz*15;
+  }
+  const f=ATTRACT.shotT<.05?1:smooth(dt,s===2?14:3.2);
+  ATTRACT.cam.set(lerp(ATTRACT.cam.x,px,f),lerp(ATTRACT.cam.y,py,f),lerp(ATTRACT.cam.z,pz,f));
+  ATTRACT.aim.set(lerp(ATTRACT.aim.x,lead.vx,smooth(dt,6)),
+                  lerp(ATTRACT.aim.y,lead.vy+1.1,smooth(dt,6)),
+                  lerp(ATTRACT.aim.z,lead.vz,smooth(dt,6)));
+  W.cam.position.copy(ATTRACT.cam);
+  W.cam.lookAt(ATTRACT.aim);
+  const wantFov=s===2?52:64;
+  V.fov=lerp(V.fov,wantFov,smooth(dt,3));
+  if(Math.abs(W.cam.fov-V.fov)>.05){W.cam.fov=V.fov;W.cam.updateProjectionMatrix();}
+}
+function attractStep(dt){
+  const T=W.T;if(!T)return;
+  /* Carry the remainder across frames. Resetting the accumulator to dt each
+     frame threw away the fraction, so the sim advanced 0, 1 or 2 steps at
+     random and every kart juddered. */
+  ATTRACT.acc=(ATTRACT.acc||0)+dt;
+  let steps=0;
+  while(ATTRACT.acc>=SIM_DT&&steps<6){
+    steps++;
+    for(const k of W.karts){
+      const inp=aiInput(k,T,SIM_DT);
+      if(k.item&&W.rng()<.02)useItem(k);
+      stepKart(k,inp,SIM_DT,T);
+    }
+    for(let i=0;i<W.karts.length;i++)for(let j=i+1;j<W.karts.length;j++)kartCollide(W.karts[i],W.karts[j]);
+    stepItems(SIM_DT,T);
+    updatePlaces();
+    W.events.length=0;
+    ATTRACT.acc-=SIM_DT;
+  }
+  if(steps>=6)ATTRACT.acc=0;        // a long stall should not fast-forward
+  for(const k of W.karts){k.vx=k.x;k.vy=k.y;k.vz=k.z;k.vyaw=k.yaw;k.ex=k.ey=k.ez=0;}
+  renderWorld(dt);
+  attractCamera(dt);
+}
+
 /* ============================== MAIN LOOP ================================ */
 let lastT=now(),acc=0,snapAcc=0,pingAcc=0,kickAcc=0,fpsT=0,fpsN=0,shownResults=false;
 function clientStep(dt){
@@ -3787,6 +4076,12 @@ function frame(){
   requestAnimationFrame(frame);
   const t=now();let dt=(t-lastT)/1000;lastT=t;
   if(dt>.25)dt=.25;
+  previewFrame(dt);          // no-op unless the canvas is parked in a card
+  if(ATTRACT.on&&W.scene&&W.phase==='attract'){
+    attractStep(dt);
+    renderWithBloom(W.scene,W.cam);
+    return;
+  }
   if(W.scene&&(W.phase==='count'||W.phase==='race'||W.phase==='done')){
     pollInput(dt);
     acc+=dt;let steps=0;
