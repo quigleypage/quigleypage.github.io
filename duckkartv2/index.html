@@ -215,6 +215,11 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
   border:2px solid var(--sun);color:var(--cream);
   text-shadow:0 3px 0 rgba(0,0,0,.35);box-shadow:0 8px 26px rgba(0,0,0,.4);}
 #banner.final span{border-color:var(--coral);color:var(--sun);}
+#banner.finish span{border-color:var(--sun);color:var(--sun);
+  font-size:clamp(30px,8.6vw,52px);letter-spacing:.04em;
+  background:linear-gradient(180deg,rgba(6,26,42,.92),rgba(6,26,42,.74));
+  box-shadow:0 0 0 3px rgba(255,201,60,.22), 0 10px 34px rgba(0,0,0,.5);}
+#banner.finish{animation:bannerIn 2.6s cubic-bezier(.16,.9,.3,1) both;}
 @keyframes bannerIn{
   0%{opacity:0;transform:translateX(-38%) skewX(-14deg)}
   16%{opacity:1;transform:translateX(0) skewX(0)}
@@ -558,8 +563,11 @@ const COURSES=[
     bank clamp, and steep banking there made the kart bob against the road. */
  {id:'helideck',name:'Sunset Helideck',sub:'Open ocean · long sweepers',theme:'sundeck',
   w:16.5,bank:.38,music:'lido',
+  /* Elevation kept gentle on purpose. At [[2,5.5],[3,2.5]] this had 14m of
+     rise and fall per lap against Lido's 8.7m, which read as an undulating,
+     bumpy ride rather than a sweeping one. */
   pts:harmonicPts(114.73,16,[[2,.1643,.6552],[3,.2161,1.6337],[5,.0568,2.9097]],
-                            [[2,5.5,.9],[3,2.5,2.1]])},
+                            [[2,3.4,.9],[3,1.0,2.1]])},
  {id:'lido',name:'Lido Deck Dash',sub:'Pool deck · palms · open sky',theme:'lido',w:17,bank:.55,
   pts:[[0,0,-150],[64,0,-141],[114,1,-101],[130,5,-44],[120,9,14],[88,5,63],[35,1,95],[-25,0,109],[-79,0,97],
        [-117,0,58],[-133,2,2],[-125,7,-59],[-88,4,-113],[-37,1,-149]]},
@@ -574,8 +582,10 @@ const COURSES=[
  // 8 corners spread across all three charge bands
  {id:'neonpool',name:'Neon Pool Party',sub:'After dark · flowing and open',theme:'neon',
   w:16,bank:.6,music:'promenade',
+  // order 2 rather than 3: fewer, longer undulations for the same total rise,
+  // which measured 3.5x smoother per metre of elevation
   pts:harmonicPts(94.16,16,[[2,.1965,5.8902],[3,.0977,-.5617],[5,.0407,2.1093]],
-                           [[3,3,1.4]])},
+                           [[2,2.2,1.4]])},
  // 19 linked corners, nothing longer than a tier-1 charge — chain them instead
  {id:'atrium',name:'Atrium Switchback',sub:'Indoor · tight and technical',theme:'prom',
   w:15,bank:.3,music:'promenade',
@@ -1016,6 +1026,23 @@ function buildTrack(course){
     const a=dense[di],b=dense[(di+1)%dense.length];
     px[i]=lerp(a[0],b[0],f);py[i]=lerp(a[1],b[1],f);pz[i]=lerp(a[2],b[2],f);
   }
+  /* Smooth the elevation profile. The resample above interpolates LINEARLY
+     between dense polyline points, so py comes out piecewise-linear and its
+     second derivative spikes at every join — the ride felt bumpy on courses
+     whose elevation oscillates most, measured 4-5x the vertical jerk of a
+     flat course. A circular moving average over ~20m of track kills the
+     sample-scale noise while leaving the intended rises (period ~270m)
+     untouched. Physics and the road mesh both read py, so they stay in
+     agreement. */
+  (function(){
+    const EW=11, sm=new Float32Array(N);
+    for(let i=0;i<N;i++){
+      let acc=0;
+      for(let k=-EW;k<=EW;k++)acc+=py[(i+k+N)%N];
+      sm[i]=acc/(EW*2+1);
+    }
+    py.set(sm);
+  })();
   // tangents
   const fx=new Float32Array(N),fy=new Float32Array(N),fz=new Float32Array(N),yaw=new Float32Array(N);
   for(let i=0;i<N;i++){
@@ -1031,7 +1058,7 @@ function buildTrack(course){
      py + off*ry, so any fast change in bank shows up as the kart bobbing
      relative to the road as it moves laterally. On tight corners `raw`
      saturates the clamp, and a short window let it slam in and out. */
-  const BW=10, BN=BW*2+1;
+  const BW=17, BN=BW*2+1;
   for(let i=0;i<N;i++){let s=0;for(let k=-BW;k<=BW;k++)s+=raw[(i+k+N)%N];bank[i]=s/BN;}
   // right vectors (with bank roll)
   const rx=new Float32Array(N),ry=new Float32Array(N),rz=new Float32Array(N);
@@ -2688,9 +2715,13 @@ function renderWorld(dt){
     const steer=clamp(k.inp.steer,-1,1), spdF=clamp(k.spd/BASE_TOP,0,1.2);
     /* Suspension: a sharp drop in speed means an impact, which compresses the
        springs and pitches the nose down. Visual only — never touches the sim. */
-    const prevSpd=k._pSpd==null?k.spd:k._pSpd;
-    k._pSpd=k.spd;
-    k._susp=Math.max((k._susp||0)*Math.max(0,1-6*dt), clamp((prevSpd-k.spd)/6,0,1));
+    /* Compare against a slow reference rather than the previous frame: speed
+       wobbles every frame from cornering scrub, and differencing that made
+       the springs chatter continuously. The deadzone means only a genuine
+       sudden loss of speed compresses them. */
+    k._sSpd=k._sSpd==null?k.spd:lerp(k._sSpd,k.spd,smooth(dt,6));
+    const drop=k._sSpd-k.spd;
+    k._susp=Math.max((k._susp||0)*Math.max(0,1-6*dt), clamp((drop-1.5)/8,0,1));
     const bob=Math.sin(now()*.009+k.id*1.7)*.014*spdF;
     for(let i=0;i<4;i++){
       const wl=ud.wheels[i];
@@ -3053,6 +3084,12 @@ const SFX={
     out.connect(this.bus);out.connect(this.verbSend);
     return g;
   },
+  // world-positioned one-shot: real distance falloff instead of a manual gain
+  voiceAt(x,y,z){
+    const c=this.ctx,g=c.createGain(),p=this.panner(x,y,z,false);
+    g.connect(p);p.connect(this.bus);p.connect(this.verbSend);
+    return g;
+  },
   blip(f,dur,type,vol,slide,pan,scale){
     if(!this.on||!this.ctx)return;
     const c=this.ctx,o=c.createOscillator(),g=this.voice(pan);
@@ -3111,27 +3148,214 @@ const SFX={
     this.squealG.connect(this.bus);this.squealG.connect(this.verbSend);
     this.squeal.start();
   },
+  /* Gears. A linear speed->pitch map meant full throttle and half throttle
+     sounded like the same note at different heights — acceleration was
+     inaudible. Revs now climb within a gear and drop on the upshift, which
+     is what makes speed legible by ear. */
+  gear:0,
   engineAt(frac,boost){
-    if(!this.engG)return;
-    const t=this.ctx.currentTime,base=48+frac*135+(boost?46:0);
+    if(!this.engG||this.faded)return;   // a fade is in progress; leave it alone
+    const t=this.ctx.currentTime;
+    const G=ENG_GEARS;
+    let g=0; while(g<G.length-1&&frac>G[g+1])g++;
+    const lo=G[g], hi=G[g+1]==null?1.35:G[g+1];
+    const rev=clamp((frac-lo)/Math.max(.001,hi-lo),0,1);
+    // each gear starts lower and climbs; higher gears sit a little higher overall
+    const base=(46+g*9)+rev*118+(boost?40:0);
+    if(g!==this.gear){
+      // brief dip through the shift, plus a soft blip
+      this.engG.gain.cancelScheduledValues(t);
+      this.engG.gain.setValueAtTime(this.engG.gain.value,t);
+      this.engG.gain.linearRampToValueAtTime(this.engG.gain.value*.45,t+.045);
+      if(g>this.gear&&this.on)this.blip(190,.07,'square',.05*ENG_VOL,120);
+      this.gear=g;
+    }
     this.eng.frequency.setTargetAtTime(base,t,.03);
     this.eng2.frequency.setTargetAtTime(base*1.008,t,.03);
     this.sub.frequency.setTargetAtTime(base*.5,t,.03);
-    this.filt.frequency.setTargetAtTime(420+frac*1400+(boost?700:0),t,.05);
+    this.filt.frequency.setTargetAtTime(420+frac*1400+rev*260+(boost?700:0),t,.05);
     this.noiseF.frequency.setTargetAtTime(900+frac*1600,t,.05);
     this.noiseG.gain.setTargetAtTime(this.on?(.005+frac*.018+(boost?.018:0))*ENG_VOL:0,t,.05);
-    this.engG.gain.setTargetAtTime(this.on?(.018+frac*.032)*ENG_VOL:0,t,.05);
+    this.engG.gain.setTargetAtTime(this.on?(.018+frac*.032)*ENG_VOL:0,t,.06);
   },
   squealAt(amount){
-    if(!this.squealG)return;
+    if(!this.squealG||this.faded)return;
     const t=this.ctx.currentTime;
     this.squealG.gain.setTargetAtTime(this.on?clamp(amount,0,1)*.055*SQUEAL_VOL:0,t,.07);
     this.squealF.frequency.setTargetAtTime(2200+clamp(amount,0,1)*1500,t,.09);
   },
+  /* Ramp the engine down rather than cutting it. Used when the player
+     finishes; the hard stop still happens when the race is torn down. */
+  fadeEngine(ms){
+    if(!this.engG||!this.ctx)return;
+    const t=this.ctx.currentTime, d=(ms||700)/1000;
+    this.ambStop();this.rivalsStop();
+    [this.engG,this.noiseG,this.squealG].forEach(g=>{
+      if(!g)return;
+      g.gain.cancelScheduledValues(t);
+      g.gain.setValueAtTime(g.gain.value,t);
+      g.gain.linearRampToValueAtTime(0,t+d);
+    });
+    this.faded=true;
+    clearTimeout(this._fadeT);
+    this._fadeT=setTimeout(()=>this.stopEngine(),ms+80);
+  },
   stopEngine(){
+    clearTimeout(this._fadeT);this.faded=false;this.gear=0;
+    this.ambStop();this.rivalsStop();
     [this.eng,this.eng2,this.sub,this.noiseSrc,this.squeal].forEach(n=>{if(n){try{n.stop();}catch(e){}}});
     this.eng=this.eng2=this.sub=this.noiseSrc=this.squeal=null;
     this.engG=this.noiseG=this.squealG=null;
+  },
+  /* ---------------------------------------------------------------------
+     Ambience. There was none at all before — every course was silent apart
+     from your own engine and event blips, which is the loudest "this world
+     is not real" tell a racer can have. All synthesised from one noise
+     buffer, so nothing ships.
+  --------------------------------------------------------------------- */
+  ambInit(){
+    if(this.amb||!this.ctx)return;
+    const c=this.ctx;
+    /* Each bed is src -> filter -> swell -> level -> bus.
+       The swell gain exists purely so the LFO has somewhere to live: a source
+       connected to an AudioParam SUMS with that param's value, so modulating
+       the level gain directly meant ambStop() could never reach silence — the
+       LFO kept driving it either side of zero forever, which is what left a
+       brushing noise running under the results screen.
+       Filters are LOWPASS, not bandpass: bandpassed white noise is hiss, and
+       measured at a 4.8kHz spectral centroid it sat right on top of
+       everything else in the mix. */
+    const bed=(cut,q,toVerb)=>{
+      const src=c.createBufferSource();src.buffer=this.noiseBuf();src.loop=true;
+      const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=cut;f.Q.value=q;
+      const swell=c.createGain();swell.gain.value=1;
+      const level=c.createGain();level.gain.value=0;
+      src.connect(f);f.connect(swell);swell.connect(level);level.connect(this.bus);
+      if(toVerb)level.connect(this.verbSend);
+      src.start();
+      return {src,f,swell,g:level,base:0};
+    };
+    this.amb={wind:bed(320,.7,false),sea:bed(150,.6,true),room:bed(120,.5,true)};
+    const lfo=(rate,depth,param)=>{
+      const o=c.createOscillator();o.frequency.value=rate;
+      const g=c.createGain();g.gain.value=depth;
+      o.connect(g);g.connect(param);o.start();
+    };
+    lfo(.08,.35,this.amb.sea.swell.gain);     // safe: swell rides around 1, not 0
+    lfo(.05,.20,this.amb.wind.swell.gain);
+  },
+  ambSet(mix){
+    this.ambInit();
+    if(!this.amb)return;
+    this.ambMix=mix||{};
+    const t=this.ctx.currentTime;
+    for(const k of ['sea','room']){
+      const v=this.on?(this.ambMix[k]||0)*AMB_MASTER:0;
+      this.amb[k].base=v;
+      this.amb[k].g.gain.setTargetAtTime(v,t,.6);
+    }
+  },
+  // wind is the one bed tied to the player rather than the place
+  ambSpeed(frac){
+    if(!this.amb)return;
+    const t=this.ctx.currentTime, f=clamp(frac,0,1.4);
+    const w=this.on?(f*f*.016*AMB_MASTER*(this.ambMix&&this.ambMix.wind!=null?this.ambMix.wind:1)):0;
+    this.amb.wind.g.gain.setTargetAtTime(w,t,.10);
+    this.amb.wind.f.frequency.setTargetAtTime(190+f*380,t,.12);
+  },
+  ambStop(){
+    if(!this.amb)return;
+    const t=this.ctx.currentTime;
+    // hard zero, not an exponential approach, so nothing lingers under results
+    for(const k in this.amb){
+      const g=this.amb[k].g.gain;
+      g.cancelScheduledValues(t);
+      g.setValueAtTime(g.value,t);
+      g.linearRampToValueAtTime(0,t+.30);
+    }
+  },
+  /* ---------------------------------------------------------------------
+     Real 3D audio. StereoPanner gave left/right only; a PannerNode with a
+     listener gives distance, elevation and front/back. Web Audio dropped
+     native velocity, so Doppler is computed by hand from closing speed.
+  --------------------------------------------------------------------- */
+  setListener(k){
+    if(!this.ctx||!k)return;
+    const L=this.ctx.listener, t=this.ctx.currentTime;
+    const fx=Math.sin(k.vyaw), fz=Math.cos(k.vyaw);
+    if(L.positionX){
+      L.positionX.setTargetAtTime(k.vx,t,.02);
+      L.positionY.setTargetAtTime(k.vy+1,t,.02);
+      L.positionZ.setTargetAtTime(k.vz,t,.02);
+      L.forwardX.setTargetAtTime(fx,t,.02);
+      L.forwardY.setTargetAtTime(0,t,.02);
+      L.forwardZ.setTargetAtTime(fz,t,.02);
+      L.upX.value=0;L.upY.value=1;L.upZ.value=0;
+    }else if(L.setPosition){
+      L.setPosition(k.vx,k.vy+1,k.vz);
+      L.setOrientation(fx,0,fz,0,1,0);
+    }
+  },
+  panner(x,y,z,hrtf){
+    const c=this.ctx,p=c.createPanner();
+    p.panningModel=hrtf?'HRTF':'equalpower';   // HRTF only where it earns its cost
+    p.distanceModel='inverse';
+    p.refDistance=9;p.maxDistance=120;p.rolloffFactor=1.1;
+    if(p.positionX){p.positionX.value=x;p.positionY.value=y;p.positionZ.value=z;}
+    else p.setPosition(x,y,z);
+    return p;
+  },
+  // closing speed -> pitch ratio. c is deliberately low so kart speeds shift audibly.
+  doppler(k,sx,sz,svx,svz){
+    if(!k)return 1;
+    let dx=sx-k.vx,dz=sz-k.vz;
+    const d=Math.hypot(dx,dz)||1; dx/=d; dz/=d;
+    const lv=Math.sin(k.vyaw)*k.spd*dx+Math.cos(k.vyaw)*k.spd*dz;  // listener toward source
+    const sv=(svx||0)*dx+(svz||0)*dz;                              // source away from listener
+    const C=210;
+    return clamp((C+lv)/(C+sv),.82,1.22);
+  },
+  /* One small engine voice per nearby rival, positioned and Doppler-shifted.
+     This is what makes a kart flying past actually register. */
+  rivalsInit(n){
+    if(!this.ctx||this.rivals)return;
+    const c=this.ctx;
+    this.rivals=[];
+    for(let i=0;i<n;i++){
+      const o=c.createOscillator();o.type='sawtooth';o.frequency.value=70;
+      const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=700;f.Q.value=4;
+      const g=c.createGain();g.gain.value=0;
+      const p=this.panner(0,0,0,true);
+      o.connect(f);f.connect(g);g.connect(p);p.connect(this.bus);
+      o.start();
+      this.rivals.push({o,f,g,p});
+    }
+  },
+  rivalsUpdate(me,karts){
+    if(!this.rivals||!this.ctx)return;
+    const t=this.ctx.currentTime;
+    const others=karts.filter(k=>k!==me&&!k.fin)
+      .map(k=>({k,d:Math.hypot(k.vx-me.vx,k.vz-me.vz)}))
+      .sort((a,b)=>a.d-b.d);
+    for(let i=0;i<this.rivals.length;i++){
+      const R=this.rivals[i], e=others[i];
+      if(!e||e.d>95||!this.on){R.g.gain.setTargetAtTime(0,t,.15);continue;}
+      const k=e.k, frac=clamp(k.spd/BASE_TOP,0,1.3);
+      const dop=this.doppler(me,k.vx,k.vz,Math.sin(k.vyaw)*k.spd,Math.cos(k.vyaw)*k.spd);
+      R.o.frequency.setTargetAtTime((52+frac*120)*dop,t,.04);
+      R.f.frequency.setTargetAtTime(380+frac*1100,t,.06);
+      R.g.gain.setTargetAtTime(.030+frac*.020,t,.08);
+      if(R.p.positionX){
+        R.p.positionX.setTargetAtTime(k.vx,t,.03);
+        R.p.positionY.setTargetAtTime(k.vy+.6,t,.03);
+        R.p.positionZ.setTargetAtTime(k.vz,t,.03);
+      }else R.p.setPosition(k.vx,k.vy+.6,k.vz);
+    }
+  },
+  rivalsStop(){
+    if(!this.rivals||!this.ctx)return;
+    const t=this.ctx.currentTime;
+    for(const R of this.rivals)R.g.gain.setTargetAtTime(0,t,.12);
   },
   _last:{},
   ev(t,a,pan,s){
@@ -3191,6 +3415,20 @@ const SPACE={lido:.09,sundeck:.09,board:.12,neon:.17,prom:.30};
    even at equal level, so the engine has to sit well underneath it.
    These three are the knobs to turn if the balance still feels off. */
 const ENG_VOL=.32, SQUEAL_VOL=.55, MUSIC_VOL=.22;
+/* Lower bound of each gear as a fraction of top speed. */
+const ENG_GEARS=[0,.20,.40,.60,.80];
+/* Ambience mix per environment. `wind` scales the speed-driven bed.
+   AMB_MASTER is the single dial: set it to 0 to remove ambience entirely.
+   The crowd bed was cut — it was the hissiest of the four and there is no
+   visible crowd for it to belong to. */
+const AMB_MASTER=0.55;
+const AMBIENCE={
+  lido:   {wind:1.00,sea:.014,room:0    },
+  sundeck:{wind:1.05,sea:.016,room:0    },
+  board:  {wind:0.90,sea:.018,room:0    },
+  neon:   {wind:0.80,sea:.012,room:.003 },
+  prom:   {wind:0.40,sea:0,   room:.010 }
+};
 
 const MUSIC = {
   tracks: {},
@@ -3799,6 +4037,7 @@ function raceStats(order){
     '<div class="stat-c"><span class="k">'+c[0]+'</span><span class="v">'+c[1]+'</span></div>').join('');
 }
 function showResults(order,mode){
+  SFX.stopEngine();                    // never let the engine idle under results
   UI.lastResults=order;
   drawPodium(order);
   raceStats(order);
@@ -3869,6 +4108,8 @@ function beginRace(courseId,karts,cd){
   $('hHint').style.display='';
   SFX.init();SFX.resume();SFX.startEngine();
   SFX.setSpace(SPACE[CO(courseId).theme]!=null?SPACE[CO(courseId).theme]:.12);
+  SFX.ambSet(AMBIENCE[CO(courseId).theme]||AMBIENCE.lido);
+  SFX.rivalsInit(3);
   V.mmDirty=1;
 }
 function startSolo(){
@@ -3986,13 +4227,21 @@ function resetRaceStats(){
   RACE_STATS.bestLap=0;RACE_STATS.topTier=0;RACE_STATS.boosts=0;
   RACE_STATS.hits=0;RACE_STATS.lapStart=0;
 }
-function banner(text,isFinal){
+/* kind: '' for a plain lap, 'final' for the last lap, 'finish' for crossing
+   the line for the last time. */
+function banner(text,kind){
   const b=$('banner');if(!b)return;
+  if(kind===true)kind='final';
   b.firstElementChild.textContent=text;
   b.className='';void b.offsetWidth;          // restart the animation
-  b.className='on'+(isFinal?' final':'');
-  if(isFinal){SFX.chord([784,988,1175],.22,.12);SFX.duck(.6,700);MUSIC.rate(1.06);}
-  else SFX.blip(660,.14,'triangle',.10);
+  b.className='on'+(kind?' '+kind:'');
+  if(kind==='finish'){
+    SFX.chord([523,659,784,1046,1319],.34,.15);
+    SFX.duck(.5,900);
+    if(typeof MUSIC!=='undefined')MUSIC.duck(.5,900);
+  }else if(kind==='final'){
+    SFX.chord([784,988,1175],.22,.12);SFX.duck(.6,700);MUSIC.rate(1.06);
+  }else SFX.blip(660,.14,'triangle',.10);
 }
 function updateHUD(dt){
   const k=W.meKart;if(!k)return;
@@ -4019,7 +4268,7 @@ function updateHUD(dt){
   $('hLap').innerHTML=lapNow+'<small>/'+W.laps+'</small>';
   if(HUDs.lap!==lapNow){
     if(HUDs.lap!=null&&W.phase==='race'&&lapNow>HUDs.lap){
-      banner(lapNow>=W.laps?'FINAL LAP':'LAP '+lapNow, lapNow>=W.laps);
+      banner(lapNow>=W.laps?'FINAL LAP':'LAP '+lapNow, lapNow>=W.laps?'final':'');
       const lt=W.t-RACE_STATS.lapStart;
       if(lt>1&&(RACE_STATS.bestLap===0||lt<RACE_STATS.bestLap))RACE_STATS.bestLap=lt;
       RACE_STATS.lapStart=W.t;
@@ -4056,6 +4305,9 @@ function updateHUD(dt){
     sy.className='sync on';$('hSyncT').textContent=Net.conns.length+' connected';
   }else sy.className='sync';
   SFX.engineAt(clamp(k.spd/BASE_TOP,0,1.2),k.bT>0);
+  SFX.ambSpeed(clamp(k.spd/BASE_TOP,0,1.4));
+  SFX.setListener(k);
+  SFX.rivalsUpdate(k,W.karts);
   // squeal rises with how hard the kart is sliding, and with drift charge
   let sq=0;
   if(k.dr&&k.spd>16){
@@ -4068,7 +4320,17 @@ W.onEvent=function(t,id,a){
   const k=W.karts[id];
   const mine=k&&k.local;
   if(Net.mode==='client'&&mine&&t===2)return;     // predicted locally already
-  if(t===8&&k){if(mine)flash(.5);}
+  if(t===8&&k){
+    if(mine){
+      flash(.5);
+      /* Crossing the line for the last time had no signal at all: the lap
+         banner does not fire (the lap counter is already clamped to the
+         final lap), so the race just quietly ended. */
+      banner('FINISH · '+ordinal(a||k.place),'finish');
+      W.shake=Math.max(W.shake,.30);
+      SFX.fadeEngine(900);      // you are no longer driving it
+    }
+  }
   // Deck Wave shockwave is local-only: its damage was already resolved in useItem
   if(t===4&&a===6&&k&&W.scene)ringBurst(k.vx,k.vy+.7,k.vz,0x2FC6DE);
   if(t===10&&k&&W.scene){
@@ -4337,7 +4599,8 @@ function wire(){
     e.stopPropagation();
     SFX.on=!SFX.on;
     mb.textContent=SFX.on?'🔊':'🔇';
-    if(!SFX.on){SFX.engineAt(0,false);SFX.squealAt(0);}
+    if(!SFX.on){SFX.engineAt(0,false);SFX.squealAt(0);SFX.ambStop();SFX.rivalsStop();}
+    else if(W.course)SFX.ambSet(AMBIENCE[W.course.theme]||AMBIENCE.lido);
     
     // Toggle music volume alongside sound effects
     if (typeof MUSIC !== 'undefined') MUSIC.setMute(!SFX.on);
