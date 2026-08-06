@@ -205,6 +205,33 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
 #bigmsg span{display:block;animation:zap .5s cubic-bezier(.2,1.4,.4,1);}
 @keyframes zap{from{transform:scale(2.2);opacity:0}to{transform:scale(1);opacity:1}}
 #flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;}
+/* ---------- incoming projectile warning ----------
+   You cannot see behind you, so a hit from a projectile reads as arbitrary
+   unless something tells you it is coming. Sits low on screen (the threat is
+   behind), offset left/right by its bearing so you know which way to dodge. */
+#threat{position:absolute;left:50%;bottom:calc(var(--safeB) + 96px);
+  pointer-events:none;opacity:0;transform:translateX(-50%);
+  transition:opacity .12s linear;}
+#threat.on .ic{animation:threatPulse var(--tdur,.5s) ease-in-out infinite;}
+#threat.on{opacity:1;}
+#threat .ic{display:grid;place-items:center;width:46px;height:46px;border-radius:50%;
+  font-family:var(--disp);font-weight:900;font-size:26px;line-height:1;
+  color:#3A0D06;background:linear-gradient(180deg,#FF8873,#F04C36);
+  border:2.5px solid rgba(255,246,231,.92);
+  box-shadow:0 0 20px rgba(240,76,54,.75), 0 4px 12px rgba(0,0,0,.45);}
+@keyframes threatPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}
+/* ---------- wrong way ---------- */
+#wrongway{position:absolute;left:0;right:0;top:44%;display:flex;justify-content:center;
+  pointer-events:none;opacity:0;transition:opacity .18s ease;}
+#wrongway.on span{animation:wwPulse .85s ease-in-out infinite;}
+#wrongway.on{opacity:1;}
+#wrongway span{font-family:var(--disp);font-weight:900;font-size:clamp(22px,6.4vw,34px);
+  letter-spacing:.03em;padding:9px 22px;border-radius:14px;white-space:nowrap;
+  color:var(--cream);background:linear-gradient(180deg,rgba(196,42,26,.94),rgba(140,26,14,.9));
+  border:2px solid rgba(255,246,231,.85);
+  text-shadow:0 2px 0 rgba(0,0,0,.4);box-shadow:0 8px 26px rgba(0,0,0,.45);}
+#wrongway b{font-size:1.25em;display:inline-block;transform:translateY(2px);margin-right:6px;}
+@keyframes wwPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 /* ---------- lap banner ---------- */
 #banner{position:absolute;left:0;right:0;top:34%;pointer-events:none;display:flex;justify-content:center;
   opacity:0;}
@@ -303,6 +330,8 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
   <div id="speedfx"></div>
   <div id="boostfx"></div>
   <div id="banner"><span></span></div>
+  <div id="threat"><span class="ic">!</span></div>
+  <div id="wrongway"><span><b>&#8630;</b> Wrong way</span></div>
   <div id="bigmsg"></div>
   <div id="flash"></div>
   <div class="stall" id="hStall">Reconnecting to the deck…<br><span style="font-size:13px;opacity:.7;font-weight:700">Holding your position</span></div>
@@ -312,7 +341,7 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
 <section class="screen on" id="s-title">
   <div class="brandmark">
     <div class="ring"></div>
-    <p class="eyebrow">Oasis-class · Deck 15</p>
+    <p class="eyebrow">MS Rubber Duck · Deck 15</p>
     <h1 class="title">Duck Kart<em>Deck Party</em></h1>
     <p class="sub" style="max-width:280px">Six rubber ducks. One very large ship. Drag to steer, hold the turn to drift.</p>
   </div>
@@ -562,7 +591,7 @@ const COURSES=[
     bank is deliberately low: its corners are tight enough to saturate the
     bank clamp, and steep banking there made the kart bob against the road. */
  {id:'helideck',name:'Sunset Helideck',sub:'Open ocean · long sweepers',theme:'sundeck',
-  w:16.5,bank:.38,music:'lido',
+  w:16.5,bank:.38,
   /* Elevation kept gentle on purpose. At [[2,5.5],[3,2.5]] this had 14m of
      rise and fall per lap against Lido's 8.7m, which read as an undulating,
      bumpy ride rather than a sweeping one. */
@@ -581,14 +610,14 @@ const COURSES=[
     race pace) are noted so the drift tuning can be re-checked against them. */
  // 8 corners spread across all three charge bands
  {id:'neonpool',name:'Neon Pool Party',sub:'After dark · flowing and open',theme:'neon',
-  w:16,bank:.6,music:'promenade',
+  w:16,bank:.6,
   // order 2 rather than 3: fewer, longer undulations for the same total rise,
   // which measured 3.5x smoother per metre of elevation
   pts:harmonicPts(94.16,16,[[2,.1965,5.8902],[3,.0977,-.5617],[5,.0407,2.1093]],
                            [[2,2.2,1.4]])},
  // 19 linked corners, nothing longer than a tier-1 charge — chain them instead
  {id:'atrium',name:'Atrium Switchback',sub:'Indoor · tight and technical',theme:'prom',
-  w:15,bank:.3,music:'promenade',
+  w:15,bank:.3,
   pts:harmonicPts(96.82,16,[[2,.2847,1.6618],[3,.1084,4.8593],[5,.0339,3.7585]])}
 ];
 const CO=id=>COURSES.find(c=>c.id===id)||COURSES[0];
@@ -3153,8 +3182,12 @@ const SFX={
      inaudible. Revs now climb within a gear and drop on the upshift, which
      is what makes speed legible by ear. */
   gear:0,
+  // A suspended context has a frozen clock, so every setTargetAtTime lands on the
+  // same timestamp and the automation list grows without bound (insertion is O(n^2)).
+  // Nothing is audible while suspended anyway, so skip the per-frame param writes.
+  running(){ return !!this.ctx && this.ctx.state==='running'; },
   engineAt(frac,boost){
-    if(!this.engG||this.faded)return;   // a fade is in progress; leave it alone
+    if(!this.engG||this.faded||!this.running())return;   // a fade is in progress; leave it alone
     const t=this.ctx.currentTime;
     const G=ENG_GEARS;
     let g=0; while(g<G.length-1&&frac>G[g+1])g++;
@@ -3179,7 +3212,7 @@ const SFX={
     this.engG.gain.setTargetAtTime(this.on?(.018+frac*.032)*ENG_VOL:0,t,.06);
   },
   squealAt(amount){
-    if(!this.squealG||this.faded)return;
+    if(!this.squealG||this.faded||!this.running())return;
     const t=this.ctx.currentTime;
     this.squealG.gain.setTargetAtTime(this.on?clamp(amount,0,1)*.055*SQUEAL_VOL:0,t,.07);
     this.squealF.frequency.setTargetAtTime(2200+clamp(amount,0,1)*1500,t,.09);
@@ -3257,7 +3290,7 @@ const SFX={
   },
   // wind is the one bed tied to the player rather than the place
   ambSpeed(frac){
-    if(!this.amb)return;
+    if(!this.amb||!this.running())return;
     const t=this.ctx.currentTime, f=clamp(frac,0,1.4);
     const w=this.on?(f*f*.016*AMB_MASTER*(this.ambMix&&this.ambMix.wind!=null?this.ambMix.wind:1)):0;
     this.amb.wind.g.gain.setTargetAtTime(w,t,.10);
@@ -3280,7 +3313,7 @@ const SFX={
      native velocity, so Doppler is computed by hand from closing speed.
   --------------------------------------------------------------------- */
   setListener(k){
-    if(!this.ctx||!k)return;
+    if(!this.ctx||!k||!this.running())return;
     const L=this.ctx.listener, t=this.ctx.currentTime;
     const fx=Math.sin(k.vyaw), fz=Math.cos(k.vyaw);
     if(L.positionX){
@@ -3332,7 +3365,7 @@ const SFX={
     }
   },
   rivalsUpdate(me,karts){
-    if(!this.rivals||!this.ctx)return;
+    if(!this.rivals||!this.ctx||!this.running())return;
     const t=this.ctx.currentTime;
     const others=karts.filter(k=>k!==me&&!k.fin)
       .map(k=>({k,d:Math.hypot(k.vx-me.vx,k.vz-me.vz)}))
@@ -3436,15 +3469,23 @@ const MUSIC = {
   on: true,
   inited: false,
   vol: MUSIC_VOL,
+  /* Each track is mastered at its own level -- measured integrated loudness
+     ran from -15.0 LUFS (menu) to -12.8 (atrium) across the eight files,
+     which reads as a step up in volume when the course changes. These trim
+     every track to -14 LUFS. Re-measure with ffmpeg ebur128 if a track is
+     replaced. Peak headroom is ample: the loudest result is 0.22*1.12. */
+  trim: {menu:1.122, lido:.977, promenade:1.035, boardwalk:1.023,
+         helideck:1.059, neonpool:1.012, atrium:.871, results:.944},
   fadeT: null,
   duckMul: 1,
   duckT: null,
   init() {
     if (this.inited) return;
-    ['menu', 'lido', 'promenade', 'boardwalk', 'results'].forEach(t => {
+    ['menu', 'lido', 'promenade', 'boardwalk', 'helideck', 'neonpool', 'atrium', 'results'].forEach(t => {
       this.tracks[t] = new Audio(t + '.mp3');
       this.tracks[t].loop = true;
-      this.tracks[t].volume = this.vol;
+      this.tracks[t].__trim = this.trim[t] || 1;
+      this.tracks[t].volume = this.vol * this.tracks[t].__trim;
     });
     this.inited = true;
   },
@@ -3467,8 +3508,8 @@ const MUSIC = {
     const t0 = now();
     this.fadeT = setInterval(() => {
       const k = Math.min(1, (now() - t0) / ms);
-      if (prev) prev.volume = this.vol * this.duckMul * (1 - k);
-      if (next && this.on) next.volume = this.vol * this.duckMul * k;
+      if (prev) prev.volume = this.lvl(prev) * (1 - k);
+      if (next && this.on) next.volume = this.lvl(next) * k;
       if (k >= 1) {
         clearInterval(this.fadeT); this.fadeT = null;
         if (prev && prev !== next) prev.pause();
@@ -3476,9 +3517,10 @@ const MUSIC = {
       }
     }, 40);
   },
+  lvl(el) { return this.vol * this.duckMul * ((el && el.__trim) || 1); },
   _apply() {
     if (this.current && this.on) {
-      this.current.volume = Math.max(0, Math.min(1, this.vol * this.duckMul));
+      this.current.volume = Math.max(0, Math.min(1, this.lvl(this.current)));
     }
   },
   /* Music lives on an <audio> element, outside the AudioContext — on a file://
@@ -4037,6 +4079,11 @@ function raceStats(order){
     '<div class="stat-c"><span class="k">'+c[0]+'</span><span class="v">'+c[1]+'</span></div>').join('');
 }
 function showResults(order,mode){
+  W.over=true;                         // silences world event audio; see W.onEvent
+  /* The final lap nudges playback to 1.06. That was only ever reset at the
+     start of the next race, so results and the menu played a semitone sharp
+     until you raced again. */
+  if(typeof MUSIC!=='undefined'){MUSIC.rate(1);MUSIC.resetMix();}
   SFX.stopEngine();                    // never let the engine idle under results
   UI.lastResults=order;
   drawPodium(order);
@@ -4093,13 +4140,14 @@ function beginRace(courseId,karts,cd){
   W.rng=mulberry(Date.now()&0xffff);
   buildScene(CO(courseId));
   placeGrid();
-  W.phase='count';W.cd=cd||3.2;W.cdMax=W.cd;W.t=0;W.shake=0;
+  W.phase='count';W.cd=cd||3.2;W.cdMax=W.cd;W.t=0;W.shake=0;W.over=false;
   W.meKart=karts.find(k=>k.local)||karts[0];
   for(const k of W.karts){k.vx=k.x;k.vy=k.y;k.vz=k.z;k.vyaw=k.yaw;k.ex=k.ey=k.ez=0;}
   skidReset();
   resetRaceStats();
   HUDs.place=null;HUDs.lap=null;
   $('banner').className='';$('hPos').className='v';$('hPos').style.animation='';
+  $('threat').className='';$('wrongway').className='';WW.t=0;THREAT.beepAt=0;THREAT.hold=0;THREAT.last=null;
   V.boostCam=0;V.driftCam=0;V.fxS=-1;V.fxB=-1;V.iconU=undefined;
   $('speedfx').style.opacity=0;$('boostfx').style.opacity=0;
   updateCamera(0,W.meKart,true);
@@ -4220,6 +4268,90 @@ function pollInput(dt){
 }
 let hudT=0;
 const HUDs={place:null,lap:null,posT:0};
+const THREAT={beepAt:0,hold:0,last:null}, WW={t:0};
+const _ww={}, _th={};
+/* Warn about projectiles closing on you from where you cannot see.
+   Velocity is derived from the position delta rather than o.vx/o.vz, because
+   clients rebuild objects from snapshots with zero velocity — the same reason
+   the homing duckling used to face the wrong way in multiplayer. */
+function updateThreat(dt){
+  const el=$('threat'); if(!el)return;
+  const k=W.meKart;
+  if(!k||!W.T||W.phase!=='race'||k.fin){el.className='';THREAT.hold=0;THREAT.last=null;return;}
+  let best=null,bestEta=1e9;
+  for(const o of W.objs){
+    if(o.ty!==2&&o.ty!==4)continue;
+    // track every projectile every frame, or the next delta is garbage
+    const px=o._tx==null?o.x:o._tx, pz=o._tz==null?o.z:o._tz;
+    const vx=(o.x-px)/Math.max(dt,1e-4), vz=(o.z-pz)/Math.max(dt,1e-4);
+    o._tx=o.x;o._tz=o.z;
+    if(o.own===k.id&&!o.armed)continue;         // your own, not yet live
+    const dx=o.x-k.vx, dz=o.z-k.vz, dist=Math.hypot(dx,dz);
+    if(dist>62||dist<0.5)continue;
+    const ang=angDiff(Math.atan2(dx,dz),k.vyaw);
+    if(Math.abs(ang)<1.05)continue;             // in front: you can see it
+    // closing speed of the gap between us
+    const rvx=vx-Math.sin(k.vyaw)*k.spd, rvz=vz-Math.cos(k.vyaw)*k.spd;
+    const closing=-(rvx*dx+rvz*dz)/dist;
+    /* A duckling locked onto you is coming whatever the instantaneous closing
+       rate says. It matches your speed as it draws alongside, which dropped it
+       under the gate and switched the warning off in the last few frames
+       before impact -- the worst possible moment to go quiet. */
+    const onMe=(o.ty===4&&o.tgt===k.id);
+    if(closing<(onMe?0.5:5))continue;
+    const eta=dist/(onMe?Math.max(closing,10):closing);
+    if(eta>2.6)continue;
+    /* Closing is not the same as connecting. Most projectiles behind you are
+       simply travelling the same road faster and will sail past, and warning
+       about those trains you to ignore the warning entirely. Ask instead
+       whether this one is actually coming for you:
+         - a duckling steers, so its target says everything;
+         - a ball does not, but it hugs the road, so its lateral line does. */
+    if(!(o.ty===4&&o.tgt===k.id)){
+      /* Locked onto you is the only unconditional case. Everything else --
+         a ball, or a duckling chasing somebody else -- still hits whoever it
+         runs into, so judge it on whether it is on your line rather than on
+         who it was aimed at. */
+      const so=W.T.sample(o.x,o.z,_th);
+      if(Math.abs(so.off-k.off)>4.2)continue;   // a different line; it passes wide
+    }
+    if(eta<bestEta){bestEta=eta;best={ang,eta};}
+  }
+  /* Hold briefly after the threat stops qualifying, so the icon does not
+     flicker as a projectile crosses between gates on its way in. */
+  if(best){THREAT.hold=.35;THREAT.last=best;}
+  else if(THREAT.hold>0){THREAT.hold-=dt;best=THREAT.last;}
+  if(!best){el.className='';return;}
+  bestEta=best.eta;
+  el.className='on';
+  // lateral component of the bearing tells you which shoulder it is over
+  const off=Math.sin(best.ang)*Math.min(innerWidth*.30,150);
+  el.style.transform='translateX(calc(-50% + '+off.toFixed(0)+'px))';
+  el.style.setProperty('--tdur',(0.16+clamp(bestEta,0,2.6)*0.16).toFixed(2)+'s');
+  const iv=clamp(bestEta*230,95,430), nt=now();
+  if(nt-THREAT.beepAt>iv){
+    THREAT.beepAt=nt;
+    SFX.blip(1180,.07,'square',.10,1500);
+  }
+}
+/* Wrong way. Uses heading against the track tangent rather than progress,
+   which avoids the discontinuity when u wraps at the start/finish line.
+   Suppressed while spun out, since the kart is rotating on its own. */
+function updateWrongWay(dt){
+  const el=$('wrongway'); if(!el)return;
+  const k=W.meKart;
+  if(!k||!W.T||W.phase!=='race'||k.fin||k.spT>0){
+    WW.t=Math.max(0,WW.t-dt*3);
+    if(WW.t<=0)el.className='';
+    return;
+  }
+  const s=W.T.sample(k.vx,k.vz,_ww);
+  const off=Math.abs(angDiff(k.vyaw,s.yaw));
+  if(off>1.9&&k.spd>7)WW.t+=dt; else WW.t=Math.max(0,WW.t-dt*2.2);
+  const on=WW.t>0.65;
+  if(on&&el.className!=='on'&&SFX.on)SFX.blip(300,.2,'square',.09,180);
+  el.className=on?'on':'';
+}
 /* Per-race stats for the results screen. Purely observational — fed from
    events that already exist, never read by the simulation or the network. */
 const RACE_STATS={bestLap:0,topTier:0,boosts:0,hits:0,lapStart:0};
@@ -4304,6 +4436,8 @@ function updateHUD(dt){
   }else if(Net.mode==='host'&&Net.conns.length){
     sy.className='sync on';$('hSyncT').textContent=Net.conns.length+' connected';
   }else sy.className='sync';
+  updateThreat(dt);
+  updateWrongWay(dt);
   SFX.engineAt(clamp(k.spd/BASE_TOP,0,1.2),k.bT>0);
   SFX.ambSpeed(clamp(k.spd/BASE_TOP,0,1.4));
   SFX.setListener(k);
@@ -4342,6 +4476,7 @@ W.onEvent=function(t,id,a){
     RACE_STATS.boosts++;if(a>RACE_STATS.topTier)RACE_STATS.topTier=a;}
   if(t===7&&k&&!mine)RACE_STATS.hits++;                                   // an item you landed
   if(t===4&&mine&&a===1)W.shake=Math.max(W.shake,.34);   // turbo item
+  if(W.over)return;                    // results are up: the world goes quiet
   if(mine||t===1||t===9)SFX.ev(t,a,0,1);
   else if(k&&W.meKart){
     // rivals are placed in the stereo field and fall off with distance
