@@ -4238,18 +4238,70 @@ function leaveRoom(){
   Net.reset();stopRace();showScreen('s-title');
 }
 /* ============================== HUD + input ============================== */
-const IN={active:false,id:null,x0:0,steer:0,target:0,useLatch:false,keyL:false,keyR:false};
+/* ---- thumb gestures --------------------------------------------------------
+   The item button sits in the top 38% of the screen, so tapping it means
+   lifting the steering thumb -- and lifting used to set target straight to 0,
+   so a single tap cost you control twice: once travelling, once because the
+   kart snapped straight the instant you let go. Two additions below:
+     - an upward flick fires the item without the thumb leaving the surface;
+     - releasing now holds the last steer briefly instead of centring at once,
+       which also makes simply repositioning the thumb free.
+   Neither touches the simulation or the network input message. */
+const STEER_W=.21;        // drag distance for full lock, as a fraction of width
+const FLICK_PX=44;        // upward travel that counts as a flick
+const FLICK_MS=220;       // ...achieved within this window
+const FLICK_RATIO=1.4;    // and at least this much more vertical than sideways
+const FLICK_CD=350;       // ignore further flicks for this long
+const STEER_GRACE=.13;    // keep the last steer this long after lifting
+const IN={active:false,id:null,x0:0,steer:0,target:0,useLatch:false,keyL:false,keyR:false,
+          hist:[],flickAt:0,relT:0};
 function initInput(){
   const c=document.body;
   const half=()=>innerHeight*.38;
   const down=(x,y,id)=>{
     if(UI.screen!=='none')return;
     if(y<half())return;             // top of the screen belongs to the item button
-    IN.active=true;IN.id=id;IN.x0=x;IN.target=0;
+    IN.active=true;IN.id=id;
+    /* Coming back down inside the grace window keeps the steer you already had,
+       so shifting your thumb does not straighten the kart. */
+    if(IN.relT>0) IN.x0=x-IN.target*(innerWidth*STEER_W);
+    else { IN.target=0; IN.x0=x; }
+    IN.relT=0; IN.hist.length=0;
     $('hHint').style.display='none';
   };
-  const move=x=>{if(!IN.active)return;IN.target=clamp((x-IN.x0)/(innerWidth*.21),-1,1);};
-  const up=()=>{IN.active=false;IN.target=0;};
+  const move=(x,y)=>{
+    if(!IN.active)return;
+    const t=now();
+    if(y!=null){
+      IN.hist.push({x,y,t});
+      while(IN.hist.length&&t-IN.hist[0].t>FLICK_MS)IN.hist.shift();
+      if(IN.hist.length>1&&t-IN.flickAt>FLICK_CD){
+        /* Measure from every candidate start, not just the oldest sample. A
+           flick usually follows a turn, and that turn's sideways travel is
+           still inside the window -- judging the whole window together let the
+           turn's dx swamp the flick's dy and the gesture was missed entirely. */
+        let a=null;
+        for(let i=0;i<IN.hist.length-1;i++){
+          const h=IN.hist[i], dy=h.y-y, dx=Math.abs(x-h.x);
+          if(dy>=FLICK_PX&&dy>=FLICK_RATIO*dx){a=h;break;}
+        }
+        if(a){
+          IN.flickAt=t;
+          /* A flick is never a steering input. x0 is re-anchored so the steer
+             returns to whatever it was when the flick began, which cancels the
+             sideways drift the thumb picks up on the way up. */
+          const keep=clamp((a.x-IN.x0)/(innerWidth*STEER_W),-1,1);
+          IN.x0=x-keep*(innerWidth*STEER_W);
+          IN.target=keep;
+          IN.hist.length=0;
+          useItem2('flick');
+          return;
+        }
+      }
+    }
+    IN.target=clamp((x-IN.x0)/(innerWidth*STEER_W),-1,1);
+  };
+  const up=()=>{ if(!IN.active)return; IN.active=false; IN.relT=STEER_GRACE; IN.hist.length=0; };
   c.addEventListener('touchstart',e=>{
     SFX.init();SFX.resume();
     if (typeof MUSIC !== 'undefined' && MUSIC.current && MUSIC.current.paused && MUSIC.on) MUSIC.current.play().catch(()=>{});
@@ -4258,7 +4310,7 @@ function initInput(){
     const t=e.changedTouches[0];down(t.clientX,t.clientY,t.identifier);
   },{passive:true});
   c.addEventListener('touchmove',e=>{
-    for(const t of e.changedTouches)if(t.identifier===IN.id)move(t.clientX);
+    for(const t of e.changedTouches)if(t.identifier===IN.id)move(t.clientX,t.clientY);
   },{passive:true});
   c.addEventListener('touchend',e=>{
     for(const t of e.changedTouches)if(t.identifier===IN.id)up();
@@ -4269,7 +4321,7 @@ function initInput(){
     if (typeof MUSIC !== 'undefined' && MUSIC.current && MUSIC.current.paused && MUSIC.on) MUSIC.current.play().catch(()=>{});
     down(e.clientX,e.clientY,'m');
   });
-  addEventListener('mousemove',e=>move(e.clientX));
+  addEventListener('mousemove',e=>move(e.clientX,e.clientY));
   addEventListener('mouseup',up);
   addEventListener('keydown',e=>{
     if(e.key==='ArrowLeft'||e.key==='a')IN.keyL=true;
@@ -4284,13 +4336,16 @@ function initInput(){
   document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
   $('itemBtn').addEventListener('click',e=>{e.stopPropagation();useItem2();});
 }
-function useItem2(){
+function useItem2(src){
   const k=W.meKart;if(!k||!k.item||W.phase!=='race')return;
+  // a flick has no button under the thumb, so confirm it some other way
+  if(src==='flick'&&navigator.vibrate){try{navigator.vibrate(18);}catch(e){}}
   if(Net.mode==='client'){IN.useLatch=true;$('itemBtn').classList.remove('has');}
   else k.inp.use=true;
   SFX.blip(880,.09,'square',.1);
 }
 function pollInput(dt){
+  if(!IN.active&&IN.relT>0){IN.relT-=dt;if(IN.relT<=0)IN.target=0;}
   let s=IN.target;
   if(IN.keyL)s=-1;if(IN.keyR)s=1;
   if(IN.keyL&&IN.keyR)s=0;
