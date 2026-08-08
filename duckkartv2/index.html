@@ -4253,6 +4253,7 @@ const FLICK_MS=220;       // ...achieved within this window
 const FLICK_RATIO=1.4;    // and at least this much more vertical than sideways
 const FLICK_CD=350;       // ignore further flicks for this long
 const STEER_GRACE=.13;    // keep the last steer this long after lifting
+const PAD_DZ=.18;         // stick deadzone; worn 360 sticks rest off-centre
 const IN={active:false,id:null,x0:0,steer:0,target:0,useLatch:false,keyL:false,keyR:false,
           hist:[],flickAt:0,relT:0};
 function initInput(){
@@ -4327,11 +4328,15 @@ function initInput(){
     if(e.key==='ArrowLeft'||e.key==='a')IN.keyL=true;
     if(e.key==='ArrowRight'||e.key==='d')IN.keyR=true;
     if(e.key===' '){useItem2();e.preventDefault();}
+    if(e.key==='g'||e.key==='G'){PAD.diag=!PAD.diag;const d=$('padDiag');
+      if(PAD.diag){PAD.hi={};PAD.act={};}      // each session starts from a clean sheet
+      else if(d)d.style.display='none';}
   });
   addEventListener('keyup',e=>{
     if(e.key==='ArrowLeft'||e.key==='a')IN.keyL=false;
     if(e.key==='ArrowRight'||e.key==='d')IN.keyR=false;
   });
+  addEventListener('gamepadconnected',()=>{PAD.seen=true;try{toast('Controller connected');}catch(e){}});
   document.addEventListener('gesturestart',e=>e.preventDefault());
   document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
   $('itemBtn').addEventListener('click',e=>{e.stopPropagation();useItem2();});
@@ -4344,11 +4349,104 @@ function useItem2(src){
   else k.inp.use=true;
   SFX.blip(880,.09,'square',.1);
 }
+/* ---- gamepad ---------------------------------------------------------------
+   The Gamepad API has no events for button state, so it has to be polled --
+   which is why this hangs off pollInput, already called once a frame. A pad
+   writes into the same IN.steer / IN.useLatch that touch and the keyboard use,
+   so the simulation and the {m:'in',q,s,u} message are untouched; the wire
+   format already carries steer as a float.
+
+   The steering lerp below is deliberately NOT relaxed for stick input. It is
+   doing double duty as a low-pass filter: the client transmits only every 3rd
+   step (~20Hz) while predicting at 60Hz, and smoothing is what keeps the input
+   representable at that sample rate. Sharpening it would alias and show up as
+   reconciliation snapping in multiplayer. */
+const PAD={fire:false,diag:false,seen:false,act:{},all:[],hi:{}};
+function padPoll(){
+  const out={steer:0,active:false,fire:false};
+  if(!navigator.getGamepads)return out;
+  let g=null, all=[];
+  /* getGamepads can throw outright -- a Permissions-Policy block raises
+     SecurityError -- and this runs inside the frame loop, so an unguarded
+     call would take the whole game down with it. */
+  try{
+    const pads=navigator.getGamepads();
+    for(let i=0;i<pads.length;i++){const q=pads[i];if(q&&q.connected)all.push(q);}
+  }catch(e){ return out; }
+  /* Wireless receivers can enumerate a phantom entry alongside the real pad,
+     so taking the first connected device can bind to a dongle that never
+     reports anything. Prefer a standard mapping, then whichever device is
+     actually sending data, then the richest one. */
+  for(const q of all){
+    const st=PAD.act[q.index]||(PAD.act[q.index]={ts:q.timestamp,live:false});
+    if(q.timestamp!==st.ts){st.ts=q.timestamp;st.live=true;}
+  }
+  const score=q=>(q.mapping==='standard'?100:0)+((PAD.act[q.index]||{}).live?50:0)
+                 +(q.axes?q.axes.length:0)+(q.buttons?q.buttons.length:0)*.1;
+  for(const q of all) if(!g||score(q)>score(g)) g=q;
+  PAD.all=all;
+  if(PAD.diag)padDiag(g);
+  if(!g){PAD.fire=false;return out;}
+  const btn=i=>{const b=g.buttons&&g.buttons[i];return !!b&&(b.pressed||b.value>.5);};
+  /* Rescale above the deadzone rather than clipping, so there is no jump in
+     sensitivity as the stick crosses the threshold. */
+  const ax=g.axes&&g.axes.length?g.axes[0]:0;
+  if(Math.abs(ax)>PAD_DZ){out.steer=(ax<0?-1:1)*((Math.abs(ax)-PAD_DZ)/(1-PAD_DZ));out.active=true;}
+  if(btn(14)){out.steer=-1;out.active=true;}          // d-pad, standard mapping
+  else if(btn(15)){out.steer=1;out.active=true;}
+  out.steer=clamp(out.steer,-1,1);
+  // buttons are polled, so fire on the rising edge or a held button repeats
+  const down=btn(0)||btn(5)||btn(7);                  // A, RB, RT
+  out.fire=down&&!PAD.fire;
+  PAD.fire=down;
+  return out;
+}
+/* Mapping cannot be verified without the hardware, so this prints live axis
+   and button indices. Toggle with G during a race. */
+function padDiag(g){
+  let el=$('padDiag');
+  if(!el){
+    el=document.createElement('div');el.id='padDiag';
+    el.style.cssText='position:fixed;left:8px;bottom:8px;z-index:9999;pointer-events:none;'+
+      'font:11px/1.4 ui-monospace,Menlo,Consolas,monospace;color:#FFF6E7;white-space:pre;'+
+      'background:rgba(8,36,58,.92);border:1px solid rgba(255,246,231,.32);border-radius:8px;padding:6px 8px;'+
+      'max-width:94vw;overflow:hidden;';
+    document.body.appendChild(el);
+  }
+  el.style.display='';
+  if(!g){el.textContent='no gamepad seen yet\npress a button on the pad';return;}
+  /* Remember the largest movement on each axis and every button ever pressed,
+     so the pad can be exercised without having to read live values. */
+  const H=PAD.hi;
+  Array.prototype.forEach.call(g.axes,(v,i)=>{const k='a'+i;
+    if(!(k in H)||Math.abs(v)>Math.abs(H[k]))H[k]=v;});
+  Array.prototype.forEach.call(g.buttons,(b,i)=>{if(b.pressed||b.value>.5)H['b'+i]=1;});
+  const evAx=Object.keys(H).filter(k=>k[0]==='a'&&Math.abs(H[k])>.25)
+    .map(k=>k+':'+H[k].toFixed(2)).join(' ')||'none';
+  const evBt=Object.keys(H).filter(k=>k[0]==='b').sort().join(' ')||'none';
+  const list=PAD.all.map(q=>'  ['+q.index+'] '+(q===g?'* ':'  ')+
+    String(q.id).slice(0,34)+' '+(q.mapping||'non-std')+
+    ' ax'+(q.axes?q.axes.length:0)+' bt'+(q.buttons?q.buttons.length:0)).join('\n');
+  el.textContent=
+    'pads connected: '+PAD.all.length+'\n'+list+
+    '\n--- selected [' + g.index + '] ---'+
+    '\nid: '+String(g.id)+
+    '\nlive (state changing): '+(((PAD.act[g.index]||{}).live)?'YES':'NO - no data arriving')+
+    '\naxes now: '+Array.prototype.map.call(g.axes,(v,i)=>'a'+i+':'+v.toFixed(2)).join(' ')+
+    '\nEVER moved: '+evAx+
+    '\nEVER pressed: '+evBt+
+    '\nsteer out: '+IN.steer.toFixed(3);
+}
 function pollInput(dt){
   if(!IN.active&&IN.relT>0){IN.relT-=dt;if(IN.relT<=0)IN.target=0;}
   let s=IN.target;
   if(IN.keyL)s=-1;if(IN.keyR)s=1;
   if(IN.keyL&&IN.keyR)s=0;
+  /* A drag or a key always wins, so a resting-but-drifting stick can never
+     fight an input someone is actively making. */
+  const gp=padPoll();
+  if(gp.active&&!IN.active&&!IN.keyL&&!IN.keyR)s=gp.steer;
+  if(gp.fire)useItem2('pad');
   IN.steer=lerp(IN.steer,s,smooth(dt,16));
   const k=W.meKart;
   if(k&&!k.fin)k.inp.steer=IN.steer;else if(k)k.inp.steer=0;
