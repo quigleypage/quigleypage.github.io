@@ -1655,7 +1655,18 @@ function buildWorldMeshes(scene,T,course){
 --------------------------------------------------------------------------- */
 function duckBodyInto(mb,c,S){
   mb.add(G_SPH,M4(0,.62*S,0,0,0,0,1.55*S,1.35*S,1.85*S),c.body);      // body
-  mb.add(G_CONE,M4(0,.55*S,-1.0*S,-.7,0,0,.9*S,1.2*S,.9*S),c.body);   // tail
+  /* Tail. The old cone's base centre landed at (0, .091, -.614)S, which tests
+     1.055 against the body ellipsoid (semi-axes .775/.675/.925) -- just
+     outside, so the flat base disc hung in the air behind the duck with a
+     visible seam. Simply lengthening it did not help: swept back at -.7 the
+     axis exits underneath the body, so the base moved further into open air.
+     Steepening to -1.159 and lengthening to 1.33 puts the base at
+     (0, .477, -.168)S, which tests .078 -- deep inside, with every rim vertex
+     buried too -- while leaving the tip at (0, 1.009, -1.386)S exactly where
+     it was, so the silhouette is unchanged. Cross-section is flattened
+     (1.15 wide x .82 thick) so it reads as a fan rather than a spike -- .62
+     was flat enough to look like a blade from the side. */
+  mb.add(G_CONE,M4(0,.743*S,-.777*S,-1.159,0,0,1.15*S,1.33*S,.82*S),c.body);
   if(c.id==='flamingo')
     mb.add(G_CYL,M4(0,1.15*S,.2*S,-.12,0,0,.42*S,1.3*S,.42*S),c.body); // neck
   // wings read as arms reaching for the wheel and widen the silhouette
@@ -1736,19 +1747,39 @@ function buildRacer(c){
   if(st.spoiler==='wing')        mb.add(G_BOX,M4(0,1.58*H,-1.72*L,0,0,0,1.90*A,.14,.62),c.kart);
   else if(st.spoiler==='bigwing'){mb.add(G_BOX,M4(0,1.72*H,-1.78*L,-.16,0,0,2.20*A,.14,.86),c.kart);
                                   mb.add(G_BOX,M4(0,1.40*H,-1.74*L,0,0,0,1.60*A,.10,.46),c.kart2);}
-  else if(st.spoiler==='fin')     mb.add(G_BOX,M4(0,1.74*H,-1.60*L,0,0,0,.16,1.05*H,.90),c.kart);
+  /* Fifi's fin used to be a single blade on the centreline, which the duck's
+     tail ran straight through -- 27% of the tail's surface was inside it once
+     the duck moved back for the steering wheel fix. The tail only clears the
+     body at z=-1.14 and the fin's front face was at -1.07, so the whole
+     visible tail sat in the fin's span; moving the blade back far enough to
+     clear needed -2.20L, hanging 1.02 off the back of the chassis.
+     Two blades flanking the tail instead. The tail is .267 half-width where it
+     crosses the fin's front face, so the inner edges have to sit beyond that:
+     at +/-.36 the inner edge is .28 and nothing touches. */
+  else if(st.spoiler==='fin')     for(let s2=-1;s2<=1;s2+=2)
+                                  mb.add(G_BOX,M4(s2*.36,1.74*H,-1.60*L,0,0,0,.16,1.05*H,.90),c.kart);
   else if(st.spoiler==='split')  for(let s=-1;s<=1;s+=2)
                                   mb.add(G_BOX,M4(s*.62*A,1.55*H,-1.72*L,0,0,.22,.80*A,.12,.58),c.kart);
   else if(st.spoiler==='barrel')  mb.add(G_BOX,M4(0,1.50*H,-1.70*L,0,0,0,1.30*A,.16,.52),c.kart);
-  // steering wheel, so the duck's wings have something to reach for
-  mb.add(G_TOR,M4(0,1.24*H,.92*L,-.55,0,0,.60,.60,.60),0x2B3A46);
-  mb.add(G_CYL,M4(0,1.08*H,1.02*L,-.55,0,0,.10,.55,.10),0x2B3A46);
+  /* Steering wheel. It used to sit at (1.24H, .92L) at scale .60, which put
+     15-48% of the rim's vertices INSIDE the duck's body ellipsoid depending on
+     the chassis height -- worst on Fifi and Bubbles. Both are opaque, so the
+     buried half simply vanished and the wheel read as growing out of the
+     duck's chest rather than being held in front of it. Obvious from the front
+     on the character carousel; easy to miss in a race, where you only ever see
+     the kart from behind.
+     The chest occupies the old position outright, so clearing it by moving the
+     wheel alone needed z>=1.35 -- out over the nose, visibly detached. Seating
+     the duck .25 further back instead (it was floating .02 clear of its own
+     seat) lets the wheel stay in the cockpit. */
+  mb.add(G_TOR,M4(0,1.26*H,1.05*L,-.55,0,0,.56,.56,.56),0x2B3A46);
+  mb.add(G_CYL,M4(0,1.10*H,1.15*L,-.55,0,0,.10,.55,.10),0x2B3A46);
   mb.add(G_CYL,M4(0,.95*H,-1.9*L,Math.PI/2,0,0,.34,.5,.34),0x2B3A46);          // exhaust
   const body=mb.mesh({__kind:'body'});body.matrixAutoUpdate=true;
   body.castShadow=true;g.add(body);
   // duck rides on top as its own animatable object
   const duck=buildDuck(c,1);
-  duck.position.set(0,.9*H,.05);
+  duck.position.set(0,.9*H,-.25);   // back against the seat; see the wheel note above
   g.add(duck);
   // wheels
   const seg=16;
@@ -2499,7 +2530,15 @@ function buildScene(course){
     c.left=-SHADOW_SPAN;c.right=SHADOW_SPAN;c.top=SHADOW_SPAN;c.bottom=-SHADOW_SPAN;
     c.near=1;c.far=260;c.updateProjectionMatrix();
     dl.shadow.bias=-0.0016;
-    dl.shadow.normalBias=0.9;
+    /* Was 0.9. The shadow frustum is 68 units across a 1024 map, so a texel is
+       ~6.6cm -- 0.9 world units is ~13.6 texels of offset along the surface
+       normal, against a normal range of 0.02-0.05. It pushed every lookup so
+       far off the receiving surface that contact detached: measured, it was
+       eroding 12-21% of shadow coverage and moving two thirds of all shadowed
+       pixels. Sweeping down to 0 showed no acne cost at any value -- the
+       depth bias above plus PCF soft shadows already handle that -- so this
+       was pure loss. Retune `bias`, not this, if acne ever returns. */
+    dl.shadow.normalBias=0.03;
   }
   W.sun=dl;
   sc.add(new THREE.AmbientLight(0xFFFFFF,AMB_BASE*LIGHT_SCALE.amb));
