@@ -663,7 +663,36 @@ const COURSES=[
  // 19 linked corners, nothing longer than a tier-1 charge — chain them instead
  {id:'atrium',name:'Atrium Switchback',sub:'Indoor · tight and technical',theme:'prom',
   w:15,bank:.3,
-  pts:harmonicPts(96.82,16,[[2,.2847,1.6618],[3,.1084,4.8593],[5,.0339,3.7585]])}
+  pts:harmonicPts(96.82,16,[[2,.2847,1.6618],[3,.1084,4.8593],[5,.0339,3.7585]])},
+ /* ---- excursions ---------------------------------------------------------
+    Roughly twice the length of a deck course. Two laps, not three: measured,
+    a deck race is 3 x ~800m = 2400m and takes about 58s, so one lap of this
+    at 1362m came out at 33s -- the SHORTEST race in the game, which is
+    backwards for the showcase course. Two laps is 2724m, about 66s, so an
+    excursion reads as the bigger event without dragging.
+    Hand-authored rather than harmonic on purpose -- harmonicPts only produces
+    star-shaped loops, which cannot give you a pier straight feeding into
+    switchbacks feeding into a ridge.
+    The elevation is deliberately spread thin: 32m of rise over ~1300m, which
+    is a gentler gradient than Boardwalk's 20m over ~700m. The mountains are
+    scenery (see buildTerrain), not track -- steep road made Helideck bumpy. */
+ /* Laid out around the landmarks rather than the other way round. Reading from
+    the start line: waterfront straight past the town, harbour, a seaward bulge
+    around the fortress headland, a climbing cliff run, under the cable car at
+    the high shoulder, inland switchbacks to the ridge, then a jungle descent
+    back to the sea. The coastal half is all south and east so a single coast
+    direction puts the water on the correct side of the terrain throughout. */
+ {id:'dr',name:'Excursion: Puerto Plata',sub:'Waterfront · fortress · cable car · mountain',
+  theme:'dr',w:15,bank:.45,laps:2,
+  pts:[[-250,0,-250],[-180,0,-256],[-105,0,-259],[-30,0,-258],[45,0,-252],
+       [115,1,-240],[178,2,-216],
+       [228,4,-246],[262,7,-218],[272,10,-172],
+       [262,15,-120],[238,21,-70],[206,27,-26],
+       [168,32,8],
+       [120,36,36],[66,39,54],[8,40,62],
+       [-50,39,60],[-108,36,48],
+       [-160,30,26],[-200,24,-12],[-228,18,-56],[-246,12,-104],
+       [-256,6,-155],[-258,2,-202]]}
 ];
 const CO=id=>COURSES.find(c=>c.id===id)||COURSES[0];
 
@@ -720,6 +749,10 @@ const G_CYL=new THREE.CylinderGeometry(.5,.5,1,12);
 const G_CYL6=new THREE.CylinderGeometry(.5,.5,1,6);
 const G_SPH=new THREE.SphereGeometry(.5,14,10);
 const G_SPH_LO=new THREE.SphereGeometry(.5,8,6);
+/* Foliage blob: 36 tris against G_SPH_LO's 84 and G_SPH's 260. Hundreds of
+   instances go through MB.add, which transforms every vertex on the CPU, so
+   the vertex count here sets the course build time as much as the frame rate. */
+const G_SPH_XS=new THREE.SphereGeometry(.5,6,4);
 const G_CONE=new THREE.ConeGeometry(.5,1,12);
 const G_TOR=new THREE.TorusGeometry(.5,.16,8,16);
 const _v3=new THREE.Vector3(),_q=new THREE.Quaternion(),_e=new THREE.Euler(),_sc=new THREE.Vector3();
@@ -736,10 +769,41 @@ function M4(x,y,z,rx,ry,rz,sx,sy,sz){
   _sc.set(sx==null?1:sx, sy==null?(sx==null?1:sx):sy, sz==null?(sx==null?1:sx):sz);
   return new THREE.Matrix4().compose(_v3,_q,_sc);
 }
+/* A box spanning two points, oriented by quaternion rather than Euler angles.
+   M4 composes with THREE's default XYZ order, so a yaw+pitch pair applies the
+   pitch in world space BEFORE the yaw -- which is why the cable car's span
+   pointed off into space instead of landing on its tower. Mapping +Z onto the
+   direction vector has no ordering to get wrong. */
+const _qa=new THREE.Quaternion(), _va=new THREE.Vector3(), _vz=new THREE.Vector3(0,0,1);
+function spanBox(mb,x1,y1,z1,x2,y2,z2,w,color){
+  const dx=x2-x1, dy=y2-y1, dz=z2-z1;
+  const len=Math.hypot(dx,dy,dz)||1e-4;
+  _va.set(dx/len,dy/len,dz/len);
+  _qa.setFromUnitVectors(_vz,_va);
+  _v3.set((x1+x2)/2,(y1+y2)/2,(z1+z2)/2);
+  _sc.set(w,w,len);
+  mb.add(G_BOX,new THREE.Matrix4().compose(_v3,_qa,_sc),color);
+}
+/* Lowest ground under a footprint. Placing a wide building at the height of its
+   centre point leaves the downhill half hanging in the air -- which is what the
+   Fortaleza was doing on the headland. */
+function groundMin(H,x,z,r){
+  if(!H)return null;
+  let m=H(x,z);
+  for(let i=0;i<8;i++){
+    const a=i/8*TAU;
+    m=Math.min(m,H(x+Math.cos(a)*r, z+Math.sin(a)*r));
+  }
+  return m;
+}
 /* merges primitives into one vertex-coloured buffer => very few draw calls */
 function MB(){this.p=[];this.n=[];this.c=[];}
 MB.prototype.add=function(geo,mtx,color){
-  const g=geo.index?geo.toNonIndexed():geo;
+  /* toNonIndexed() allocates a whole new geometry, and this runs once per
+     primitive -- tens of thousands of times per course, always against the same
+     handful of shared G_* geometries. Cache the converted copy on the source. */
+  let g=geo.__nonIdx;
+  if(!g){ g=geo.index?geo.toNonIndexed():geo; geo.__nonIdx=g; }
   const pa=g.attributes.position, na=g.attributes.normal;
   const nm=new THREE.Matrix3().getNormalMatrix(mtx), col=LC(color);
   const v=new THREE.Vector3();
@@ -913,6 +977,31 @@ function buildTextures(){
     }
     g.fillStyle='#6E4B26';for(let i=0;i<4;i++)g.fillRect(0,(i*32+30)*S,w,2*S);
   });
+  /* Dirt track for the excursions: a rutted earth path rather than deck tile.
+     Two wheel ruts, scattered grit and a few stones, so it reads as a road cut
+     through jungle instead of a paved surface. */
+  TEX.dirt=tex(128*Q,128*Q,(g,w,h)=>{
+    const S=w/128;
+    g.fillStyle='#B9A483';g.fillRect(0,0,w,h);
+    for(let i=0;i<420*Q;i++){                       // mottled earth
+      g.fillStyle=['rgba(168,150,120,.45)','rgba(196,180,152,.40)','rgba(146,128,101,.38)'][i%3];
+      const r=(1.5+Math.random()*5)*S;
+      g.beginPath();g.ellipse(Math.random()*w,Math.random()*h,r,r*.7,Math.random()*TAU,0,TAU);g.fill();
+    }
+    for(const cx of [w*0.30,w*0.70]){               // wheel ruts
+      g.strokeStyle='rgba(140,120,92,.30)';g.lineWidth=13*S;
+      g.beginPath();g.moveTo(cx,0);
+      g.bezierCurveTo(cx+7*S,h*.35,cx-7*S,h*.7,cx,h);g.stroke();
+      g.strokeStyle='rgba(206,192,166,.26)';g.lineWidth=4*S;
+      g.beginPath();g.moveTo(cx-6*S,0);
+      g.bezierCurveTo(cx+1*S,h*.35,cx-13*S,h*.7,cx-6*S,h);g.stroke();
+    }
+    for(let i=0;i<40*Q;i++){                        // stones
+      const x=Math.random()*w,y=Math.random()*h,r=(1+Math.random()*2.4)*S;
+      g.fillStyle=['rgba(140,132,116,.75)','rgba(112,104,92,.7)'][i%2];
+      g.beginPath();g.ellipse(x,y,r,r*.72,Math.random()*TAU,0,TAU);g.fill();
+    }
+  });
   TEX.kerb=tex(64*Q,64*Q,(g,w,h)=>{
     g.fillStyle='#F5F1E6';g.fillRect(0,0,w,h);
     g.fillStyle='#E0453A';g.fillRect(0,0,w,h/2);
@@ -939,9 +1028,9 @@ function buildTextures(){
   // Denser core than before: this is the kart's main ground-contact cue.
   TEX.shadow=tex(64,64,(g,w,h)=>{
     const grd=g.createRadialGradient(32,32,2,32,32,31);
-    grd.addColorStop(0,'rgba(0,0,0,.80)');
-    grd.addColorStop(.42,'rgba(0,0,0,.52)');
-    grd.addColorStop(.72,'rgba(0,0,0,.18)');
+    grd.addColorStop(0,'rgba(0,0,0,.92)');
+    grd.addColorStop(.42,'rgba(0,0,0,.70)');
+    grd.addColorStop(.72,'rgba(0,0,0,.30)');
     grd.addColorStop(1,'rgba(0,0,0,0)');
     g.fillStyle=grd;g.fillRect(0,0,w,h);
   });
@@ -1220,6 +1309,19 @@ const THEME={
   /* A night course still has to be readable: dropping the lights alone put 91%
      of the frame under luma 40. The road carries its own light instead, so the
      neon lines read as emissive while the deck stays dark. */
+  /* Excursion theme. Long fog distance because the vista is the whole point:
+     the hill ring and the offshore ship both sit past where a deck course
+     would have faded out. */
+  /* Excursion. Long fog distance because the vista is the point. Ambient is
+     pulled well down and the sun pushed up relative to the deck themes: with
+     fill nearly equal to key everything reads flat, which is tolerable on a
+     stylised deck but kills a landscape, where form IS the subject. */
+  dr:{sky:'skyDay',fog:0xA9D4EE,fogN:260,fogF:1500,road:'dirt',roadRep:7,apron:0x63A659,deck:0xE8DCC0,
+        base:0x5E9E5C,rail:0x7A5F3E,ocean:true,amb:.44,sun:0xFFF4DC,sunI:1.42,props:'dr',
+        gnd:0x6E8F5A,skirt:0x8A6B45,rib:0x9A7A50,cabin:0xE8DCC0,
+        terrain:true,coast:[0.62,-0.78],rails:false,
+        cloudA:.30,sunDisc:0xFFF3D6,sunR:24,
+        waterBase:0x1391A6,waterTint:0xDFFBF4},
   neon:{sky:'skyNight',fog:0x271C55,fogN:110,fogF:520,road:'neon',roadRep:9,apron:0x37276B,deck:0x3A2F72,
         base:0x241B52,rail:0x53E4FF,ocean:true,amb:.60,sun:0xC5A0FF,sunI:.52,props:'lido',
         gnd:0x241858,skirt:0x3B3070,rib:0x4E3F8C,cabin:0x4C4090,fxScale:.55,glowRoad:.55,
@@ -1371,6 +1473,529 @@ function pCrate(mb,x,y,z,rot){
   mb.add(G_BOX,M4(x,y+.8,z,0,rot,0,1.8,1.6,1.8),0xB98A55);
   mb.add(G_BOX,M4(x,y+1.62,z,0,rot,0,1.9,.16,1.9),0x8C6239);
 }
+/* ---- excursion props -----------------------------------------------------
+   A deck course is dressed with deck furniture; an excursion needs vegetation.
+   These three carry the Dominican course: canopy trees for mass, flowering
+   bushes for colour (the palette is otherwise very green, and measured flat),
+   and rocks to break up the verges. */
+/* Foliage runs to hundreds of instances, so every primitive here is the LOW
+   sphere (84 tris) not G_SPH (260). The first pass used G_SPH and a five-blob
+   canopy: ~1500 triangles per tree, 1.65M for the course. */
+/* Props are placed by offset from the road, which near the coast can put them
+   out over open water. Everything plantable checks the ground first. */
+let SEA_Y=-1e9;
+function onLand(H,x,z){ return !H || H(x,z)>SEA_Y+1.2; }
+function pJungleTree(mb,x,y,z,s,rng){
+  /* Shorter and thicker than the first version. A tall thin stalk under a small
+     disc reads as a pushpin stuck in felt; real canopy trees are wide relative
+     to their trunk and sit low. */
+  const h=(4.6+rng()*2.4)*s, lean=(rng()-.5)*.18;
+  for(let i=0;i<2;i++){
+    const t=i/2, ty=y+(t*h+h/4);
+    mb.add(G_CYL6,M4(x+Math.sin(t*1.5)*lean*h*.4,ty,z,0,0,lean*t,
+      (.72-t*.20)*s,(h/2)*1.04,(.72-t*.20)*s),0x6B4A2F);
+  }
+  // these three set the overall value of the course more than the lights do:
+  // measured, the old darker set put the frame at luma 103 vs 178 on a deck
+  const cy=y+h*1.02, G=[0x58AC52,0x6FC463,0x63B85A,0x4C9A48,0x7ACF6A];
+  for(let i=0;i<3;i++){
+    const a=i/3*TAU+rng(), r=(1.3+rng()*1.0)*s;
+    mb.add(G_SPH_XS,M4(x+Math.cos(a)*r*.9, cy+(rng()-.35)*1.2*s, z+Math.sin(a)*r*.9,
+      0,0,0,(3.6+rng()*1.6)*s,(2.0+rng()*.9)*s,(3.6+rng()*1.6)*s), G[(rng()*5)|0]);
+  }
+  // darker underside: without it the canopy is one flat value and reads as a
+  // cut-out rather than a mass
+  mb.add(G_SPH_XS,M4(x,cy-1.0*s,z,0,0,0,3.0*s,.9*s,3.0*s),0x2E6B32);
+}
+function pFlowerBush(mb,x,y,z,s,rng){
+  const FL=[0xFF3D7F,0xFFC93C,0xFF6B2E,0xE44FD0,0xFFF6E7];
+  const col=FL[(rng()*FL.length)|0];
+  for(let i=0;i<2;i++){
+    const a=rng()*TAU, r=rng()*.7*s;
+    mb.add(G_SPH_XS,M4(x+Math.cos(a)*r,y+.5*s+rng()*.3*s,z+Math.sin(a)*r,
+      0,0,0,(1.6+rng()*.6)*s,(1.1+rng()*.4)*s,(1.6+rng()*.6)*s),0x55A64E);
+  }
+  for(let i=0;i<4;i++){
+    const a=rng()*TAU, r=(.5+rng()*.7)*s;
+    mb.add(G_SPH_XS,M4(x+Math.cos(a)*r,y+(.9+rng()*.7)*s,z+Math.sin(a)*r,
+      0,0,0,(.34+rng()*.18)*s),col);
+  }
+}
+/* Flamboyan. Orange-red canopy: the single most recognisably Caribbean plant
+   and the only strong warm accent in an otherwise all-green scene. */
+function pFlamboyan(mb,x,y,z,s,rng){
+  const h=(6.5+rng()*3)*s;
+  mb.add(G_CYL6,M4(x,y+h*.5,z,0,0,(rng()-.5)*.14,.42*s,h,.42*s),0x6E5038);
+  const F=[0xE8562E,0xF2743A,0xD94528,0xF08A3C];
+  for(let i=0;i<4;i++){
+    const a=i/4*TAU+rng(), r=(1.6+rng()*1.2)*s;
+    mb.add(G_SPH_XS,M4(x+Math.cos(a)*r,y+h+(rng()-.3)*1.3*s,z+Math.sin(a)*r,
+      0,0,0,(2.6+rng()*1.2)*s,(1.2+rng()*.5)*s,(2.6+rng()*1.2)*s),F[(rng()*4)|0]);
+  }
+  // a little green under the flowers so it is not a pure orange puff
+  mb.add(G_SPH_XS,M4(x,y+h-.9*s,z,0,0,0,2.7*s,1.0*s,2.7*s),0x3E7A38);
+}
+function pFern(mb,x,y,z,s,rng){
+  const g=[0x4E9C46,0x5FB252,0x458E3E][(rng()*3)|0];
+  const n=4+((rng()*3)|0);
+  for(let i=0;i<n;i++){
+    const a=i/n*TAU+rng()*.7, len=(1.5+rng()*1.3)*s;
+    mb.add(G_BOX,M4(x+Math.cos(a)*len*.5, y+(.5+rng()*.5)*s, z+Math.sin(a)*len*.5,
+      -.5-rng()*.4, -a, 0, .30*s, .08*s, len),g);
+  }
+}
+function pRock(mb,x,y,z,s,rng){
+  const grey=[0x7C7468,0x8B8275,0x6A6357];
+  for(let i=0;i<2;i++){
+    const a=rng()*TAU, r=rng()*.6*s;
+    mb.add(G_SPH_XS,M4(x+Math.cos(a)*r,y+(.25+rng()*.35)*s,z+Math.sin(a)*r,
+      rng(),rng(),rng(),(1.0+rng()*.8)*s,(.7+rng()*.5)*s,(1.0+rng()*.8)*s),
+      grey[(rng()*3)|0]);
+  }
+}
+/* ---- terrain -------------------------------------------------------------
+   The first pass ringed the course with cones, which read as primitives and,
+   worse, were placed on a radius from the bounding-box centre -- so anywhere
+   the track ran further from centre than that radius, a cone sat on the road.
+   This replaces both the cones AND the flat ground plate with one displaced
+   heightfield. Mountains are now ridges in the terrain rather than objects
+   standing on it, and the track corridor is carved flat into it, so a collision
+   with the road is impossible by construction rather than by tuning.
+   Height is driven by distance from the track: flat at the roadside, rising
+   into relief as you move away, with a directional bias that drops one side
+   below sea level to make the coast. Colour is per-vertex by height and slope
+   -- sand, two greens, rock, and a pale cap -- which costs nothing and avoids
+   the single flat green that made the first pass look like a putting green. */
+function terrainNoise(seed){
+  const P=new Uint8Array(512), r=mulberry(seed);
+  for(let i=0;i<256;i++)P[i]=i;
+  for(let i=255;i>0;i--){const j=(r()*(i+1))|0;const t=P[i];P[i]=P[j];P[j]=t;}
+  for(let i=0;i<256;i++)P[256+i]=P[i];
+  const fade=t=>t*t*t*(t*(t*6-15)+10);
+  const grad=(h,x,z)=>{const u=(h&1)?x:z, v=(h&2)?z:x;return ((h&4)?-u:u)+((h&8)?-v:v);};
+  const n2=(x,z)=>{
+    const X=Math.floor(x)&255, Z=Math.floor(z)&255;
+    x-=Math.floor(x); z-=Math.floor(z);
+    const u=fade(x), v=fade(z);
+    const A=P[X]+Z, B=P[X+1]+Z;
+    const lerp2=(a,b,t)=>a+(b-a)*t;
+    return lerp2(lerp2(grad(P[A],x,z),grad(P[B],x-1,z),u),
+                 lerp2(grad(P[A+1],x,z-1),grad(P[B+1],x-1,z-1),u),v);
+  };
+  return (x,z,oct)=>{
+    let a=1,f=1,sum=0,norm=0;
+    for(let i=0;i<(oct||4);i++){ sum+=n2(x*f,z*f)*a; norm+=a; a*=.5; f*=2.03; }
+    return sum/norm;
+  };
+}
+function buildTerrain(scene,T,course,baseY,out,th){
+  const __t0=performance.now();
+  const bb=T.bounds, MAR=300;
+  const x0=bb.minx-MAR, x1=bb.maxx+MAR, z0=bb.minz-MAR, z1=bb.maxz+MAR;
+  const NX=118, NZ=118;                    // ~28k tris; the silhouette is what matters
+  const sea=baseY-9;
+  /* Distance to the track, from a spatial hash of the centreline. Calling
+     T.sample per vertex would be ~22k lookups and cost most of a second. */
+  const CELL=26, gx0=x0-CELL, gz0=z0-CELL;
+  const GW=Math.ceil((x1-x0+CELL*2)/CELL), GH=Math.ceil((z1-z0+CELL*2)/CELL);
+  const buckets=new Array(GW*GH);
+  for(let i=0;i<T.N;i++){
+    const cx=((T.px[i]-gx0)/CELL)|0, cz=((T.pz[i]-gz0)/CELL)|0;
+    if(cx<0||cz<0||cx>=GW||cz>=GH)continue;
+    const k=cz*GW+cx; (buckets[k]||(buckets[k]=[])).push(i);
+  }
+  const RAVINE_U=0.90, RAVINE_W=0.022;    // where the bridge crosses
+  const near=(x,z)=>{                      // {d, y, u} nearest centreline sample
+    const cx=((x-gx0)/CELL)|0, cz=((z-gz0)/CELL)|0;
+    let bd=1e9, by=0, bi=0;
+    for(let R=1;R<=4;R++){
+      for(let a=cz-R;a<=cz+R;a++)for(let b=cx-R;b<=cx+R;b++){
+        if(a<0||b<0||a>=GH||b>=GW)continue;
+        const bk=buckets[a*GW+b]; if(!bk)continue;
+        for(const i of bk){
+          const dx=T.px[i]-x, dz=T.pz[i]-z, d2=dx*dx+dz*dz;
+          if(d2<bd){bd=d2;by=T.py[i];bi=i;}
+        }
+      }
+      if(bd<1e9&&bd<(CELL*R)*(CELL*R))break;   // provably nearest, stop ringing
+    }
+    if(bd>=1e9){
+      /* Beyond the ring search. Falling back to {d:999,y:0} based every distant
+         vertex on sea level rather than the local road height, so the whole
+         outer field -- every mountain -- collapsed below the coast bias.
+         Measured: height went 35m at 20m out to -22.8m at 220m out. A full
+         scan is only N samples and only far vertices ever pay for it. */
+      for(let i=0;i<T.N;i++){
+        const dx=T.px[i]-x, dz=T.pz[i]-z, d2=dx*dx+dz*dz;
+        if(d2<bd){bd=d2;by=T.py[i];bi=i;}
+      }
+    }
+    return {d:Math.sqrt(bd),y:by,u:bi/T.N};
+  };
+  SEA_Y=sea;
+  const fbm=terrainNoise(course.id.length*7919+11);
+  const cd=th.coast||[-0.55,-0.84];        // direction the land falls away toward
+  const cl=Math.hypot(cd[0],cd[1])||1, cdx=cd[0]/cl, cdz=cd[1]/cl;
+  const cx0=(bb.minx+bb.maxx)/2, cz0=(bb.minz+bb.maxz)/2;
+  const reach=Math.max(bb.maxx-bb.minx,bb.maxz-bb.minz)*.5+MAR;
+  const hw=T.hw;
+  const H=(x,z)=>{
+    const n=near(x,z);
+    const d=n.d;
+    /* Carve wide and a little deep. The grid is ~7m per cell, coarser than the
+       road is wide, so a vertex just outside the corridor can interpolate ACROSS
+       it -- measured, 40 vertices sat up to 0.68m above the road surface. The
+       verge sits below the roadbed and the apron/skirt hides the step. */
+    /* -2.6 not -1.5: the carve is measured from the CENTRELINE height, but the
+       road banks, so its inner edge sits below centreline. At bank .45 that ate
+       all but 8cm of the margin. */
+    if(d<hw+15) return n.y-2.6;
+    const t=Math.min(1,(d-(hw+15))/62);
+    const far=Math.min(1,(d-(hw+15))/240);
+    const relief=Math.pow(fbm(x*0.0042,z*0.0042,3)*.5+.5,1.65);
+    const ridge=Math.pow(Math.abs(fbm(x*0.0016,z*0.0016,2)),0.8);
+    let h=(n.y-2.6) + t*(8.6+relief*52*far+ridge*104*far*far);
+    // one side falls away to the sea
+    const along=((x-cx0)*cdx+(z-cz0)*cdz)/reach;
+    h -= Math.max(0,along+0.18)*118;
+    h += (fbm(x*0.021,z*0.021,1))*1.6*t;                 // fine break-up
+    /* Cut the ravine the bridge crosses. Without this the bridge was parapets
+       standing on flat ground -- it read as roadworks, not a crossing. */
+    let du=Math.abs(n.u-RAVINE_U); if(du>.5)du=1-du;
+    if(du<RAVINE_W){
+      const g=Math.cos(du/RAVINE_W*Math.PI*.5);           // deepest at the centre
+      h-=g*g*(46+34*Math.min(1,d/70));
+    }
+    return Math.max(h, sea-24);                          // no need to model the abyss
+  };
+  const pos=[],col=[],idx=[];
+  const C=(r,g,b)=>{const c=LC((r<<16)|(g<<8)|b);return [c.r,c.g,c.b];};
+  const SAND=C(0xEEE0B0>>16&255,0xEEE0B0>>8&255,0xEEE0B0&255),
+        LOW =C(0x4F,0xB0,0x4A), MID=C(0x3C,0x8E,0x40),
+        ROCK=C(0x92,0x8B,0x78), CAP=C(0xC4,0xBE,0xAE), WET=C(0xC8,0xBE,0x96);
+  const mix=(A,B,t)=>[A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t,A[2]+(B[2]-A[2])*t];
+  const ys=new Float32Array((NX+1)*(NZ+1));
+  for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){
+    const x=x0+(x1-x0)*i/NX, z=z0+(z1-z0)*j/NZ;
+    ys[j*(NX+1)+i]=H(x,z);
+  }
+  for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){
+    const x=x0+(x1-x0)*i/NX, z=z0+(z1-z0)*j/NZ, y=ys[j*(NX+1)+i];
+    pos.push(x,y,z);
+    const hL=ys[j*(NX+1)+Math.max(0,i-1)], hR=ys[j*(NX+1)+Math.min(NX,i+1)];
+    const hD=ys[Math.max(0,j-1)*(NX+1)+i], hU=ys[Math.min(NZ,j+1)*(NX+1)+i];
+    const dxs=(x1-x0)/NX, dzs=(z1-z0)/NZ;
+    const slope=Math.min(1,Math.hypot((hR-hL)/(2*dxs),(hU-hD)/(2*dzs))*1.15);
+    const a=y-sea;
+    let c;
+    if(a<3)         c=mix(WET,SAND,Math.min(1,Math.max(0,a+3)/6));
+    else if(a<16)   c=mix(SAND,LOW,(a-3)/13);            // beach into vegetation
+    else if(a<64)   c=mix(LOW,MID,(a-16)/48);            // the bulk of the island
+    else if(a<92)   c=mix(MID,ROCK,(a-64)/28);           // only the tops go bare
+    else            c=mix(ROCK,CAP,Math.min(1,(a-92)/26));
+    c=mix(c,ROCK,slope*0.42);                            // steep faces go rocky
+    /* Bake a slope-facing term into the vertex colour. Vertex normals alone were
+       not giving the hills enough form -- every slope read as the same flat green
+       whichever way it faced, which is what made the island look like felt. */
+    const nx2=-(hR-hL)/(2*dxs), nz2=-(hU-hD)/(2*dzs);
+    const lit=Math.max(0,Math.min(1,0.5+(nx2*0.43+nz2*0.29+0.86)*0.42));
+    const sh=0.80+lit*0.34;
+    const v=(1+(fbm(x*0.05,z*0.05,1))*0.07)*sh;          // tint break-up + slope
+    col.push(c[0]*v,c[1]*v,c[2]*v);
+  }
+  for(let j=0;j<NZ;j++)for(let i=0;i<NX;i++){
+    const a=j*(NX+1)+i, b=a+1, c=a+NX+1, d=c+1;
+    idx.push(a,c,b, b,c,d);
+  }
+  out.terrainH=H;                     // so landmarks can be planted on the ground
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+  g.setIndex(idx); g.computeVertexNormals(); g.computeBoundingSphere();
+  const m=new THREE.Mesh(g,MAT({vertexColors:true},'deck'));
+  m.matrixAutoUpdate=false; m.receiveShadow=true; m.castShadow=true;
+  scene.add(m); out.objs.push(m); out.terrain=m;
+  out.terrainMs=performance.now()-__t0;
+}
+/* ---- excursion landmarks --------------------------------------------------
+   Procedural scatter is good at "generic tropical hillside" and structurally
+   incapable of "this is Puerto Plata". These are hand-placed at specific track
+   positions and they are what gives the course an identity: the teleferico, the
+   Fortaleza, the waterfront town, the harbour. All excursion-only -- nothing
+   here is reachable from a deck theme. */
+const TOWN_COLS=[0xF2C9A0,0xE8A9A0,0xB8D8C8,0xF6E3A6,0xCFC0E0,0xA8CCE4,0xF0B8C8];
+function pTownRow(mb,T,u0,u1,side,rng,H2){
+  const N=T.N, i0=Math.floor(u0*N), i1=Math.floor(u1*N);
+  for(let i=i0;i<i1;i+=3){
+    const o=side*(T.hw+16+rng()*9);
+    const x=T.px[i]+T.rx[i]*o, z=T.pz[i]+T.rz[i]*o;
+    if(!onLand(H2,x,z))continue;                      // the town stood in the sea
+    const y=(H2?Math.max(H2(x,z),T.py[i]-1.2):T.py[i]-1.2);
+    const rot=Math.atan2(T.rx[i]*side,T.rz[i]*side);
+    const w=9+rng()*5, d=8+rng()*4, st=2+((rng()*2)|0), h=st*3.5;
+    const col=TOWN_COLS[(rng()*TOWN_COLS.length)|0];
+    mb.add(G_BOX,M4(x,y+h/2,z,0,rot,0,w,h,d),col);
+    mb.add(G_BOX,M4(x,y+h+.5,z,0,rot,0,w*1.08,1.0,d*1.08),0xC96B4A);      // roof band
+    // shutters, and an awning over the street front
+    const fx=-Math.sin(rot), fz=-Math.cos(rot);
+    for(let f=0;f<st;f++){
+      for(let k=-1;k<=1;k++){
+        const px2=x+fx*(d*.5+.12)+Math.cos(rot)*k*w*.28;
+        const pz2=z+fz*(d*.5+.12)+(-Math.sin(rot))*k*w*.28;
+        mb.add(G_BOX,M4(px2,y+1.6+f*3.5,pz2,0,rot,0,w*.16,1.7,.22),0x5B4A3A);
+      }
+    }
+    mb.add(G_BOX,M4(x+fx*(d*.5+1.1),y+3.0,z+fz*(d*.5+1.1),-.30,rot,0,w*.92,.22,2.6),
+      [0xE4544A,0xF2B33C,0x3FA88C][(rng()*3)|0]);
+  }
+}
+function pFortress(mb,x,y,z,rot,s){
+  const STONE=0xBFAE92, DARK=0x9A8B72;
+  mb.add(G_BOX,M4(x,y+5*s,z,0,rot,0,34*s,10*s,26*s),STONE);          // curtain wall
+  mb.add(G_BOX,M4(x,y+10.4*s,z,0,rot,0,35*s,1.2*s,27*s),DARK);
+  for(let i=0;i<14;i++){                                              // crenellations
+    const t=i/13-.5;
+    mb.add(G_BOX,M4(x+Math.cos(rot)*t*33*s,y+11.6*s,z-Math.sin(rot)*t*33*s,0,rot,0,1.6*s,1.8*s,26.6*s),STONE);
+  }
+  for(let c=-1;c<=1;c+=2){                                            // corner bastions
+    const bx=x+Math.cos(rot)*c*15*s, bz=z-Math.sin(rot)*c*15*s;
+    mb.add(G_CYL,M4(bx,y+7*s,bz,0,0,0,11*s,14*s,11*s),STONE);
+    mb.add(G_CYL,M4(bx,y+14.4*s,bz,0,0,0,12*s,1.4*s,12*s),DARK);
+  }
+  mb.add(G_BOX,M4(x,y+13*s,z,0,rot,0,12*s,6*s,12*s),STONE);           // keep
+  mb.add(G_CYL,M4(x,y+19*s,z,0,0,0,.5*s,7*s,.5*s),0x6B5B48);          // flagpole
+  mb.add(G_BOX,M4(x+1.9*s,y+21*s,z,0,rot,0,3.6*s,2.2*s,.16*s),0x2B4FA8);
+}
+function pCableCar(mb,T,u,out,side){
+  const N=T.N, i=Math.floor(u*N);
+  const oA=side*(T.hw+26), oB=-side*(T.hw+34);
+  const ax=T.px[i]+T.rx[i]*oA, az=T.pz[i]+T.rz[i]*oA, ay=T.py[i];
+  const bx=T.px[i]+T.rx[i]*oB, bz=T.pz[i]+T.rz[i]*oB, by=T.py[i];
+  const hA=30, hB=46;
+  const tower=(tx,ty,tz,h)=>{
+    for(let k=0;k<4;k++){
+      const t=k/4, w=(2.6-t*1.5);
+      mb.add(G_BOX,M4(tx,ty+h*(t+.125),tz,0,0,0,w,h*.25,w),0x8A8F96);
+    }
+    mb.add(G_BOX,M4(tx,ty+h+.8,tz,0,0,0,7,.9,2.2),0x6E747C);
+  };
+  tower(ax,ay,az,hA); tower(bx,by,bz,hB);
+  // the span itself
+  spanBox(mb,ax,ay+hA,az, bx,by+hB,bz, .26, 0x3A3F46);   // carrier cable
+  spanBox(mb,ax,ay+hA-1.9,az, bx,by+hB-1.9,bz, .16, 0x4A5058);  // haul rope
+  if(out){                       // the gondola travels the span
+    const g=new THREE.Group();
+    const gm=new MB();
+    gm.add(G_BOX,M4(0,0,0,0,0,0,4.4,3.6,3.2),0xF2C21E);
+    gm.add(G_BOX,M4(0,1.1,0,0,0,0,4.6,.5,3.4),0x2B4FA8);
+    gm.add(G_BOX,M4(0,2.4,0,0,0,0,.4,2.2,.4),0x4A4F56);
+    g.add(gm.mesh({__kind:'deck'}));
+    g.position.set(ax,ay+hA-2.4,az);
+    out.rail.push({obj:g, a:new THREE.Vector3(ax,ay+hA-2.4,az),
+      b:new THREE.Vector3(bx,by+hB-2.4,bz), t:0, speed:.09});
+    out.anim.push(g);
+  }
+}
+function pHarbour(mb,T,u,side,rng){
+  const N=T.N, i=Math.floor(u*N);
+  const o=side*(T.hw+22);
+  const x=T.px[i]+T.rx[i]*o, z=T.pz[i]+T.rz[i]*o, y=T.py[i]-2.5;
+  const rot=Math.atan2(T.rx[i]*side,T.rz[i]*side);
+  mb.add(G_BOX,M4(x,y+1.2,z,0,rot,0,7,1.2,34),0x9A7A50);            // jetty
+  for(let k=0;k<7;k++)
+    mb.add(G_CYL,M4(x+Math.cos(rot)*3.2,y-1.4,z-Math.sin(rot)*3.2+0,0,0,0,.7,5,.7),0x6B5238);
+  for(let b=0;b<5;b++){                                              // moored boats
+    const bx=x+Math.cos(rot)*(9+rng()*10)*(b%2?1:-1), bz=z-Math.sin(rot)*(b*7-14);
+    mb.add(G_BOX,M4(bx,y+.9,bz,0,rot+ (rng()-.5)*.5,0,3.2,1.5,8.5),0xF4F1EA);
+    mb.add(G_BOX,M4(bx,y+2.1,bz-1.2,0,rot,0,2.2,1.3,3.0),[0xE4544A,0x2B7FB8,0xF2B33C][b%3]);
+  }
+}
+function pGuardrail(mb,T,u0,u1,side){
+  const N=T.N, i0=Math.floor(u0*N), i1=Math.floor(u1*N);
+  for(let i=i0;i<i1;i+=2){
+    const o=side*(T.hw+2.2);
+    const x=T.px[i]+T.rx[i]*o, z=T.pz[i]+T.rz[i]*o, y=T.py[i];
+    mb.add(G_BOX,M4(x,y+.85,z,0,0,0,.34,1.7,.34),0xC9C3B4);
+  }
+  ribbon(mb,T,side*(T.hw+2.05),side*(T.hw+2.35),1.55,1.55,0xE8E2D2);
+  ribbon(mb,T,side*(T.hw+2.05),side*(T.hw+2.35),1.05,1.05,0xE8E2D2);
+}
+/* ---- inland landmarks -----------------------------------------------------
+   The first landmark pass put everything between u .015 and .44, leaving over
+   half the lap as undifferentiated jungle. These carry the back half: the
+   teleferico's upper station is the real Pico Isabel de Torres summit with its
+   Cristo Redentor, and the mountain road gives waterfalls, a plantation, a hill
+   village and a ravine bridge. Everything plants on out.terrainH so it sits on
+   the ground rather than hovering at track height. */
+function pStatue(mb,x,y,z,rot,s){
+  const W_=0xF0EDE4, P=0xCFC7B4;
+  mb.add(G_BOX,M4(x,y+3*s,z,0,rot,0,9*s,6*s,9*s),P);              // plinth
+  mb.add(G_BOX,M4(x,y+7*s,z,0,rot,0,5.4*s,3*s,5.4*s),P);
+  mb.add(G_BOX,M4(x,y+14*s,z,0,rot,0,3.2*s,11*s,2.2*s),W_);       // robe
+  mb.add(G_BOX,M4(x,y+20.5*s,z,0,rot,0,12.6*s,1.5*s,1.5*s),W_);   // outstretched arms
+  mb.add(G_SPH_LO,M4(x,y+22.4*s,z,0,0,0,1.9*s),W_);               // head
+}
+function pWaterfall(mb,T,u,side,rng,H){
+  const i=Math.floor(u*T.N);
+  const o=side*(T.hw+17);                              // closer: it was unreadable
+  const x=T.px[i]+T.rx[i]*o, z=T.pz[i]+T.rz[i]*o;
+  // never below the road, or the embankment hides the whole thing
+  const gy=Math.max(H?H(x,z):T.py[i], T.py[i]-2.5);
+  const rot=Math.atan2(T.rx[i]*side,T.rz[i]*side);
+  const h=34+rng()*12;
+  for(let k=0;k<5;k++)                                            // cliff face
+    mb.add(G_BOX,M4(x+(rng()-.5)*5,gy+h*(k+.5)/5,z+(rng()-.5)*5,0,rot+(rng()-.5)*.3,0,
+      16-k*1.6,h/5*1.1,9-k*.8),[0x8B8578,0x7A7468,0x9A9384][k%3]);
+  for(let k=0;k<4;k++)                                            // the cascade
+    mb.add(G_BOX,M4(x,gy+h*(k+.5)/4,z+3.2,0,rot,0,3.4-k*.3,h/4*1.05,.7),0xF2FAFF);
+  mb.add(G_CYL,M4(x,gy+.5,z+5.5,0,0,0,11,1,9),0x69C4D6);          // plunge pool
+  for(let k=0;k<5;k++)                                            // spray
+    mb.add(G_SPH_LO,M4(x+(rng()-.5)*6,gy+1.5+rng()*3,z+5+(rng()-.5)*5,0,0,0,
+      1.4+rng()*1.6),0xE8F7FA);
+}
+function pPlantation(mb,T,u0,u1,side,rng,H){
+  const i0=Math.floor(u0*T.N), i1=Math.floor(u1*T.N);
+  for(let i=i0;i<i1;i+=3){
+    for(let row=0;row<4;row++){
+      const o=side*(T.hw+14+row*7);
+      const x=T.px[i]+T.rx[i]*o, z=T.pz[i]+T.rz[i]*o;
+      const gy=H?H(x,z):T.py[i];
+      mb.add(G_SPH_XS,M4(x,gy+1.1,z,0,0,0,2.5,1.8,2.5),row%2?0x4E8C3E:0x5C9A46);
+    }
+  }
+  const im=Math.floor((u0+u1)/2*T.N), o=side*(T.hw+46);
+  const x=T.px[im]+T.rx[im]*o, z=T.pz[im]+T.rz[im]*o;
+  const gy=H?H(x,z):T.py[im];
+  const rot=Math.atan2(T.rx[im]*side,T.rz[im]*side);
+  mb.add(G_BOX,M4(x,gy+3,z,0,rot,0,16,6,11),0xD8C9A8);            // drying shed
+  mb.add(G_BOX,M4(x,gy+6.6,z,0,rot,0,17,1.2,12),0xB0553E);
+}
+function pVillage(mb,T,u,side,rng,H){
+  const i=Math.floor(u*T.N);
+  const roadY=T.py[i];
+  const COL=[0x8FD0C4,0xF2C9A0,0xE8A9A0,0xF6E3A6,0xA8CCE4];
+  for(let k=0;k<6;k++){
+    const o=side*(T.hw+18+rng()*30), along=(k-2.5)*9;
+    const x=T.px[i]+T.rx[i]*o+T.fx[i]*along, z=T.pz[i]+T.rz[i]*o+T.fz[i]*along;
+    let gy=H?H(x,z):T.py[i];
+    if(gy<roadY-1.5)gy=roadY-1.5;         // never below the embankment, or it vanishes
+    const rot=Math.atan2(T.rx[i]*side,T.rz[i]*side)+(rng()-.5)*.5;
+    const w=6+rng()*3, hh=4+rng()*1.6;
+    mb.add(G_BOX,M4(x,gy+hh/2,z,0,rot,0,w,hh,w*.8),COL[(rng()*COL.length)|0]);
+    mb.add(G_BOX,M4(x,gy+hh+.55,z,0,rot,0,w*1.12,1.1,w*.92),0xB0553E);
+  }
+}
+/* A mirador: the pull-in viewpoint every mountain road has, and the natural
+   place to see the coast you drove along ten seconds ago. */
+function pMirador(mb,T,u,side,rng,H){
+  const i=Math.floor(u*T.N), o=side*(T.hw+13);
+  const x=T.px[i]+T.rx[i]*o, z=T.pz[i]+T.rz[i]*o, gy=T.py[i]-0.4;
+  const rot=Math.atan2(T.rx[i]*side,T.rz[i]*side);
+  const gm=groundMin(H,x,z,12);
+  const drop=Math.max(2,Math.min(26,gy-(gm==null?gy-2:gm)));   // footing, capped
+  mb.add(G_BOX,M4(x,gy-.6-drop*.5,z,0,rot,0,22,1.6+drop,13),0xCFC6B0);  // apron + footing
+  for(let k=-4;k<=4;k++){                                               // low wall
+    const px2=x+Math.cos(rot)*k*2.4, pz2=z-Math.sin(rot)*k*2.4;
+    mb.add(G_BOX,M4(px2,gy+.7,pz2,0,rot,0,1.5,2.0,1.1),0xBFB49C);
+  }
+  mb.add(G_CYL,M4(x-5,gy+3,z,0,0,0,.5,7,.5),0x8A8578);                 // flagpole
+  mb.add(G_BOX,M4(x-3.2,gy+5.6,z,0,rot,0,3.4,2.1,.16),0x2B4FA8);
+  for(let k=0;k<5;k++){                                                 // sightseers
+    const px2=x+(rng()-.5)*14, pz2=z+(rng()-.5)*7;
+    mb.add(G_CYL,M4(px2,gy+1.3,pz2,0,0,0,.7,2.0,.7),
+      [0xE4544A,0xF2B33C,0x3FA88C,0xF4F1EA][(rng()*4)|0]);
+    mb.add(G_SPH_XS,M4(px2,gy+2.6,pz2,0,0,0,.72),0xE8C9A0);
+  }
+}
+function pBridge(mb,T,u,H){
+  const i=Math.floor(u*T.N);
+  for(let s2=-1;s2<=1;s2+=2){                                      // parapets
+    for(let k=-7;k<=7;k++){
+      const j=(i+k+T.N)%T.N, o=s2*(T.hw+1.6);
+      const x=T.px[j]+T.rx[j]*o, z=T.pz[j]+T.rz[j]*o;
+      mb.add(G_BOX,M4(x,T.py[j]+1.0,z,0,0,0,1.1,2.0,2.6),0xC6BCA6);
+    }
+  }
+  for(let k=-5;k<=5;k+=5){                                         // piers into the ravine
+    const j=(i+k+T.N)%T.N;
+    const gy=H?H(T.px[j],T.pz[j]):T.py[j]-18;
+    const drop=Math.max(4,T.py[j]-gy);
+    mb.add(G_BOX,M4(T.px[j],T.py[j]-drop/2,T.pz[j],0,0,0,7,drop,7),0xB8AE98);
+  }
+}
+/* The ship on the horizon. One low-poly silhouette, far offshore, tying the
+   excursion back to the deck courses in a single image. Not chunked -- it is
+   meant to be visible from everywhere on the course. */
+/* The ship you sailed in on. Anchored off the waterfront rather than at a fixed
+   bearing from the map centre, so it sits across the water through the whole
+   opening straight instead of appearing once on the final descent.
+   Built from a sheer-lined hull with a raked bow and a stepped stern, banded
+   balcony decks, funnels with a boot stripe and a lifeboat row -- a stack of
+   plain boxes reads as a barge, and the point is that it is recognisably YOUR
+   cruise ship. */
+function pCruiseShip(scene,T,baseY,out){
+  const mb=new MB();
+  /* Placed with a FORWARD component as well as a seaward one. Anchoring it
+     perpendicular to the track put it about 90 degrees off the direction of
+     travel -- outside a 35 degree half-FOV, so it was never in frame on the
+     straight it was meant to sit across. Ahead-and-left puts it on the horizon
+     you are already driving toward. */
+  const i=Math.floor(0.04*T.N);
+  const bb=T.bounds, cx0=(bb.minx+bb.maxx)/2, cz0=(bb.minz+bb.maxz)/2;
+  const sd=(T.rx[i]*(T.px[i]-cx0)+T.rz[i]*(T.pz[i]-cz0))>=0?1:-1;
+  const FWD=225, LAT=150;   // ~270 units out, was ~420
+  const x=T.px[i]+T.fx[i]*FWD+T.rx[i]*sd*LAT;
+  const z=T.pz[i]+T.fz[i]*FWD+T.rz[i]*sd*LAT;
+  /* Measured, not derived: the hull bottom came out 17.4m ABOVE the waterline
+     with the value I reasoned to, so this is set from the rendered result. */
+  const y=baseY-35;
+  /* Bow back toward the start line, angled off-axis: aligned with the
+     direction of travel put the player permanently behind the transom, which
+     is the one angle a ship has nothing to show. This gives a bow quarter. */
+  const rot=Math.atan2(T.fx[i],T.fz[i])+Math.PI+0.62;
+  const HULL=0xF4F1E8, DARK=0x16344C, RED=0xB8352B, GLASS=0x2C5F7E,
+        TRIM=0x0E2438, LIFE=0xE8A93C;
+  const L=190, Wd=30;
+  const put=(dx,dy,dz,sx,sy,sz,col,ry)=>
+    mb.add(G_BOX,M4(x+Math.sin(rot)*dz+Math.cos(rot)*dx, y+dy,
+                    z+Math.cos(rot)*dz-Math.sin(rot)*dx,
+                    0,rot+(ry||0),0,sx,sy,sz),col);
+  // hull: five tapering segments give a sheer line and a raked bow
+  const seg=[[-0.46,1.00],[-0.18,1.00],[0.12,0.96],[0.36,0.80],[0.50,0.46]];
+  for(let k=0;k<seg.length;k++){
+    const t=seg[k][0], wf=seg[k][1];
+    // gentle sheer only: a big lift at the ends turned the hull into a wedge
+    const rise=Math.abs(t)>0.34?(Math.abs(t)-0.34)*9:0;
+    put(0, 18+rise*0.5, t*L, Wd*wf, 22+rise, L*0.24, HULL);
+    put(0, 8+rise*0.3, t*L, Wd*wf*0.99, 8, L*0.24, RED);     // boot topping at the waterline
+    put(0, 29.4+rise*0.5, t*L, Wd*wf*1.02, 1.6, L*0.245, TRIM);
+  }
+  // superstructure: banded decks, each inset, with a glass strip per level
+  for(let d=0;d<5;d++){
+    // barely inset: a strong taper per deck turned the profile into a pyramid
+    const wf=1-d*0.035, ln=L*(0.84-d*0.035);
+    put(0, 34+d*7.4, 0, Wd*wf, 5.8, ln, HULL);
+    put(0, 37.6+d*7.4, 0, Wd*wf*1.015, 2.0, ln*0.985, GLASS);   // balcony glass
+  }
+  /* One funnel, aft of centre. Three of them at 15 units across a 30-unit beam
+     read as a tug, not a cruise ship -- a real funnel is roughly a third of the
+     beam and sits about two thirds of the way aft. */
+  const FZ=-40, TOP=34+4*7.4+3;                     // clear of the top deck
+  put(0, TOP+7, FZ, 10, 15, 9, DARK);
+  put(0, TOP+15.4, FZ, 10.6, 3.2, 9.6, RED);        // house band
+  put(0, TOP+17.8, FZ, 8, 1.7, 7.2, TRIM);
+  put(0, TOP+3, FZ-10, 6, 8, 5.4, DARK);            // uptake behind it
+  // mast forward, and a pool-deck canopy so the top is not a flat slab
+  put(0, TOP+12, 46, 1.2, 18, 1.2, HULL);
+  put(0, TOP+2, 26, 20, 2.0, 30, HULL);
+  // lifeboats down both flanks
+  for(let s2=-1;s2<=1;s2+=2)
+    for(let k=0;k<7;k++)
+      put(s2*(Wd*0.53), 40, -L*0.30+k*L*0.10, 4.2, 3.4, 9.5, LIFE);
+  const m=mb.mesh({__kind:'deck'});
+  m.frustumCulled=false;
+  scene.add(m); out.objs.push(m);
+}
 function pCabins(mb,T,course,baseY){
   /* The superstructure is the largest visual mass in every frame. It used to be
      30 identical grey boxes, which read as placeholder. Now: varied block
@@ -1416,9 +2041,11 @@ function pCabins(mb,T,course,baseY){
    prop functions can dress a night course without going light-beige. */
 let PROP_RIB=0xD8D3C4, PROP_CAB=0xF4F1EA;
 function buildWorldMeshes(scene,T,course){
-  const th=THEME[course.theme], out={objs:[],spin:[],anim:[]};
+  const th=THEME[course.theme], out={objs:[],spin:[],anim:[],rail:[]};
   PROP_RIB=THC(th,'rib');PROP_CAB=THC(th,'cabin');
   const baseY=(function(){let m=1e9;for(let i=0;i<T.N;i++)m=Math.min(m,T.py[i]);return m-6;})();
+  // Terrain first: the landmark pass needs ground heights to plant things on.
+  if(th.terrain)buildTerrain(scene,T,course,baseY,out,th);
   // road
   const roadGeo=texRibbon(T,-T.hw,T.hw,ROAD_YOFF,3.2*(th.roadRep/8));
   const roadMat=MAT({map:TEX[th.road],normalMap:NORMAL_FOR[th.road]||null,
@@ -1435,9 +2062,17 @@ function buildWorldMeshes(scene,T,course){
   // kerbs
   const kerbMat=MAT({map:TEX.kerb,normalMap:TEX.kerbN,normalScale:new THREE.Vector2(.6,.6)},'road');
   [1,-1].forEach(s=>{
-    const g=texRibbon(T,s*T.hw,s*(T.hw+1.3),.05,2.4);
-    const m=new THREE.Mesh(g,kerbMat);m.matrixAutoUpdate=false;
-    m.receiveShadow=true;scene.add(m);out.objs.push(m);
+    /* The offsets must go low->high or the winding reverses. Passing
+       (s*hw, s*(hw+1.3)) does that for s=-1: a=-hw is GREATER than
+       b=-(hw+1.3), so computeVertexNormals gave the left kerb a normal of
+       -0.997 (pointing at the floor) and FrontSide backface-culled the whole
+       strip. The left kerb has been invisible on every course since it was
+       written -- the apron ribbon just below orders its left side correctly,
+       which is what makes this an oversight rather than intent. */
+    const lo=s>0? s*T.hw : s*(T.hw+1.3);
+    const hi=s>0? s*(T.hw+1.3) : s*T.hw;
+    const m=new THREE.Mesh(texRibbon(T,lo,hi,.05,2.4),kerbMat);
+    m.matrixAutoUpdate=false;m.receiveShadow=true;scene.add(m);out.objs.push(m);
   });
   // start/finish band
   (function(){
@@ -1460,6 +2095,12 @@ function buildWorldMeshes(scene,T,course){
   /* Racing-line wear: a darkened ribbon down the middle of the road. Uses the
      same ribbon builder as the road itself, so it follows every bank and crest. */
   (function(){
+    /* Deliberately NOT chunked. It is one thin transparent ribbon -- a couple
+       of thousand triangles -- so splitting it saves nothing, and transparent
+       meshes with depthWrite:false blend in draw order, so coincident edges at
+       chunk seams can double-blend. Measured: chunking this was the sole
+       source of a 15-pixel difference when culling toggled. Chunk the opaque
+       geometry, leave the decals whole. */
     const g=texRibbon(T,-T.hw*.46,T.hw*.46,ROAD_YOFF+.012,26);
     const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:TEX.wear,transparent:true,
       depthWrite:false,fog:true,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
@@ -1501,8 +2142,9 @@ function buildWorldMeshes(scene,T,course){
   const SKIRT=THC(th,'skirt'), RIB=THC(th,'rib');
   ribbon(mb,T,T.hw+1.3,T.hw+8.5,-.06,-.35,th.apron);
   ribbon(mb,T,-(T.hw+8.5),-(T.hw+1.3),-.35,-.06,th.apron);
-  // skirts down to the deck
-  (function(){
+  // skirts down to the deck (terrain themes have real ground; the skirt would
+  // just be a buried wall)
+  if(!th.terrain)(function(){
     for(let s=-1;s<=1;s+=2){
       const o=s*(T.hw+8.5);
       for(let i=0;i<T.N;i++){
@@ -1515,8 +2157,8 @@ function buildWorldMeshes(scene,T,course){
       }
     }
   })();
-  // railings
-  for(let s=-1;s<=1;s+=2){
+  // railings (a jungle path has no ship handrail)
+  if(th.rails!==false) for(let s=-1;s<=1;s+=2){
     const o=s*(T.hw+8.2);
     for(let i=0;i<T.N;i+=3){
       const x=T.px[i]+T.rx[i]*o,y=T.py[i]+T.ry[i]*o-.35,z=T.pz[i]+T.rz[i]*o;
@@ -1527,7 +2169,164 @@ function buildWorldMeshes(scene,T,course){
   }
   // props along the sides
   const props=th.props||course.theme;
-  for(let i=0;i<T.N;i+=5){          // denser trackside dressing
+  /* Jungle corridor. The generic roadside pass drops one prop every few
+     samples on alternating sides, which dresses a deck but cannot read as
+     forest. Excursions get their own pass: several bands out from the verge,
+     dense and on both sides, thinning with distance so the near edge is a wall
+     of green and the middle distance still has something in it. Everything is
+     placed by offset from the CENTRELINE, so nothing can land on the road. */
+  if(props==='dr'){
+    const jr=mulberry(course.id.length*31337+5);
+    /* Forest across the terrain. The corridor alone left every hillside bare, so
+     the island read as mown grass with a hedge down the middle. These are cheap
+     two-blob trees on a grid, thinned with distance and skipped on rock, steep
+     ground and anything below the waterline. */
+  if(props==='dr'&&out.terrainH){
+    const H0=out.terrainH, fr=mulberry(course.id.length*6151+9);
+    const fbmT=terrainNoise(course.id.length*7919+11);
+    const b0=T.bounds, STEP=26, tmpS={};
+    for(let x=b0.minx-170;x<b0.maxx+170;x+=STEP)
+      for(let z=b0.minz-170;z<b0.maxz+170;z+=STEP){
+        /* Uniform scatter reads as pushpins in felt. A low-frequency mask
+           gathers trees into groves and leaves open glades between them, which
+           is what makes real forest legible at a distance. */
+        const grove=fbmT(x*0.0055,z*0.0055,2)*.5+.5;
+        if(grove<0.42)continue;
+        const jx=x+(fr()-.5)*STEP*1.6, jz=z+(fr()-.5)*STEP*1.6;
+        const gy=H0(jx,jz);
+        if(gy<SEA_Y+3)continue;                       // in the water
+        if(gy>SEA_Y+96)continue;                      // above the treeline
+        const sm=T.sample(jx,jz,tmpS);
+        if(Math.abs(sm.off)<T.hw+34)continue;         // corridor handles this band
+        const slope=Math.abs(H0(jx+7,jz)-H0(jx-7,jz))+Math.abs(H0(jx,jz+7)-H0(jx,jz-7));
+        if(slope>26)continue;                         // cliffs stay bare
+        if(fr()>0.62+grove*0.34)continue;                 // denser inside a grove
+        const sc=(.75+fr()*1.15)*(0.85+grove*0.4);         // real size variance
+        const r=fr();
+        if(r<.11){ pFlamboyan(mb,jx,gy,jz,sc*.9,fr); continue; }
+        if(r<.22){                                         // columnar, for silhouette variety
+          const ch=(7+fr()*4)*sc;
+          mb.add(G_CYL6,M4(jx,gy+ch*.5,jz,0,0,0,.5*sc,ch,.5*sc),0x6B4A2F);
+          for(let q2=0;q2<3;q2++)
+            mb.add(G_SPH_XS,M4(jx,gy+ch*(.62+q2*.22),jz,0,fr()*TAU,0,
+              (1.9-q2*.35)*sc,(1.5)*sc,(1.9-q2*.35)*sc),0x3C8B3E);
+          continue;
+        }
+        if(r<.32){ pFlowerBush(mb,jx,gy,jz,sc*1.1,fr); continue; }   // understory
+        const G=[0x3E8C3E,0x4C9A48,0x357F35,0x58AC52];
+        const h=(4+fr()*2.6)*sc;
+        mb.add(G_CYL6,M4(jx,gy+h*.5,jz,0,0,0,.66*sc,h,.66*sc),0x6B4A2F);
+        mb.add(G_SPH_XS,M4(jx,gy+h*1.02,jz,0,fr()*TAU,0,
+          (3.8+fr()*1.8)*sc,(2.1+fr()*.8)*sc,(3.8+fr()*1.8)*sc),G[(fr()*4)|0]);
+        mb.add(G_SPH_XS,M4(jx,gy+h*.80,jz,0,0,0,(3.3+fr()*1.2)*sc,1.0*sc,(3.3+fr()*1.2)*sc),0x2E6B32);
+      }
+  }
+  /* Hand-placed landmarks. The outward side is derived per-sample rather than
+     hardcoded, so the sea-facing furniture stays sea-facing whichever way the
+     loop happens to wind. */
+  if(props==='dr'){
+    const cx=(T.bounds.minx+T.bounds.maxx)/2, cz=(T.bounds.minz+T.bounds.maxz)/2;
+    const outward=(u)=>{const i=Math.floor(u*T.N);
+      return (T.rx[i]*(T.px[i]-cx)+T.rz[i]*(T.pz[i]-cz))>=0 ? 1 : -1;};
+    const lr=mulberry(course.id.length*7717+3);
+    const H=out.terrainH;
+    const at=(u,off)=>{const i=Math.floor(u*T.N);
+      return {i,x:T.px[i]+T.rx[i]*off,z:T.pz[i]+T.rz[i]*off,y:T.py[i],
+              rot:Math.atan2(T.rx[i],T.rz[i])};};
+    /* Spread across the WHOLE lap. The first pass clustered everything into the
+       first 44%, which left more than half the course as undifferentiated
+       jungle -- you saw the good bit, then waited to loop round to it again. */
+    const sea=outward(0.08);
+    pTownRow(mb,T,0.015,0.145,-outward(0.08),lr,H);   // 0.02  waterfront town
+    pHarbour(mb,T,0.185,outward(0.185),lr);            // 0.19  jetty and boats
+    (function(){                                        // 0.25  the Fortaleza
+      const q=at(.245,outward(.245)*(T.hw+58));
+      const s2=1.9;
+      /* Measured, the ground under this footprint runs from -1.7 down to the
+         seabed clamp at -39: it sits on a promontory with most of its base over
+         open water, which is why it looked cantilevered off the mountainside.
+         Sinking it to the lowest ground would bury it, so it gets what the real
+         Fortaleza San Felipe has -- a rock headland built up out of the sea. */
+      const base=SEA_Y+7;
+      const rr=mulberry(97), tq={};
+      /* Every rock is distance-checked against the centreline. The headland is
+         ~36 units across and the fort sits ~58 out, but a cone landing on the
+         inward side used to reach the tarmac -- that was the brown cone in the
+         road by the waterfront. */
+      const clear=(x,z,rad)=>Math.abs(T.sample(x,z,tq).off)>T.hw+10+rad*0.5;
+      for(let k=0;k<7;k++){
+        const a2=k/7*TAU, r=(k?26:0)+rr()*10;
+        const rx2=q.x+Math.cos(a2)*r, rz2=q.z+Math.sin(a2)*r;
+        const w=46+rr()*22;
+        if(!clear(rx2,rz2,w))continue;
+        mb.add(G_CONE,M4(rx2, base-13+rr()*5, rz2, 0,rr()*TAU,0,
+          w, 44+rr()*16, 42+rr()*20), [0x8A8172,0x9A907E,0x7C7466][k%3]);
+      }
+      if(clear(q.x,q.z,88)) mb.add(G_CYL,M4(q.x,base-4,q.z,0,0,0,88,10,74),0x968C7A);
+      pFortress(mb,q.x,base,q.z,q.rot,s2);
+    })();
+    pGuardrail(mb,T,0.20,0.42,outward(0.30));          // cliff run, sea side
+    pCableCar(mb,T,0.44,out,outward(0.44));            // 0.44  the teleferico
+    pWaterfall(mb,T,0.53,-outward(0.53),lr,H);         // 0.53  mountain cascade
+    (function(){                                        // 0.61  Cristo Redentor
+      const i=Math.floor(.61*T.N), sd=-outward(.61);
+      let bx=0,bz=0,by=-1e9;
+      for(let d=140;d<=300;d+=20){                      // find the high ground
+        const x=T.px[i]+T.rx[i]*sd*d, z=T.pz[i]+T.rz[i]*sd*d;
+        const y=H?H(x,z):T.py[i];
+        if(y>by){by=y;bx=x;bz=z;}
+      }
+      const gmn=groundMin(H,bx,bz,16);
+      pStatue(mb,bx,(gmn==null?by:gmn),bz,Math.atan2(T.rx[i],T.rz[i]),3.4);
+      mb.add(G_BOX,M4(bx,(gmn==null?by:gmn)-7,bz,0,0,0,34,16,34),0xB8B2A0);  // footing
+    })();
+    pMirador(mb,T,0.565,outward(0.565),lr,H);          // 0.57  coast viewpoint (sea side)
+    pPlantation(mb,T,0.66,0.745,-outward(0.70),lr,H);  // 0.70  coffee terraces
+    pVillage(mb,T,0.81,-outward(0.81),lr,H);           // 0.81  hill village
+    pBridge(mb,T,0.90,H);                              // 0.90  ravine crossing
+    pGuardrail(mb,T,0.86,0.955,outward(0.90));         // descent, exposed side
+    pVillage(mb,T,0.955,-outward(0.955),lr,H);         // 0.96  outskirts, back into town
+  }
+  /* Zoned by lap position, so the course reads as sections rather than one
+       continuous hedge -- and so the vistas are actually visible. A solid wall
+       of canopy on both sides for the whole lap hides the mountains, the sea and
+       the ship, which are the entire reason for the excursion. */
+    const zoneAt=(u)=>{
+      if(u<0.16||u>0.88) return {d:0.30,tree:0.10,palm:0.62,open:true};   // coast
+      if(u<0.50)         return {d:1.00,tree:0.52,palm:0.18,open:false};  // deep jungle
+      if(u<0.72)         return {d:0.45,tree:0.24,palm:0.06,open:true};   // climb
+      return {d:0.72,tree:0.40,palm:0.16,open:false};                     // descent
+    };
+    for(let i=0;i<T.N;i+=5){
+      const s0=T.py[i], zn=zoneAt(i/T.N);
+      for(let side=-1;side<=1;side+=2){
+        // thins with distance: green at the verge, something in the middle
+        // distance, nothing wasted where the terrain takes over
+        const bands=zn.open? [[11,22,.42],[22,40,.26],[40,70,.14]]
+                           : [[9,18,.92],[18,32,.58],[32,56,.32],[56,95,.16]];
+        for(const [near,far,chance] of bands){
+          if(jr()>chance*zn.d)continue;
+          const o=side*(T.hw+near+jr()*(far-near));
+          const x=T.px[i]+T.rx[i]*o, z=T.pz[i]+T.rz[i]*o;
+          const y=s0-.7-Math.min(3.4,Math.abs(o)*.035);
+          if(!onLand(out.terrainH,x,z))continue;      // no forests in the sea
+          const r=jr(), sc=.8+jr()*.7;
+          const tT=zn.tree, tP=tT+zn.palm;
+          if(r<tT)       pJungleTree(mb,x,y,z,sc*(1+(Math.abs(o)>34?.35:0)),jr);
+          else if(r<tP)  pPalm(mb,x,y,z,sc*.95,jr);
+          else if(r<tP+.12) pFlamboyan(mb,x,y,z,sc,jr);   // warm accent
+          else if(r<tP+.28) pFlowerBush(mb,x,y,z,sc*.9,jr);
+          else if(r<tP+.40) pFern(mb,x,y,z,sc,jr);
+          else           pRock(mb,x,y,z,sc*.85,jr);
+        }
+      }
+    }
+  }
+  /* Prop spacing follows track length rather than sample count, so a course at
+     twice the length costs roughly the same to build instead of twice as much.
+     Deck courses (N~300-380) are unchanged at every 5th sample. */
+  const pstep=Math.max(5,Math.round(T.N/74));
+  for(let i=0;props!=='dr'&&i<T.N;i+=pstep){
     const side=(i%14===0)?1:-1, o=side*(T.hw+11+rng()*10);
     const x=T.px[i]+T.rx[i]*o, z=T.pz[i]+T.rz[i]*o, y=T.py[i]-.6;
     const r=rng(), rot=Math.atan2(T.rx[i]*side,T.rz[i]*side);
@@ -1553,7 +2352,7 @@ function buildWorldMeshes(scene,T,course){
     }
   }
   // landmarks + arches over the road
-  const lm=[.06,.3,.55,.8];
+  const lm=th.terrain?[]:[.06,.3,.55,.8];
   lm.forEach((u,k)=>{
     const s=T.atU(u,{}),o=(k%2?1:-1)*(T.hw+24);
     const x=s.px+s.rx*o,z=s.pz+s.rz*o,y=s.py-.6,rot=Math.atan2(s.rx,s.rz);
@@ -1561,29 +2360,32 @@ function buildWorldMeshes(scene,T,course){
     else if(props==='board'){[()=>pCoaster(mb,x,y,z,rot,1.2),()=>pFerris(mb,x,y,z,rot,1,out),()=>pCoaster(mb,x,y,z,rot,1),()=>pSlide(mb,x,y,z,.9,0xE4404A)][k]();}
     else {pArch(mb,s.px,s.py-.4,s.pz,Math.atan2(s.rz,s.rx),T.hw+7,0xC9A227);}
   });
-  if(props!=='prom'){
+  if(props!=='prom'&&!th.terrain){
     [.18,.45,.68,.92].forEach(u=>{const s=T.atU(u,{});pArch(mb,s.px,s.py-.4,s.pz,Math.atan2(s.rz,s.rx),T.hw+8,props==='lido'?0xFFFFFF:0xE4404A);});
   }
-  pCabins(mb,T,course,baseY);
+  if(!th.terrain)pCabins(mb,T,course,baseY);
   const scen=mb.mesh({__kind:'deck'});
   scen.castShadow=true;scen.receiveShadow=true;
   scene.add(scen);out.objs.push(scen);
   for(const g of out.anim){scene.add(g);out.objs.push(g);}
-  // ground plate
+  // ground: a displaced heightfield for excursions, a flat plate on the ship
   const bb=T.bounds,span=th.ocean?Math.max(bb.maxx-bb.minx,bb.maxz-bb.minz)+130:1500;
-  const gp=new THREE.Mesh(new THREE.PlaneGeometry(span,span),
-      MAT({color:LC(th.base)},'deck'));
-  gp.rotation.x=-Math.PI/2;gp.position.set((bb.minx+bb.maxx)/2,baseY-.4,(bb.minz+bb.maxz)/2);
-  gp.receiveShadow=true;scene.add(gp);out.objs.push(gp);out.groundPlate=gp;
-  if(th.ocean){ // hull sides so the deck plate does not float
-    const hull=new THREE.Mesh(new THREE.BoxGeometry(span*.98,26,span*.98),
-      MAT({color:LC(0x14324A)},'deck'));
-    hull.position.set(gp.position.x,baseY-13.6,gp.position.z);scene.add(hull);out.objs.push(hull);
-    out.hull=hull;
+  if(!th.terrain){
+    const gp=new THREE.Mesh(new THREE.PlaneGeometry(span,span),
+        MAT({color:LC(th.base)},'deck'));
+    gp.rotation.x=-Math.PI/2;gp.position.set((bb.minx+bb.maxx)/2,baseY-.4,(bb.minz+bb.maxz)/2);
+    gp.receiveShadow=true;scene.add(gp);out.objs.push(gp);out.groundPlate=gp;
+    if(th.ocean){   // hull sides so the deck plate does not float over water
+      const hull=new THREE.Mesh(new THREE.BoxGeometry(span*.98,26,span*.98),
+        MAT({color:LC(0x14324A)},'deck'));
+      hull.position.set(gp.position.x,baseY-13.6,gp.position.z);scene.add(hull);out.objs.push(hull);
+      out.hull=hull;
+    }
   }
   if(th.ocean){
     const om=new THREE.Mesh(new THREE.PlaneGeometry(4000,4000),makeWaterMaterial(th));
     om.rotation.x=-Math.PI/2;om.position.y=baseY-9;scene.add(om);out.objs.push(om);out.ocean=om;
+    if(th.terrain)pCruiseShip(scene,T,baseY-9,out);   // the ship you sailed in on
   }
   // sky
   const sky=new THREE.Mesh(new THREE.SphereGeometry(900,16,12),
@@ -1609,14 +2411,14 @@ function buildWorldMeshes(scene,T,course){
     scene.add(disc);out.objs.push(disc);out.sun=disc;
   })();
   // foam collar where the hull meets the water
-  if(th.ocean){
+  if(th.ocean&&!th.terrain){   // foam collar rings the hull; an island has a real shoreline
     const fm=new THREE.Mesh(new THREE.RingGeometry(1,1.13,64),
       new THREE.MeshBasicMaterial({map:TEX.foam,transparent:true,depthWrite:false,
         opacity:.55,fog:false,side:THREE.DoubleSide}));
     const span=Math.max(bb.maxx-bb.minx,bb.maxz-bb.minz)+130;
     fm.scale.setScalar(span*.5);
     fm.rotation.x=-Math.PI/2;
-    fm.position.set(gp.position.x,baseY-8.9,gp.position.z);
+    fm.position.set((bb.minx+bb.maxx)/2,baseY-8.9,(bb.minz+bb.maxz)/2);
     scene.add(fm);out.objs.push(fm);out.foam=fm;
   }
   // banners along the rails that actually ripple
@@ -2999,6 +3801,11 @@ function renderWorld(dt){
   updateSkid(dt);
   if(W.world&&W.world.spin)
     for(const s of W.world.spin) s.obj.rotation.z+=s.rate*dt;
+  if(W.world&&W.world.rail)                      // cable car, excursions only
+    for(const r of W.world.rail){
+      r.t=(r.t+dt*r.speed)%2;
+      r.obj.position.lerpVectors(r.a,r.b, r.t<1?r.t:2-r.t);
+    }
   if(W.world&&W.world.clouds) W.world.clouds.rotation.y+=dt*.0035;
   if(W.world&&W.world.flags) rippleFlags(now()*.001);
   // only the fallback Phong water scrolls a map; the reflective shader
@@ -3523,10 +4330,13 @@ const GRADES={
   board:   {contrast:1.09,sat:1.10,lift:[ .012, .002,-.006],gain:[1.09,0.99,0.91]},
   // a night course has little headroom below mid grey: heavy contrast plus a
   // negative lift crushed 81% of the frame under luma 40
-  neon:    {contrast:1.05,sat:1.18,lift:[ .016, .012, .028],gain:[1.02,0.97,1.12]}
+  neon:    {contrast:1.05,sat:1.18,lift:[ .016, .012, .028],gain:[1.02,0.97,1.12]},
+  // greens dominate the frame, so extra saturation and a warm gain keep the
+  // flowers and the sand from being swallowed by them
+  dr:      {contrast:1.08,sat:1.20,lift:[ .006, .004, .000],gain:[1.05,1.02,0.97]}
 };
 /* Reverb amount per environment. Indoor courses are much wetter. */
-const SPACE={lido:.09,sundeck:.09,board:.12,neon:.17,prom:.30};
+const SPACE={lido:.09,sundeck:.09,board:.12,neon:.17,prom:.30,dr:.11};
 /* Mix balance. Measured engine RMS was 31 at cruise and 55 at top, against
    music sitting around the same figure — and a continuous drone masks melody
    even at equal level, so the engine has to sit well underneath it.
@@ -3544,7 +4354,8 @@ const AMBIENCE={
   sundeck:{wind:1.05,sea:.016,room:0    },
   board:  {wind:0.90,sea:.018,room:0    },
   neon:   {wind:0.80,sea:.012,room:.003 },
-  prom:   {wind:0.40,sea:0,   room:.010 }
+  prom:   {wind:0.40,sea:0,   room:.010 },
+  dr:     {wind:0.85,sea:.017,room:0    }
 };
 
 const MUSIC = {
@@ -3559,13 +4370,13 @@ const MUSIC = {
      every track to -14 LUFS. Re-measure with ffmpeg ebur128 if a track is
      replaced. Peak headroom is ample: the loudest result is 0.22*1.12. */
   trim: {menu:1.122, lido:.977, promenade:1.035, boardwalk:1.023,
-         helideck:1.059, neonpool:1.012, atrium:.871, results:.944},
+         helideck:1.059, neonpool:1.012, atrium:.871, dr:.944, results:.944},
   fadeT: null,
   duckMul: 1,
   duckT: null,
   init() {
     if (this.inited) return;
-    ['menu', 'lido', 'promenade', 'boardwalk', 'helideck', 'neonpool', 'atrium', 'results'].forEach(t => {
+    ['menu', 'lido', 'promenade', 'boardwalk', 'helideck', 'neonpool', 'atrium', 'dr', 'results'].forEach(t => {
       this.tracks[t] = new Audio(t + '.mp3');
       this.tracks[t].loop = true;
       this.tracks[t].__trim = this.trim[t] || 1;
@@ -4220,7 +5031,12 @@ function beginRace(courseId,karts,cd){
     MUSIC.play(CO(courseId).music || courseId);
   }
 
-  W.karts=karts;W.laps=LAPS;W.finishAt=0;W.events.length=0;W.objs=[];W.objId=1;
+  /* Per-course lap count. Excursions are long one-lap trips rather than
+     three circuits, which keeps a session the same length and means you see
+     the whole environment instead of one corner three times. Host and client
+     both derive this from the course id they already share, so the input and
+     snapshot messages are untouched. */
+  W.karts=karts;W.laps=CO(courseId).laps||LAPS;W.finishAt=0;W.events.length=0;W.objs=[];W.objId=1;
   W.rng=mulberry(Date.now()&0xffff);
   buildScene(CO(courseId));
   placeGrid();
