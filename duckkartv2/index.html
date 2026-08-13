@@ -752,8 +752,17 @@ const SHAKE_DECAY=1.9, SHAKE_POS=1.9, SHAKE_ROLL=.05;
 const BOOST_PULL=1.9, BOOST_DROP=.55;   // camera moves in + down under boost
 const MAXP=520, MAXSMOKE=260, SKID_QUADS=440;
 /* Shadows are off on very weak devices; SHADOW_SPAN is the half-width in
-   metres of the ortho box that tracks the player. */
-const SHADOWS=true, SHADOW_SPAN=34, SUN_DIR={x:60,y:120,z:40};
+   metres of the ortho box that tracks the player.
+   Measured 34 -> 46: shadow coverage ahead of the kart reaches 57.9m instead of
+   42.9m, and coverage at 40m ahead goes 53% -> 91%, which is where prop shadows
+   were visibly popping in. GPU cost of the wider box is +0.03ms against a 0.13ms
+   noise floor -- the pass rasterises the same casters either way. The trade is
+   texel size 6.6cm -> 9.0cm, and that lands on prop shadows only: the kart is
+   anchored by the projectShadow decal, not by this map, and PCFSoftShadowMap is
+   already blurring these edges. A 2048 map would keep 4.5cm AND the range, but
+   measured +0.64ms here and +1.11ms on Puerto Plata against a total shadow cost
+   of 0.47ms -- more than doubling the shadow budget, and worse on a tiler. */
+const SHADOWS=true, SHADOW_SPAN=46, SUN_DIR={x:60,y:120,z:40};
 /* The road ribbon is built this far above the physics surface. The kart has to
    use the same offset or its wheels hover above the road it is driving on. */
 const ROAD_YOFF=.02;
