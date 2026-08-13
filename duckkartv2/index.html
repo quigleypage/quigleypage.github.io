@@ -692,7 +692,21 @@ const COURSES=[
        [120,36,36],[66,39,54],[8,40,62],
        [-50,39,60],[-108,36,48],
        [-160,30,26],[-200,24,-12],[-228,18,-56],[-246,12,-104],
-       [-256,6,-155],[-258,2,-202]]}
+       [-256,6,-155],[-258,2,-202]]},
+ /* Horseshoe Bay. The bay's own arc IS the racing line: a long shallow
+    left-hand sweep along the sand with the water on the outside, so the pink
+    beach, the boulders and the arch all sit on the seaward side where you can
+    see them. Deliberately flat -- Bermuda tops out around 76m in reality and
+    the whole appeal is the water, not relief. The return leg runs inland past
+    the cottages and the lighthouse headland. */
+ {id:'bm',name:'Excursion: Horseshoe Bay',sub:'Pink sand · limestone arch · turquoise shallows',
+  theme:'bm',w:16,bank:.40,laps:2,music:'bm',
+  pts:[[-236,0,-96],[-214,0,-150],[-176,0,-196],[-124,0,-228],
+       [-62,1,-246],[6,1,-252],[74,2,-246],[136,3,-228],
+       [188,5,-196],[226,7,-152],[248,10,-98],[254,13,-40],
+       [244,16,22],[216,18,78],[172,19,124],[116,20,156],
+       [52,20,172],[-14,19,174],[-78,17,162],[-136,14,138],
+       [-184,11,104],[-218,8,62],[-238,5,14],[-244,2,-44]]}
 ];
 const CO=id=>COURSES.find(c=>c.id===id)||COURSES[0];
 
@@ -1007,6 +1021,29 @@ function buildTextures(){
       g.fillStyle=['rgba(140,132,116,.75)','rgba(112,104,92,.7)'][i%2];
       g.beginPath();g.ellipse(x,y,r,r*.72,Math.random()*TAU,0,TAU);g.fill();
     }
+  });
+  /* Bermuda blacktop: pale weathered asphalt with a dashed centre line. The
+     deck `tile` looked like cruise-ship flooring laid across a beach. U runs
+     across the road, so anything drawn at u=0.5 becomes a centre stripe. */
+  TEX.bmroad=tex(128*Q,128*Q,(g,w,h)=>{
+    const S=w/128;
+    g.fillStyle='#9A9691';g.fillRect(0,0,w,h);
+    for(let i=0;i<900*Q;i++){                       // aggregate
+      g.fillStyle=['rgba(126,122,118,.5)','rgba(176,172,166,.42)','rgba(150,146,140,.45)'][i%3];
+      const r=(0.7+Math.random()*2.0)*S;
+      g.beginPath();g.ellipse(Math.random()*w,Math.random()*h,r,r*.8,0,0,TAU);g.fill();
+    }
+    for(let i=0;i<10*Q;i++){                        // patch repairs
+      g.fillStyle='rgba(112,108,104,.30)';
+      const bx=Math.random()*w,by=Math.random()*h;
+      g.fillRect(bx,by,(14+Math.random()*26)*S,(9+Math.random()*18)*S);
+    }
+    g.strokeStyle='rgba(120,116,112,.34)';g.lineWidth=1.4*S;  // tar seams
+    for(let i=0;i<4;i++){const y=Math.random()*h;
+      g.beginPath();g.moveTo(0,y);g.lineTo(w,y+(Math.random()-.5)*5*S);g.stroke();}
+    g.fillStyle='rgba(246,242,232,.90)';            // dashed centre line
+    const dl=h/4;
+    for(let k=0;k<4;k++)g.fillRect(w*.5-2.1*S, k*dl+dl*.22, 4.2*S, dl*.52);
   });
   TEX.kerb=tex(64*Q,64*Q,(g,w,h)=>{
     g.fillStyle='#F5F1E6';g.fillRect(0,0,w,h);
@@ -1328,6 +1365,22 @@ const THEME={
         terrain:true,coast:[0.62,-0.78],rails:false,
         cloudA:.30,sunDisc:0xFFF3D6,sunR:24,
         waterBase:0x1391A6,waterTint:0xDFFBF4},
+  /* Horseshoe Bay. Flat and pale where the DR is mountainous and saturated:
+     pink sand, limestone, brilliant shallow turquoise, low scrub. relief .32
+     and bandScale .34 keep the whole island inside the beach-and-scrub part of
+     the ramp instead of climbing into rock. */
+  bm:{sky:'skyDay',fog:0xBFE6F2,fogN:280,fogF:1600,road:'bmroad',roadRep:6,apron:0xF0D9CE,deck:0xF6ECE4,
+        base:0x84B872,rail:0xF4F1EA,ocean:true,amb:.50,sun:0xFFF8EC,sunI:1.30,props:'bm',
+        /* hemisphere ground bounce. This was 0x9CC48A -- grass green -- on a
+           course whose ground is pink sand, so every shaded wall picked up a
+           green fill and a peach cottage rendered as mud. */
+        gnd:0xEBD3C6,skirt:0xE4CBBE,rib:0xD8CBB8,cabin:0xFFFFFF,
+        terrain:true,coast:[-0.20,-0.98],rails:false,relief:.32,bandScale:.34,
+        coastK:44,coastOff:0.62,verge:120,
+        tp:{sand:0xF7DED6, wet:0xE9C6BC, low:0x86BC6E, mid:0x6EA25C,
+            rock:0xD9CFBC, cap:0xEFE9DC},
+        cloudA:.24,sunDisc:0xFFF8EC,sunR:22,
+        waterBase:0x1FBAC6,waterTint:0xEAFFFB},
   neon:{sky:'skyNight',fog:0x271C55,fogN:110,fogF:520,road:'neon',roadRep:9,apron:0x37276B,deck:0x3A2F72,
         base:0x241B52,rail:0x53E4FF,ocean:true,amb:.60,sun:0xC5A0FF,sunI:.52,props:'lido',
         gnd:0x241858,skirt:0x3B3070,rib:0x4E3F8C,cabin:0x4C4090,fxScale:.55,glowRoad:.55,
@@ -1656,14 +1709,24 @@ function buildTerrain(scene,T,course,baseY,out,th){
        road banks, so its inner edge sits below centreline. At bank .45 that ate
        all but 8cm of the margin. */
     if(d<hw+15) return n.y-2.6;
-    const t=Math.min(1,(d-(hw+15))/62);
+    const CW=th.verge||62;                 // how far the ground stays near road level
+    const t=Math.min(1,(d-(hw+15))/CW);
     const far=Math.min(1,(d-(hw+15))/240);
     const relief=Math.pow(fbm(x*0.0042,z*0.0042,3)*.5+.5,1.65);
     const ridge=Math.pow(Math.abs(fbm(x*0.0016,z*0.0016,2)),0.8);
-    let h=(n.y-2.6) + t*(8.6+relief*52*far+ridge*104*far*far);
+    const RA=th.relief==null?1:th.relief;   // Bermuda is flat; the DR is not
+    let h=(n.y-2.6) + t*(8.6+RA*(relief*52*far+ridge*104*far*far));
     // one side falls away to the sea
+    /* Coast fall-off. Strength and onset are per-theme: the DR wants a steep
+       drop into deep water, Bermuda wants a wide shallow shelf. At the DR's
+       values a flat island came out as a knife-edge causeway with the road on
+       top of it rather than a beach curving round a bay. */
+    /* Ramped by `t`, the same corridor blend the relief uses. Applied at full
+       strength it hit the ground immediately outside the carve while the road
+       kept its own height -- measured, the terrain was at the seabed 30m to
+       BOTH sides and the course became a causeway on a knife-edge ridge. */
     const along=((x-cx0)*cdx+(z-cz0)*cdz)/reach;
-    h -= Math.max(0,along+0.18)*118;
+    h -= t*Math.max(0,along+(th.coastOff==null?0.18:th.coastOff))*(th.coastK||118);
     h += (fbm(x*0.021,z*0.021,1))*1.6*t;                 // fine break-up
     /* Cut the ravine the bridge crosses. Without this the bridge was parapets
        standing on flat ground -- it read as roadworks, not a crossing. */
@@ -1676,9 +1739,13 @@ function buildTerrain(scene,T,course,baseY,out,th){
   };
   const pos=[],col=[],idx=[];
   const C=(r,g,b)=>{const c=LC((r<<16)|(g<<8)|b);return [c.r,c.g,c.b];};
-  const SAND=C(0xEEE0B0>>16&255,0xEEE0B0>>8&255,0xEEE0B0&255),
-        LOW =C(0x4F,0xB0,0x4A), MID=C(0x3C,0x8E,0x40),
-        ROCK=C(0x92,0x8B,0x78), CAP=C(0xC4,0xBE,0xAE), WET=C(0xC8,0xBE,0x96);
+  /* Palette per theme. Bermuda's pink sand and pale limestone need a different
+     ramp from the Dominican tan-and-jungle one, and both need the SAME banding
+     logic, so the colours are data rather than constants. */
+  const hx=(v)=>C((v>>16)&255,(v>>8)&255,v&255);
+  const P=th.tp||{};
+  const SAND=hx(P.sand||0xEEE0B0), LOW=hx(P.low||0x4FB04A), MID=hx(P.mid||0x3C8E40),
+        ROCK=hx(P.rock||0x928B78), CAP=hx(P.cap||0xC4BEAE), WET=hx(P.wet||0xC8BE96);
   const mix=(A,B,t)=>[A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t,A[2]+(B[2]-A[2])*t];
   const ys=new Float32Array((NX+1)*(NZ+1));
   for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){
@@ -1694,11 +1761,12 @@ function buildTerrain(scene,T,course,baseY,out,th){
     const slope=Math.min(1,Math.hypot((hR-hL)/(2*dxs),(hU-hD)/(2*dzs))*1.15);
     const a=y-sea;
     let c;
-    if(a<3)         c=mix(WET,SAND,Math.min(1,Math.max(0,a+3)/6));
-    else if(a<16)   c=mix(SAND,LOW,(a-3)/13);            // beach into vegetation
-    else if(a<64)   c=mix(LOW,MID,(a-16)/48);            // the bulk of the island
-    else if(a<92)   c=mix(MID,ROCK,(a-64)/28);           // only the tops go bare
-    else            c=mix(ROCK,CAP,Math.min(1,(a-92)/26));
+    const BS=th.bandScale==null?1:th.bandScale;
+    if(a<3*BS)        c=mix(WET,SAND,Math.min(1,Math.max(0,a+3*BS)/(6*BS)));
+    else if(a<16*BS)  c=mix(SAND,LOW,(a-3*BS)/(13*BS));  // beach into vegetation
+    else if(a<64*BS)  c=mix(LOW,MID,(a-16*BS)/(48*BS));  // the bulk of the island
+    else if(a<92*BS)  c=mix(MID,ROCK,(a-64*BS)/(28*BS)); // only the tops go bare
+    else              c=mix(ROCK,CAP,Math.min(1,(a-92*BS)/(26*BS)));
     c=mix(c,ROCK,slope*0.42);                            // steep faces go rocky
     /* Bake a slope-facing term into the vertex colour. Vertex normals alone were
        not giving the hills enough form -- every slope read as the same flat green
@@ -1730,13 +1798,37 @@ function buildTerrain(scene,T,course,baseY,out,th){
    Fortaleza, the waterfront town, the harbour. All excursion-only -- nothing
    here is reachable from a deck theme. */
 const TOWN_COLS=[0xF2C9A0,0xE8A9A0,0xB8D8C8,0xF6E3A6,0xCFC0E0,0xA8CCE4,0xF0B8C8];
+/* Seat a building on the LOWEST ground under its footprint, not on the height
+   of its centre point. Both callers previously used max(terrain, road-1.2),
+   which is a floor, not a seat: anywhere the ground fell below the road the
+   building hung in the air at road height. Returns null when the plot is
+   unusable so the caller can skip or step outward instead of forcing it. */
+function seat(H2,x,z,r,roadY){
+  if(!H2)return roadY-1.0;
+  let lo=1e9;
+  for(let a2=0;a2<8;a2++){
+    const c=Math.cos(a2*TAU/8)*r, sN=Math.sin(a2*TAU/8)*r;
+    lo=Math.min(lo,H2(x+c,z+sN));
+  }
+  lo=Math.min(lo,H2(x,z));
+  if(lo<SEA_Y+0.8)return null;                     // in the water
+  if(Math.abs(lo-roadY)>7)return null;             // in a pit or up a cliff
+  return lo-0.45;                                  // bed it into the ground
+}
 function pTownRow(mb,T,u0,u1,side,rng,H2){
   const N=T.N, i0=Math.floor(u0*N), i1=Math.floor(u1*N);
   for(let i=i0;i<i1;i+=3){
-    const o=side*(T.hw+16+rng()*9);
-    const x=T.px[i]+T.rx[i]*o, z=T.pz[i]+T.rz[i]*o;
-    if(!onLand(H2,x,z))continue;                      // the town stood in the sea
-    const y=(H2?Math.max(H2(x,z),T.py[i]-1.2):T.py[i]-1.2);
+    const base=T.hw+16+rng()*9;
+    // try a few plots before abandoning the slot, so seating buildings properly
+    // thins the row far less than a straight reject would
+    let x=0,z=0,y=null;
+    for(const extra of [0,9,-7,18,28]){
+      const o=side*(base+extra);
+      x=T.px[i]+T.rx[i]*o; z=T.pz[i]+T.rz[i]*o;
+      if(!onLand(H2,x,z))continue;                    // the town stood in the sea
+      y=seat(H2,x,z,8,T.py[i]); if(y!==null)break;
+    }
+    if(y===null)continue;
     const rot=Math.atan2(T.rx[i]*side,T.rz[i]*side);
     const w=9+rng()*5, d=8+rng()*4, st=2+((rng()*2)|0), h=st*3.5;
     const col=TOWN_COLS[(rng()*TOWN_COLS.length)|0];
@@ -1932,6 +2024,93 @@ function pBridge(mb,T,u,H){
 /* The ship on the horizon. One low-poly silhouette, far offshore, tying the
    excursion back to the deck courses in a single image. Not chunked -- it is
    meant to be visible from everywhere on the course. */
+/* ---- Horseshoe Bay landmarks ----------------------------------------------
+   The three things that make the bay recognisable: the limestone boulders
+   standing in the surf, the natural arch, and Gibbs Hill lighthouse on the
+   headland. Bermuda's cottages get their own roof treatment -- the stepped
+   white limestone roof is the single most identifiable piece of the vernacular
+   and it is what stops the town reading as generic pastel. */
+const LIME=[0xE4DAC6,0xD6CBB4,0xEDE4D2,0xCBBFA6];
+function pBoulder(mb,x,y,z,s,rng){
+  // one big mass plus shoulders: a single ellipsoid reads as a pebble
+  mb.add(G_SPH_LO,M4(x,y+2.1*s,z,rng()*.4,rng()*TAU,rng()*.3,
+    7.4*s,5.6*s,6.6*s),LIME[(rng()*4)|0]);
+  for(let i=0;i<3;i++){
+    const a=rng()*TAU, r=(2.4+rng()*2.2)*s;
+    mb.add(G_SPH_LO,M4(x+Math.cos(a)*r,y+(0.7+rng()*1.6)*s,z+Math.sin(a)*r,
+      rng()*.5,rng()*TAU,rng()*.4,(3.4+rng()*2.4)*s,(2.6+rng()*1.8)*s,(3.2+rng()*2.2)*s),
+      LIME[(rng()*4)|0]);
+  }
+  // a darker waterline stain so it does not look dropped on the sand
+  mb.add(G_SPH_LO,M4(x,y+.35*s,z,0,0,0,8.0*s,1.0*s,7.2*s),0xB9AC92);
+}
+/* Straddles the road so you drive under it. Off to one side at 34 units it was
+   unidentifiable at racing speed -- the whole point of the formation is passing
+   beneath it. Legs sit clear of the track width, the span clears kart height
+   with room to spare, and both are distance-checked against the centreline. */
+function pRockArch(mb,T,u,s){
+  const i=Math.floor(u*T.N);
+  const cx=T.px[i], cz=T.pz[i], cy=T.py[i];
+  const rx=T.rx[i], rz=T.rz[i];
+  const rot=Math.atan2(rx,rz);
+  const LEG=T.hw+9, SPAN=20*s, R=mulberry(771);
+  for(const sd of [-1,1]){
+    const lx=cx+rx*sd*LEG, lz=cz+rz*sd*LEG;
+    for(let k=0;k<5;k++){                          // splayed, tapering leg
+      const t=k/5, lean=sd*(1-t)*3.4*s;
+      mb.add(G_CYL,M4(lx+rx*lean, cy+SPAN*(t+.10)*0.94, lz+rz*lean,
+        (R()-.5)*.10, rot+(R()-.5)*.3, sd*0.06,
+        (13.5-t*4.4)*s, SPAN*.22, (11.0-t*3.4)*s), LIME[k%4]);
+    }
+    // a boulder skirt at the base so the leg meets the sand instead of ending
+    for(let k=0;k<3;k++){
+      // strictly outboard of the leg -- a skirt boulder drifting inward puts a
+      // 6m rock in the racing line, which the clearance check caught at -2.2m
+      const out=(6+R()*6)*s, tan=(R()-.5)*14*s;
+      mb.add(G_SPH_LO,M4(lx+rx*sd*out-rz*tan, cy+1.4*s, lz+rz*sd*out+rx*tan,
+        R()*.4,R()*TAU,R()*.3,(8+R()*5)*s,(4.5+R()*3)*s,(7+R()*4)*s),LIME[(R()*4)|0]);
+    }
+  }
+  for(let k=-3;k<=3;k++){                          // the span, arched over the road
+    const t=k/3, drop=(1-t*t)*3.2*s;
+    mb.add(G_BOX,M4(cx+rx*t*LEG*0.92, cy+SPAN+drop-2.0*s, cz+rz*t*LEG*0.92,
+      0, rot, -t*0.16, LEG*0.62, (7.5-Math.abs(t)*1.9)*s, 13*s), LIME[(k+3)%4]);
+  }
+}
+let _rs=mulberry(4242); function rng2(){return _rs();}
+function pLighthouse(mb,x,y,z,s){
+  const H=30*s;
+  for(let k=0;k<6;k++){                          // tapering white tower
+    const t=k/6;
+    mb.add(G_CYL,M4(x,y+H*(t+.083),z,0,0,0,
+      (5.2-t*1.9)*s, H/6*1.02, (5.2-t*1.9)*s), k===3?0xD4443A:0xF6F3EC);
+  }
+  mb.add(G_CYL,M4(x,y+H+1.0*s,z,0,0,0,7.0*s,1.4*s,7.0*s),0xE8E2D6);   // gallery
+  mb.add(G_CYL,M4(x,y+H+3.4*s,z,0,0,0,4.4*s,4.0*s,4.4*s),0x9FD8E8);   // lantern glass
+  mb.add(G_CONE,M4(x,y+H+6.6*s,z,0,0,0,5.6*s,3.4*s,5.6*s),0x2E3A44);  // cap
+  mb.add(G_BOX,M4(x,y+3*s,z+8*s,0,0,0,13*s,6*s,9*s),0xF6F3EC);        // keeper's cottage
+  mb.add(G_BOX,M4(x,y+6.4*s,z+8*s,0,0,0,14*s,1.2*s,10*s),0xFFFFFF);
+}
+/* Bermuda cottage: pastel walls, white stepped limestone roof, white trim. The
+   stepped roof is what makes it read as Bermuda rather than as any pastel town. */
+/* Bermuda pastels, chromatic rather than pale. Measured from the racing line:
+   lightening these collapsed mean wall chroma 64 -> 48 because the cottage row
+   is seen on its shaded side, where hue gets crushed toward the fill light.
+   Saturating instead took it to 102 and the hues separate again. */
+const BM_COLS=[0xF9A0B4,0xFFDC72,0x86D2E6,0x99DBA6,0xD7A2E8,0xFFAF7C];
+function pBermudaHouse(mb,x,y,z,rot,s,rng){
+  const w=(9+rng()*4)*s, d=(8+rng()*3)*s, h=(5+rng()*1.6)*s;
+  mb.add(G_BOX,M4(x,y+h/2,z,0,rot,0,w,h,d),BM_COLS[(rng()*BM_COLS.length)|0]);
+  for(let k=0;k<4;k++){                          // stepped white roof
+    const t=k/4;
+    mb.add(G_BOX,M4(x,y+h+ (t+.13)*3.4*s,z,0,rot,0,
+      w*(1.04-t*0.22), 0.85*s, d*(1.06-t*0.22)),0xFFFFFF);
+  }
+  const fx=-Math.sin(rot), fz=-Math.cos(rot);
+  for(let k=-1;k<=1;k++)                          // shutters
+    mb.add(G_BOX,M4(x+fx*(d*.5+.12)+Math.cos(rot)*k*w*.30,y+h*.55,
+      z+fz*(d*.5+.12)-Math.sin(rot)*k*w*.30,0,rot,0,w*.15,h*.42,.22*s),0x3E6B7A);
+}
 /* The ship you sailed in on. Anchored off the waterfront rather than at a fixed
    bearing from the map centre, so it sits across the water through the whole
    opening straight instead of appearing once on the final descent.
@@ -2325,6 +2504,79 @@ function buildWorldMeshes(scene,T,course){
           else if(r<tP+.40) pFern(mb,x,y,z,sc,jr);
           else           pRock(mb,x,y,z,sc*.85,jr);
         }
+      }
+    }
+  }
+  /* Horseshoe Bay. Everything iconic sits on the seaward side of the arc so it
+     stays in frame through the long sweep; the inland half carries the cottages
+     and the lighthouse headland. */
+  if(props==='bm'){
+    const H=out.terrainH, br=mulberry(course.id.length*5171+13);
+    const cxb=(T.bounds.minx+T.bounds.maxx)/2, czb=(T.bounds.minz+T.bounds.maxz)/2;
+    const outw=(u)=>{const i=Math.floor(u*T.N);
+      return (T.rx[i]*(T.px[i]-cxb)+T.rz[i]*(T.pz[i]-czb))>=0?1:-1;};
+    const at=(u,off)=>{const i=Math.floor(u*T.N);
+      return {i,x:T.px[i]+T.rx[i]*off,z:T.pz[i]+T.rz[i]*off,y:T.py[i],
+              rot:Math.atan2(T.rx[i],T.rz[i])};};
+    // boulders standing in the surf, right along the beach arc
+    for(let i=Math.floor(.06*T.N);i<Math.floor(.42*T.N);i+=5){
+      if(br()>.72)continue;
+      // right at the verge, not out in the bay: at 26-66 units they were scenery
+      const sd=outw(i/T.N), o=sd*(T.hw+13+br()*20);
+      const x=T.px[i]+T.rx[i]*o, z=T.pz[i]+T.rz[i]*o;
+      const gy=H?H(x,z):T.py[i];
+      pBoulder(mb,x,Math.max(gy,SEA_Y-2.5),z,1.2+br()*1.3,br);
+    }
+    pRockArch(mb,T,0.24,1.0);                        // you drive under this one
+    pRockArch(mb,T,0.505,0.82);                      // a smaller one on the far sweep
+    (function(){                                     // the sheltered cove
+      const q=at(.36,outw(.36)*(T.hw+44));
+      const gy=Math.max(H?H(q.x,q.z):q.y,SEA_Y-1);
+      for(let k=0;k<9;k++){                          // a rock breakwater arm
+        const a2=(-0.5+k/8)*1.5;
+        pBoulder(mb,q.x+Math.cos(q.rot+a2)*(26+k*5),gy,q.z-Math.sin(q.rot+a2)*(26+k*5),
+          .6+br()*.5,br);
+      }
+      for(let k=0;k<6;k++)                           // beach umbrellas in the shallows
+        pUmbrella(mb,q.x+(br()-.5)*40,gy+1,q.z+(br()-.5)*26,
+          [0xF06B8A,0xF6C64A,0x3FB8C4][k%3],0xFFF6E7);
+    })();
+    pTownRow(mb,T,0.60,0.70,-outw(0.64),br,H);      // waterfront strip
+    for(let k=0;k<9;k++){                            // Bermuda cottages inland
+      const u=0.72+k*0.022, jit=br()*10;
+      // step outward until the plot is level enough rather than floating one in
+      let placed=false;
+      for(const extra of [0,10,20,-6,32]){
+        const q=at(u,-outw(u)*(T.hw+18+jit+extra));
+        const gy=seat(H,q.x,q.z,6,T.py[q.i]);
+        if(gy===null)continue;
+        pBermudaHouse(mb,q.x,gy,q.z,q.rot+(br()-.5)*.5,1,br);
+        placed=true; break;
+      }
+      if(!placed)br();                               // keep the rng stream steady
+    }
+    (function(){                                     // Gibbs Hill on the headland
+      const i=Math.floor(.86*T.N), sd=-outw(.86);
+      let bx=0,bz=0,by=-1e9;
+      for(let d=60;d<=170;d+=15){
+        const x=T.px[i]+T.rx[i]*sd*d, z=T.pz[i]+T.rz[i]*sd*d;
+        const y=H?H(x,z):T.py[i];
+        if(y>by){by=y;bx=x;bz=z;}
+      }
+      pLighthouse(mb,bx,by,bz,1.5);
+    })();
+    pGuardrail(mb,T,0.44,0.58,outw(0.50));          // the one exposed stretch
+    // palms along the top of the beach
+    for(let i=0;i<T.N;i+=6){
+      const u=i/T.N; if(u>.46&&u<.92)continue;
+      for(const sd of [outw(u),-outw(u)]){
+        if(br()>.45)continue;
+        const o=sd*(T.hw+10+br()*16);
+        const x=T.px[i]+T.rx[i]*o, z=T.pz[i]+T.rz[i]*o;
+        const gy=H?H(x,z):T.py[i];
+        if(gy<SEA_Y+1.5)continue;
+        if(br()<.72)pPalm(mb,x,gy-.4,z,.9+br()*.5,br);
+        else pFlowerBush(mb,x,gy-.3,z,.8+br()*.5,br);
       }
     }
   }
@@ -4371,10 +4623,12 @@ const GRADES={
   neon:    {contrast:1.05,sat:1.18,lift:[ .016, .012, .028],gain:[1.02,0.97,1.12]},
   // greens dominate the frame, so extra saturation and a warm gain keep the
   // flowers and the sand from being swallowed by them
-  dr:      {contrast:1.08,sat:1.20,lift:[ .006, .004, .000],gain:[1.05,1.02,0.97]}
+  dr:      {contrast:1.08,sat:1.20,lift:[ .006, .004, .000],gain:[1.05,1.02,0.97]},
+  // pale and bright rather than saturated: the pink sand and turquoise carry it
+  bm:      {contrast:1.04,sat:1.14,lift:[ .010, .008, .006],gain:[1.03,1.01,1.02]}
 };
 /* Reverb amount per environment. Indoor courses are much wetter. */
-const SPACE={lido:.09,sundeck:.09,board:.12,neon:.17,prom:.30,dr:.11};
+const SPACE={lido:.09,sundeck:.09,board:.12,neon:.17,prom:.30,dr:.11,bm:.10};
 /* Mix balance. Measured engine RMS was 31 at cruise and 55 at top, against
    music sitting around the same figure — and a continuous drone masks melody
    even at equal level, so the engine has to sit well underneath it.
@@ -4393,7 +4647,8 @@ const AMBIENCE={
   board:  {wind:0.90,sea:.018,room:0    },
   neon:   {wind:0.80,sea:.012,room:.003 },
   prom:   {wind:0.40,sea:0,   room:.010 },
-  dr:     {wind:0.85,sea:.017,room:0    }
+  dr:     {wind:0.85,sea:.017,room:0    },
+  bm:     {wind:0.95,sea:.022,room:0    }
 };
 
 const MUSIC = {
@@ -4408,13 +4663,14 @@ const MUSIC = {
      every track to -14 LUFS. Re-measure with ffmpeg ebur128 if a track is
      replaced. Peak headroom is ample: the loudest result is 0.22*1.12. */
   trim: {menu:1.122, lido:.977, promenade:1.035, boardwalk:1.023,
-         helideck:1.059, neonpool:1.012, atrium:.871, dr:.944, results:.944},
+         helideck:1.059, neonpool:1.012, atrium:.871, dr:.944, bm:.902,
+         results:.944},
   fadeT: null,
   duckMul: 1,
   duckT: null,
   init() {
     if (this.inited) return;
-    ['menu', 'lido', 'promenade', 'boardwalk', 'helideck', 'neonpool', 'atrium', 'dr', 'results'].forEach(t => {
+    ['menu', 'lido', 'promenade', 'boardwalk', 'helideck', 'neonpool', 'atrium', 'dr', 'bm', 'results'].forEach(t => {
       this.tracks[t] = new Audio(t + '.mp3');
       this.tracks[t].loop = true;
       this.tracks[t].__trim = this.trim[t] || 1;
