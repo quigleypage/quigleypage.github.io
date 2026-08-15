@@ -661,7 +661,7 @@ const COURSES=[
   pts:harmonicPts(94.16,16,[[2,.1965,5.8902],[3,.0977,-.5617],[5,.0407,2.1093]],
                            [[2,2.2,1.4]])},
  // 19 linked corners, nothing longer than a tier-1 charge — chain them instead
- {id:'atrium',name:'Atrium Switchback',sub:'Indoor · tight and technical',theme:'prom',
+ {id:'atrium',name:'Atrium Switchback',sub:'Glass dome · grand stair · gallery decks',theme:'atrium',
   w:15,bank:.3,
   pts:harmonicPts(96.82,16,[[2,.2847,1.6618],[3,.1084,4.8593],[5,.0339,3.7585]])},
  /* ---- excursions ---------------------------------------------------------
@@ -1054,6 +1054,41 @@ function buildTextures(){
     const dl=h/4;
     for(let k=0;k<4;k++)g.fillRect(w*.5-2.1*S, k*dl+dl*.22, 4.2*S, dl*.52);
   });
+  /* Atrium floor: polished marble with veining and a brass inlay running the
+     length of the ribbon. Promenade's carpet read as a shopping street, which
+     is exactly what an atrium is not -- this is the hard, reflective, formal
+     surface under the void. U runs across the road, so the inlay lines sit at
+     fixed U and run with the track. */
+  /* Atrium ceiling light. Promenade's skyIn is a dark covered-street gradient;
+     borrowing it made the void above the atrium read as night sky. */
+  TEX.skyAtr=tex(8,128,(g,w,h)=>{
+    const gr=g.createLinearGradient(0,0,0,h);
+    gr.addColorStop(0,'#FFF6E2'); gr.addColorStop(.42,'#F0E3C6');
+    gr.addColorStop(.78,'#D8C6A4'); gr.addColorStop(1,'#B9A583');
+    g.fillStyle=gr; g.fillRect(0,0,w,h);
+  });
+  TEX.marble=tex(128*Q,128*Q,(g,w,h)=>{
+    const S=w/128;
+    g.fillStyle='#EFE9DB';g.fillRect(0,0,w,h);
+    for(let i=0;i<26*Q;i++){                       // soft tonal blocks
+      g.fillStyle=['rgba(226,216,197,.55)','rgba(244,239,228,.6)','rgba(214,203,183,.35)'][i%3];
+      g.fillRect(Math.random()*w,Math.random()*h,(18+Math.random()*46)*S,(16+Math.random()*40)*S);
+    }
+    g.lineCap='round';
+    for(let i=0;i<34*Q;i++){                       // veining
+      g.strokeStyle=i%4?'rgba(178,166,146,.34)':'rgba(150,138,120,.26)';
+      g.lineWidth=(0.5+Math.random()*1.5)*S;
+      let x=Math.random()*w,y=Math.random()*h;
+      g.beginPath();g.moveTo(x,y);
+      for(let k=0;k<5;k++){x+=(Math.random()-.5)*30*S;y+=(Math.random()-.5)*30*S;g.lineTo(x,y);}
+      g.stroke();
+    }
+    g.fillStyle='rgba(201,162,39,.85)';            // brass inlay pair
+    g.fillRect(w*.20-1.6*S,0,3.2*S,h);
+    g.fillRect(w*.80-1.6*S,0,3.2*S,h);
+    g.fillStyle='rgba(255,255,255,.16)';           // sheen
+    g.fillRect(w*.42,0,w*.10,h);
+  });
   TEX.kerb=tex(64*Q,64*Q,(g,w,h)=>{
     g.fillStyle='#F5F1E6';g.fillRect(0,0,w,h);
     g.fillStyle='#E0453A';g.fillRect(0,0,w,h/2);
@@ -1351,6 +1386,16 @@ const THEME={
   prom:{sky:'skyIn',fog:0x2C4257,fogN:60,fogF:300,road:'carpet',roadRep:10,apron:0xC9B896,deck:0xEDE3CE,
         base:0x3A3128,rail:0xC9A227,ocean:false,amb:.75,sun:0xFFE7C0,sunI:.5,props:'prom',fxScale:.7,
         clouds:false,sunR:0},
+  /* Atrium used to share the `prom` theme outright -- same palette, fog, road,
+     props and lighting -- so the two indoor courses were one course on two
+     layouts. The real contrast between them is light and volume: a promenade
+     is a dim covered street, an atrium is a bright multi-deck void under a
+     glass dome. Hence brighter ambient, warmer and much further fog, marble
+     instead of carpet. */
+  atrium:{sky:'skyAtr',fog:0xE4D8BE,fogN:90,fogF:460,road:'marble',roadRep:6,apron:0xE8E0CE,deck:0xF2ECDC,
+        base:0x6B5B44,rail:0xC9A227,ocean:false,amb:.88,sun:0xFFF2D8,sunI:.62,props:'atrium',fxScale:.7,
+        gnd:0xD8CBB0,skirt:0xE0D6C0,rib:0xEDE4CE,cabin:0xFFFFFF,
+        clouds:false,sunR:0},
   board:{sky:'skyDusk',fog:0xE0A07A,fogN:110,fogF:480,road:'plank',roadRep:9,apron:0x8C6239,deck:0xB98A55,
         base:0x6E4B26,rail:0xF4F1EA,ocean:true,amb:.6,sun:0xFFC07A,sunI:.9,props:'board',
         cloudA:.30,sunDisc:0xFFB070,sunR:30,waterBase:0x123F5A,waterTint:0xFFD6AE},
@@ -1485,6 +1530,164 @@ function pRing(mb,x,y,z,rot){
 function pPlanter(mb,x,y,z,s){
   mb.add(G_BOX,M4(x,y+.5,z,0,0,0,2.2*s,1.0,2.2*s),0xE4DCC8);
   for(let i=0;i<5;i++)mb.add(G_SPH_LO,M4(x+(Math.random()-.5)*1.4,y+1.2+Math.random()*.5,z+(Math.random()-.5)*1.4,0,0,0,1.1),0x3FA46A);
+}
+/* ---- atrium landmarks -------------------------------------------------
+   All of these take a track yaw and a side. Convention: a box rotated by
+   ry=yaw has local +Z along the track forward and local +X along the track
+   right, so "length" is the Z scale. `side` is +1 when the structure sits on
+   the track's right, and inward is therefore -side * right. */
+const ATR={cream:0xF6EFE0, marble:0xE9E1CF, brass:0xC9A227, glass:0xBFD8E4,
+           warm:0xFFF0C8, dark:0x4A3C2C, wine:0x8E2436, teal:0x2E7E86};
+/* Stacked balcony decks looking down into the void. This is the single feature
+   that reads as "atrium" rather than "indoor corridor" -- the defining quality
+   is vertical, so the galleries matter more than anything at floor level. */
+function pGallery(mb,x,y,z,yaw,side,len,levels,rng){
+  const rx=Math.cos(yaw), rz=-Math.sin(yaw);
+  const ix=-side*rx, iz=-side*rz;                 // toward the road
+  for(let L=0;L<levels;L++){
+    const yy=y+8.5+L*7.2;
+    const ox=x-ix*3.2, oz=z-iz*3.2;
+    /* A grey 7m-deep slab read as a shelf, not a balcony: the overhang hid the
+       frontage behind it and the underside caught no light. Shallower, with a
+       warm soffit and a strip light under the leading edge -- which is what
+       actually makes a real atrium deck legible from the floor. */
+    mb.add(G_BOX,M4(ox,yy,oz,0,yaw,0,5.4,.7,len),ATR.marble);          // deck slab
+    mb.add(G_BOX,M4(ox+ix*.4,yy-.42,oz+iz*.4,0,yaw,0,4.6,.18,len*.98),0xE8D9B8);   // warm soffit
+    mb.add(G_BOX,M4(ox+ix*2.4,yy-.30,oz+iz*2.4,0,yaw,0,.55,.34,len*.96),ATR.warm); // strip light
+    mb.add(G_BOX,M4(ox+ix*2.4,yy+1.9,oz+iz*2.4,0,yaw,0,.35,.35,len),ATR.brass); // hand rail
+    const n=Math.max(4,Math.round(len/3.4));
+    for(let i=0;i<n;i++){                                              // balusters
+      const t=(i/(n-1)-.5)*len;
+      const bx=ox+ix*2.4+Math.sin(yaw)*t, bz=oz+iz*2.4+Math.cos(yaw)*t;
+      mb.add(G_CYL,M4(bx,yy+1.0,bz,0,0,0,.16,1.8,.16),ATR.brass);
+    }
+    // A tall blank back wall read as a white billboard from the road. Keep it
+    // low and let a continuous lit frontage carry the deck instead.
+    mb.add(G_BOX,M4(ox-ix*2.6,yy+2.4,oz-iz*2.6,0,yaw,0,.6,4.2,len),ATR.cream);      // back wall
+    // frontage sits just behind the rail so it is visible in the gap under the
+    // deck above, rather than 6m back where the overhang swallowed it
+    mb.add(G_BOX,M4(ox-ix*1.7,yy+2.5,oz-iz*1.7,0,yaw,0,.25,3.2,len*.94),ATR.warm);
+    mb.add(G_BOX,M4(ox+ix*2.5,yy+.15,oz+iz*2.5,0,yaw,0,.5,.5,len),ATR.brass);       // slab fascia
+    const nb=Math.max(3,Math.round(len/5));
+    for(let i=0;i<nb;i++){                                             // mullions
+      const t=(i/(nb-1)-.5)*len*.94;
+      mb.add(G_BOX,M4(ox-ix*1.55+Math.sin(yaw)*t,yy+2.5,oz-iz*1.55+Math.cos(yaw)*t,0,yaw,0,.3,3.3,.34),ATR.dark);
+    }
+    if(L<levels-1)                                                     // column between decks
+      for(const t of [-len*.42,len*.42])
+        mb.add(G_CYL,M4(ox+ix*2.4+Math.sin(yaw)*t,yy+3.9,oz+iz*2.4+Math.cos(yaw)*t,0,0,0,.42,7.2,.42),ATR.cream);
+  }
+}
+/* Glass lift bank. Capsules are parked at different heights so the shaft reads
+   as occupied rather than as an empty frame. */
+function pGlassLift(mb,x,y,z,yaw,side,levels){
+  const rx=Math.cos(yaw), rz=-Math.sin(yaw);
+  const ix=-side*rx, iz=-side*rz;
+  const H=8.5+levels*7.2;
+  for(const a of [-1,1])for(const b of [-1,1]){
+    const cx=x+Math.sin(yaw)*a*3.0+ix*b*2.6, cz=z+Math.cos(yaw)*a*3.0+iz*b*2.6;
+    mb.add(G_CYL,M4(cx,y+H*.5,cz,0,0,0,.34,H,.34),ATR.brass);
+  }
+  for(let L=0;L<=levels;L++)                                   // floor bands
+    mb.add(G_BOX,M4(x,y+8.5+L*7.2,z,0,yaw,0,5.6,.5,6.4),ATR.brass);
+  mb.add(G_BOX,M4(x-ix*2.9,y+H*.5,z-iz*2.9,0,yaw,0,.3,H,6.0),ATR.glass);  // rear glazing
+  for(let k=0;k<2;k++){                                        // two capsules
+    const cy=y+5.0+k*10.5+ (k?3.4:0);
+    mb.add(G_BOX,M4(x,cy+2.0,z,0,yaw,0,4.4,4.0,4.8),ATR.glass);
+    mb.add(G_BOX,M4(x,cy+.2,z,0,yaw,0,4.7,.5,5.1),ATR.brass);
+    mb.add(G_BOX,M4(x,cy+4.1,z,0,yaw,0,4.7,.5,5.1),ATR.brass);
+    mb.add(G_SPH_XS,M4(x,cy+3.6,z,0,0,0,1.0,.5,1.0),ATR.warm);           // cabin light
+  }
+}
+/* The grand staircase. Curved is the real thing, but a straight flight with a
+   split landing reads correctly at speed and costs a fraction of the tris. */
+function pGrandStair(mb,x,y,z,yaw,side,s){
+  const rx=Math.cos(yaw), rz=-Math.sin(yaw);
+  const ix=-side*rx, iz=-side*rz;
+  const steps=11;
+  for(let i=0;i<steps;i++){
+    const d=3.0+i*1.05, yy=y+.45+i*.72;
+    mb.add(G_BOX,M4(x-ix*d,yy,z-iz*d,0,yaw,0,1.15*s,.62,11*s),ATR.marble);
+    if(i%3===0)
+      mb.add(G_BOX,M4(x-ix*d,yy+.36,z-iz*d,0,yaw,0,1.2*s,.10,11.2*s),ATR.wine);  // carpet runner
+  }
+  for(const a of [-1,1]){                                    // balustrades
+    for(let i=0;i<steps;i+=2){
+      const d=3.0+i*1.05, yy=y+.45+i*.72;
+      mb.add(G_CYL,M4(x-ix*d+Math.sin(yaw)*a*5.2*s,yy+1.1,z-iz*d+Math.cos(yaw)*a*5.2*s,0,0,0,.15,2.0,.15),ATR.brass);
+    }
+  }
+  const d2=3.0+steps*1.05;
+  mb.add(G_BOX,M4(x-ix*(d2+3),y+.45+steps*.72,z-iz*(d2+3),0,yaw,0,7*s,.7,13*s),ATR.marble); // landing
+}
+/* Centrepiece chandelier / kinetic sculpture, hung over the road so you drive
+   under it. Tiered brass rings with lit beads. */
+function pChandelier(mb,x,y,z,s,ceil){
+  /* The rod hangs from the ceiling to the top ring. Spanning the full height
+     from y put a 0.3m brass pole through the road at the centre of the racing
+     line -- four of them, one per chandelier. */
+  const top=y+ceil, ring0=top-9.5;
+  mb.add(G_CYL,M4(x,(top+ring0)/2,z,0,0,0,.30,top-ring0,.30),ATR.brass);
+  for(let t=0;t<4;t++){
+    const r=(6.4-t*1.35)*s, yy=ring0+t*1.5;
+    mb.add(G_TOR,M4(x,yy,z,0,0,0,r,r,r*.10),ATR.brass);
+    const n=10+t*2;
+    for(let i=0;i<n;i++){
+      const a=i/n*TAU+t*.4;
+      mb.add(G_SPH_XS,M4(x+Math.cos(a)*r,yy-.9,z+Math.sin(a)*r,0,0,0,.42,.62,.42),ATR.warm);
+    }
+  }
+  mb.add(G_SPH_LO,M4(x,ring0-2.6,z,0,0,0,1.5*s,2.0*s,1.5*s),ATR.warm);
+}
+/* Glass dome over the void. Ribs plus two ring bands; the panels between are
+   left open so it never occludes the track from a chase camera. */
+/* Coffered ceiling bay. A dome 80m away across the infield read as a handful
+   of floating gold sticks; what actually encloses a space is a ceiling you can
+   see directly overhead, so the track carries its own. Sits well above the
+   chase camera and the chandeliers. */
+function pCeilingBay(mb,x,y,z,yaw,w,len){
+  mb.add(G_BOX,M4(x,y,z,0,yaw,0,w,.9,len),ATR.cream);
+  for(const t of [-len*.5,0,len*.5])                                  // cross beams
+    mb.add(G_BOX,M4(x+Math.sin(yaw)*t,y-.7,z+Math.cos(yaw)*t,0,yaw,0,w,.7,1.5),ATR.brass);
+  for(const o of [-w*.30,0,w*.30])                                    // recessed lit coffers
+    mb.add(G_BOX,M4(x+Math.cos(yaw)*o,y-.55,z-Math.sin(yaw)*o,0,yaw,0,w*.22,.30,len*.82),ATR.warm);
+  for(const o of [-w*.46,w*.46])                                      // edge runs
+    mb.add(G_BOX,M4(x+Math.cos(yaw)*o,y-.6,z-Math.sin(yaw)*o,0,yaw,0,.7,.7,len),ATR.brass);
+}
+function pDome(mb,cx,cy,cz,r,h){
+  const ribs=24;
+  for(let i=0;i<ribs;i++){
+    const a=i/ribs*TAU;
+    for(let k=0;k<7;k++){
+      const t0=k/7*Math.PI*.5, t1=(k+1)/7*Math.PI*.5;
+      const x0=cx+Math.cos(a)*Math.cos(t0)*r, z0=cz+Math.sin(a)*Math.cos(t0)*r, y0=cy+Math.sin(t0)*h;
+      const x1=cx+Math.cos(a)*Math.cos(t1)*r, z1=cz+Math.sin(a)*Math.cos(t1)*r, y1=cy+Math.sin(t1)*h;
+      const mx=(x0+x1)/2,my=(y0+y1)/2,mz=(z0+z1)/2;
+      const L=Math.hypot(x1-x0,y1-y0,z1-z0);
+      mb.add(G_BOX,M4(mx,my,mz,0,Math.atan2(x1-x0,z1-z0),
+        -Math.asin(clamp((y1-y0)/(L||1),-1,1)),.7,.7,L),ATR.brass);
+    }
+  }
+  for(const t of [0.16,0.34,0.52,0.72]){
+    const rr=Math.cos(t*Math.PI*.5)*r, yy=cy+Math.sin(t*Math.PI*.5)*h;
+    mb.add(G_TOR,M4(cx,yy,cz,0,0,0,rr,rr,.55),ATR.brass);
+  }
+  mb.add(G_SPH_LO,M4(cx,cy+h,cz,0,0,0,3.4,1.6,3.4),ATR.warm);          // crown light
+}
+function pBoutique(mb,x,y,z,yaw,side,c1){
+  const rx=Math.cos(yaw), rz=-Math.sin(yaw);
+  const ix=-side*rx, iz=-side*rz;
+  mb.add(G_BOX,M4(x,y+3.6,z,0,yaw,0,5.5,7.2,9),ATR.cream);
+  mb.add(G_BOX,M4(x+ix*2.7,y+3.0,z+iz*2.7,0,yaw,0,.3,4.2,7.6),ATR.warm);   // lit window
+  mb.add(G_BOX,M4(x+ix*3.1,y+5.8,z+iz*3.1,0,yaw,0,1.4,.5,7.8),c1);         // awning
+  mb.add(G_BOX,M4(x+ix*2.9,y+6.7,z+iz*2.9,0,yaw,0,.25,1.0,4.4),ATR.brass); // sign
+}
+function pPiano(mb,x,y,z,yaw){
+  mb.add(G_BOX,M4(x,y+.95,z,0,yaw,0,2.6,.55,4.0),0x181410);
+  mb.add(G_BOX,M4(x,y+1.35,z+.2,0,yaw,-.20,2.4,.12,3.4),0x241E18);   // raised lid
+  mb.add(G_BOX,M4(x-1.1,y+1.28,z-1.5,0,yaw,0,1.0,.14,1.0),0xF2ECDC); // keys
+  for(const a of [[-1,-1.6],[1,-1.6],[0,1.7]])
+    mb.add(G_CYL,M4(x+a[0]*1.0,y+.45,z+a[1],0,0,0,.14,.9,.14),0x181410);
 }
 function pShop(mb,x,y,z,rot,c1,c2){
   mb.add(G_BOX,M4(x,y+3.4,z,0,rot,0,9,6.8,4),0xEFE7D6);
@@ -2589,6 +2792,56 @@ function buildWorldMeshes(scene,T,course){
       }
     }
   }
+  /* Atrium. The defining quality of a ship atrium is vertical -- a bright void
+     with decks looking down into it -- so the galleries and the dome do more
+     work than anything at floor level. Everything is hand-placed rather than
+     scattered so the lifts and the stair land where you actually look. */
+  if(props==='atrium'){
+    const ar=mulberry(9311);
+    const cxa=(T.bounds.minx+T.bounds.maxx)/2, cza=(T.bounds.minz+T.bounds.maxz)/2;
+    const outw=(u)=>{const i=Math.floor(u*T.N);
+      return (T.rx[i]*(T.px[i]-cxa)+T.rz[i]*(T.pz[i]-cza))>=0?1:-1;};
+    const at=(u,off)=>{const i=Math.floor(u*T.N)%T.N;
+      return {i,x:T.px[i]+T.rx[i]*off,z:T.pz[i]+T.rz[i]*off,y:T.py[i],yaw:T.yaw[i]};};
+    let ymean=0; for(let i=0;i<T.N;i++)ymean+=T.py[i]; ymean/=T.N;
+
+    // gallery decks around the outside of the loop
+    for(let k=0;k<14;k++){
+      const u=k/14+0.012, sd=outw(u), q=at(u,sd*(T.hw+11));
+      pGallery(mb,q.x,q.y,q.z,q.yaw,sd,26,3,ar);
+    }
+    // glass lifts, on the outside where the galleries break
+    for(const u of [0.20,0.70]){
+      const sd=outw(u), q=at(u,sd*(T.hw+13));
+      pGlassLift(mb,q.x,q.y,q.z,q.yaw,sd,3);
+    }
+    // the grand staircase, with a piano at its foot
+    (function(){
+      const u=0.44, sd=outw(u), q=at(u,sd*(T.hw+9));
+      pGrandStair(mb,q.x,q.y,q.z,q.yaw,sd,1.0);
+      const q2=at(u+0.03,sd*(T.hw+7));
+      pPiano(mb,q2.x,q2.y,q2.z,q2.yaw);
+    })();
+    // chandeliers hung over the racing line
+    for(const u of [0.08,0.33,0.58,0.86]){
+      const q=at(u,0);
+      pChandelier(mb,q.x,q.y,q.z,1.0,24);
+    }
+    // boutiques on the infield side
+    for(let k=0;k<9;k++){
+      const u=k/9+0.05, sd=outw(u), q=at(u,-sd*(T.hw+12));
+      pBoutique(mb,q.x,q.y,q.z,q.yaw,-sd,
+        [0x8E2436,0x2E7E86,0xC9A227,0x8E5BA6][k%4]);
+    }
+    // ceiling over the track itself
+    for(let k=0;k<30;k++){
+      const u=k/30, q=at(u,0);
+      pCeilingBay(mb,q.x,q.y+31,q.z,q.yaw,2*(T.hw+15),T.len/30*1.02);
+    }
+    // the skylight is now a centre feature seen across the void, not the ceiling
+    const R=Math.min(T.bounds.maxx-T.bounds.minx,T.bounds.maxz-T.bounds.minz)*0.5*0.52;
+    pDome(mb,cxa,ymean+24,cza,R,20);
+  }
   /* Prop spacing follows track length rather than sample count, so a course at
      twice the length costs roughly the same to build instead of twice as much.
      Deck courses (N~300-380) are unchanged at every 5th sample. */
@@ -2604,6 +2857,12 @@ function buildWorldMeshes(scene,T,course){
       else if(r<.78)pRing(mb,x,y,z,rot);
       else if(r<.9)pPlanter(mb,x,y,z,.9);
       else pLamp(mb,x,y,z,0x2B3A46);
+    }else if(props==='atrium'){
+      if(r<.30)pPlanter(mb,x,y,z,1.3);
+      else if(r<.52)pLamp(mb,x,y,z,0xC9A227);
+      else if(r<.70)pChair(mb,x,y,z,rot,0x8E2436);
+      else if(r<.84)pStatue(mb,x,y,z,rot,.9);
+      else pPiano(mb,x,y,z,rot);
     }else if(props==='prom'){
       if(r<.42)pShop(mb,x,y,z,rot,[0xFF6B57,0x12C3B4,0xFFC93C,0x8E5BA6][i%4],0xFFF6E7);
       else if(r<.6)pPlanter(mb,x,y,z,1.1);
@@ -2625,9 +2884,9 @@ function buildWorldMeshes(scene,T,course){
     const x=s.px+s.rx*o,z=s.pz+s.rz*o,y=s.py-.6,rot=Math.atan2(s.rx,s.rz);
     if(props==='lido'){[()=>pFunnel(mb,x,y,z,1.1),()=>pSlide(mb,x,y,z,1,0x12C3B4),()=>pSlide(mb,x,y,z,.9,0xFFC93C),()=>pFerris(mb,x,y,z,rot,.9,out)][k]();}
     else if(props==='board'){[()=>pCoaster(mb,x,y,z,rot,1.2),()=>pFerris(mb,x,y,z,rot,1,out),()=>pCoaster(mb,x,y,z,rot,1),()=>pSlide(mb,x,y,z,.9,0xE4404A)][k]();}
-    else {pArch(mb,s.px,s.py-.4,s.pz,Math.atan2(s.rz,s.rx),T.hw+7,0xC9A227);}
+    else if(props!=='atrium'){pArch(mb,s.px,s.py-.4,s.pz,Math.atan2(s.rz,s.rx),T.hw+7,0xC9A227);}
   });
-  if(props!=='prom'&&!th.terrain){
+  if(props!=='prom'&&props!=='atrium'&&!th.terrain){
     [.18,.45,.68,.92].forEach(u=>{const s=T.atU(u,{});pArch(mb,s.px,s.py-.4,s.pz,Math.atan2(s.rz,s.rx),T.hw+8,props==='lido'?0xFFFFFF:0xE4404A);});
   }
   if(!th.terrain)pCabins(mb,T,course,baseY);
