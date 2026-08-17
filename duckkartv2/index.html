@@ -3772,9 +3772,18 @@ function bloomInit(){
                 gain:{value:new THREE.Vector3(1,1,1)},
                 tDepth:{value:null},uRes:{value:new THREE.Vector2(1,1)},
                 uNear:{value:.5},uFar:{value:1400},
-                uOutline:{value:0},uLo:{value:.0012},uHi:{value:.006},uPx:{value:1.2}},
+                uOutline:{value:0},uLo:{value:.0016},uHi:{value:.0075},uPx:{value:1.4}},
       vertexShader:_bloomVert,
-      fragmentShader:`uniform sampler2D base;uniform sampler2D blur;
+      fragmentShader:`
+        /* Explicit highp. Mobile GLSL ES defaults fragment floats to mediump on
+           plenty of drivers, and lin() divides by quantities around uFar=1400 --
+           at a 10-bit mantissa that loses metres, which reads as contour
+           hatching over every surface while looking perfect on a desktop where
+           highp is the default. Costs nothing on hardware that was already
+           highp. */
+        precision highp float;
+        precision highp sampler2D;
+        uniform sampler2D base;uniform sampler2D blur;
         uniform float amt;uniform float exposure;uniform float rblur;
         uniform float contrast;uniform float sat;uniform vec3 lift;uniform vec3 gain;
         uniform sampler2D tDepth;uniform vec2 uRes;uniform float uNear;uniform float uFar;
@@ -3807,8 +3816,23 @@ function bloomInit(){
             float d0=lin(vUv);
             float xr=lin(vUv+vec2(px.x,0.)),xl=lin(vUv-vec2(px.x,0.));
             float yu=lin(vUv+vec2(0.,px.y)),yd=lin(vUv-vec2(0.,px.y));
-            float e=(abs(xr+xl-2.0*d0)+abs(yu+yd-2.0*d0))/max(d0,0.001);
-            c=mix(c,vec3(0.07,0.06,0.09),smoothstep(uLo,uHi,e)*uOutline);
+            float e=abs(xr+xl-2.0*d0)+abs(yu+yd-2.0*d0);
+            /* Normalise by the depth buffer's own resolution, not by distance.
+               A fixed-point buffer resolves about d*d/(near*2^bits) in linear
+               depth, so its quantisation staircase grows QUADRATICALLY -- while
+               the old threshold fell off only linearly. Past a certain range the
+               staircase always won and the whole frame filled with contour
+               hatching, which is what a Pixel 9 Pro showed: its high pixel ratio
+               shrinks the sample spacing, so real geometry contributes less per
+               texel while the staircase stays the same size.
+               16 bits is assumed deliberately: on a deeper buffer the true noise
+               floor sits far below this, so the test only gets safer. */
+            /* Normalise with a quadratic term as well as a linear one. Depth
+               error grows faster than distance, so a purely linear divisor let
+               the far field keep getting noisier until it filled with hatching. */
+            float ink=smoothstep(uLo,uHi,e/(d0+d0*d0/60.0));
+            ink*=1.0-smoothstep(240.0,420.0,d0);   // nothing legible that far out
+            c=mix(c,vec3(0.07,0.06,0.09),ink*uOutline);
           }
           c=clamp(c,0.0,1.0);
           gl_FragColor=vec4(toSRGB(c),1.);}`});
