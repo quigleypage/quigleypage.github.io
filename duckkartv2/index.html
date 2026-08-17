@@ -62,9 +62,21 @@ h2.sec{font-family:var(--disp);font-weight:900;font-size:22px;margin:0 0 2px;let
 .btn.go{background:linear-gradient(180deg,#FFD666,#FFB01F);color:#3A2400;border-color:rgba(0,0,0,.15);
   box-shadow:0 4px 0 #B8760A;}
 .btn.tealo{background:linear-gradient(180deg,#22D8C6,#0FA396);color:#01302C;box-shadow:0 4px 0 #077268;border-color:transparent;}
+/* Join is Host's peer, not Settings'. Bare .btn put it in the same neutral
+   tier as Settings once that arrived; a ghost fill of the same teal keeps the
+   pair reading as one choice with a leading option. */
+.btn.tealg{background:rgba(34,216,198,.14);color:#8CF0E3;
+  border-color:rgba(34,216,198,.58);box-shadow:0 3px 0 rgba(7,114,104,.6);}
 .btn.coral{background:linear-gradient(180deg,#FF8873,#F04C36);color:#3A0D06;box-shadow:0 4px 0 #A82C1B;border-color:transparent;}
 .btn.sm{font-size:14px;padding:12px 14px;border-radius:13px;}
 .row{display:flex;gap:10px;}
+.setrow{display:flex;align-items:center;gap:12px;padding:13px 2px;
+  border-bottom:1px solid rgba(255,246,231,.13);}
+.setrow>div{flex:1;}
+.setrow b{display:block;font-size:15px;font-weight:800;}
+.setrow i{display:block;font-style:normal;font-size:12px;line-height:1.35;opacity:.62;margin-top:3px;}
+.setrow>button{flex:0 0 86px;}
+.setrow>button[disabled]{opacity:.4;}
 .row>*{flex:1;}
 .stack{display:flex;flex-direction:column;gap:10px;}
 
@@ -348,8 +360,27 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
   <div class="title-actions stack">
     <div class="attract-tag"><i></i><span id="attractName">Sunset Helideck</span></div>
     <button class="btn go" id="bSolo">Race the crew <span>🦆</span></button>
-    <button class="btn tealo" id="bHost">Host a room</button>
-    <button class="btn" id="bJoin">Join with a code</button>
+    <div class="row">
+      <button class="btn tealo" id="bHost">Host a room</button>
+      <button class="btn tealg" id="bJoin">Join with a code</button>
+    </div>
+    <button class="btn sm" id="bSet">Settings</button>
+  </div>
+</section>
+
+<!-- ============ SETTINGS ============ -->
+<section class="screen" id="s-set">
+  <p class="eyebrow">Settings</p>
+  <h2 class="sec">Options</h2>
+  <p class="sub">Saved on this device.</p>
+  <div class="scroll">
+    <div class="setrow"><div><b>Sound</b><i>Engine, effects and music</i></div>
+      <button class="btn sm" id="optSound">On</button></div>
+    <div class="setrow"><div><b>Ink outlines</b><i>Draws dark edges around karts and scenery for a bolder, illustrated look</i></div>
+      <button class="btn sm" id="optOutline">Off</button></div>
+  </div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn sm" id="setBack" style="flex:0 0 92px">Back</button>
   </div>
 </section>
 
@@ -1994,6 +2025,20 @@ function buildTerrain(scene,T,course,baseY,out,th){
     idx.push(a,c,b, b,c,d);
   }
   out.terrainH=H;                     // so landmarks can be planted on the ground
+  /* The rendered surface is this grid triangulated, NOT H itself. Where H peaks
+     inside a cell the mesh cuts the corner, so planting on H floated the worst
+     1% of trees by 2.3m and the worst by 11.6m. `ys` already holds the exact
+     vertex heights, so reproduce the triangle the renderer actually draws.
+     Split matches the index buffer below: (a,c,b) then (b,c,d). */
+  out.terrainMeshY=(x,z)=>{
+    const fx=(x-x0)/(x1-x0)*NX, fz=(z-z0)/(z1-z0)*NZ;
+    const i=Math.max(0,Math.min(NX-1,Math.floor(fx))), j=Math.max(0,Math.min(NZ-1,Math.floor(fz)));
+    const tx=Math.min(1,Math.max(0,fx-i)), tz=Math.min(1,Math.max(0,fz-j));
+    const a=ys[j*(NX+1)+i], b=ys[j*(NX+1)+i+1],
+          c=ys[(j+1)*(NX+1)+i], d=ys[(j+1)*(NX+1)+i+1];
+    return (tx+tz<=1) ? a+(b-a)*tx+(c-a)*tz
+                      : d+(c-d)*(1-tx)+(b-d)*(1-tz);
+  };
   const g=new THREE.BufferGeometry();
   g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
   g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
@@ -2579,7 +2624,8 @@ function buildWorldMeshes(scene,T,course){
      two-blob trees on a grid, thinned with distance and skipped on rock, steep
      ground and anything below the waterline. */
   if(props==='dr'&&out.terrainH){
-    const H0=out.terrainH, fr=mulberry(course.id.length*6151+9);
+    // plant on the drawn surface, not the analytic one -- see terrainMeshY
+    const H0=out.terrainMeshY||out.terrainH, fr=mulberry(course.id.length*6151+9);
     const fbmT=terrainNoise(course.id.length*7919+11);
     const b0=T.bounds, STEP=26, tmpS={};
     for(let x=b0.minx-170;x<b0.maxx+170;x+=STEP)
@@ -2626,7 +2672,7 @@ function buildWorldMeshes(scene,T,course){
     const outward=(u)=>{const i=Math.floor(u*T.N);
       return (T.rx[i]*(T.px[i]-cx)+T.rz[i]*(T.pz[i]-cz))>=0 ? 1 : -1;};
     const lr=mulberry(course.id.length*7717+3);
-    const H=out.terrainH;
+    const H=out.terrainMeshY||out.terrainH;
     const at=(u,off)=>{const i=Math.floor(u*T.N);
       return {i,x:T.px[i]+T.rx[i]*off,z:T.pz[i]+T.rz[i]*off,y:T.py[i],
               rot:Math.atan2(T.rx[i],T.rz[i])};};
@@ -2694,6 +2740,7 @@ function buildWorldMeshes(scene,T,course){
       if(u<0.72)         return {d:0.45,tree:0.24,palm:0.06,open:true};   // climb
       return {d:0.72,tree:0.40,palm:0.16,open:false};                     // descent
     };
+    const tmpJ={};
     for(let i=0;i<T.N;i+=5){
       const s0=T.py[i], zn=zoneAt(i/T.N);
       for(let side=-1;side<=1;side+=2){
@@ -2705,8 +2752,17 @@ function buildWorldMeshes(scene,T,course){
           if(jr()>chance*zn.d)continue;
           const o=side*(T.hw+near+jr()*(far-near));
           const x=T.px[i]+T.rx[i]*o, z=T.pz[i]+T.rz[i]*o;
-          const y=s0-.7-Math.min(3.4,Math.abs(o)*.035);
           if(!onLand(out.terrainH,x,z))continue;      // no forests in the sea
+          /* Offsets are measured from THIS track point, but the course loops
+             back on itself -- 95 units out from one section lands on another.
+             Ask where the nearest piece of road actually is. */
+          const smJ=T.sample(x,z,tmpJ);
+          if(smJ&&Math.abs(smJ.off)<T.hw+7)continue;
+          /* This band used to plant at road height minus a fixed taper and never
+             asked the terrain anything. It reaches T.hw+95, so on a hillside
+             course the far trees floated or sank by whatever the ground was
+             doing out there -- which is most of the floating trees. */
+          const y=(out.terrainMeshY?out.terrainMeshY(x,z):s0)-0.4;
           const r=jr(), sc=.8+jr()*.7;
           const tT=zn.tree, tP=tT+zn.palm;
           if(r<tT)       pJungleTree(mb,x,y,z,sc*(1+(Math.abs(o)>34?.35:0)),jr);
@@ -2956,8 +3012,22 @@ function buildWorldMeshes(scene,T,course){
       const x=s.px+s.rx*o, z=s.pz+s.rz*o, y=s.py+2.6;
       const rot=Math.atan2(s.fx,s.fz);
       flags.push({x,y,z,rot,col:[0xFF6B57,0xFFC93C,0x12C3B4,0xFFF6E7][i%4]});
+      /* The banners rippled in mid-air with nothing holding them up. The flag
+         is drawn from its hoist edge at (x,y) streaming along the track, so the
+         mast belongs exactly there, rising from the ground it stands on. */
+      const gy=(out.terrainMeshY?out.terrainMeshY(x,z):s.py)-0.25;
+      const top=y+1.15+0.55;
+      if(top>gy+0.5){
+        fm.add(G_CYL,M4(x,(gy+top)/2,z,0,0,0,.16,top-gy,.16),0xCFC8B6);
+        fm.add(G_SPH_XS,M4(x,top+0.20,z,0,0,0,.30,.36,.30),0xC9A227);
+      }
     }
     if(!flags.length)return;
+    (function(){                                   // the masts, one extra draw
+      const pm=fm.mesh(); if(!pm)return;
+      pm.matrixAutoUpdate=false; pm.castShadow=true; pm.receiveShadow=true;
+      scene.add(pm); out.objs.push(pm);
+    })();
     const geo=new THREE.BufferGeometry();
     const SEGF=4, verts=flags.length*SEGF*6;
     const pos=new Float32Array(verts*3), col=new Float32Array(verts*3);
@@ -3648,7 +3718,14 @@ const V={boxMesh:null,objMeshes:new Map(),parts:null,pData:[],pIdx:0,fov:70,mmDi
    Every step is guarded: if anything fails to build, BLOOM.ok stays false and
    the renderer falls back to drawing straight to the screen.
 ========================================================================= */
-const BLOOM={ok:false,on:true,scene:null,cam:null,quad:null,
+/* Depth-texture support. WebGL2 has it always; WebGL1 needs the extension.
+   Without it the outline option is greyed out rather than shipped broken. */
+let OUTLINE_OK=false;
+function applyOutlines(){
+  if(!BLOOM.mComp)return;
+  BLOOM.mComp.uniforms.uOutline.value=(OUTLINE_OK&&OPT.outlines)?1:0;
+}
+const BLOOM={ok:false,on:true,depth:null,scene:null,cam:null,quad:null,
   rtScene:null,rtA:null,rtB:null,mBright:null,mBlur:null,mComp:null,w:0,h:0,
   strength:.85, threshold:.72, radius:1.0};
 const _bloomVert=`varying vec2 vUv; void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}`;
@@ -3692,12 +3769,19 @@ function bloomInit(){
                 exposure:{value:EXPOSURE},rblur:{value:0},
                 contrast:{value:1},sat:{value:1},
                 lift:{value:new THREE.Vector3(0,0,0)},
-                gain:{value:new THREE.Vector3(1,1,1)}},
+                gain:{value:new THREE.Vector3(1,1,1)},
+                tDepth:{value:null},uRes:{value:new THREE.Vector2(1,1)},
+                uNear:{value:.5},uFar:{value:1400},
+                uOutline:{value:0},uLo:{value:.0012},uHi:{value:.006},uPx:{value:1.2}},
       vertexShader:_bloomVert,
       fragmentShader:`uniform sampler2D base;uniform sampler2D blur;
         uniform float amt;uniform float exposure;uniform float rblur;
         uniform float contrast;uniform float sat;uniform vec3 lift;uniform vec3 gain;
+        uniform sampler2D tDepth;uniform vec2 uRes;uniform float uNear;uniform float uFar;
+        uniform float uOutline;uniform float uLo;uniform float uHi;uniform float uPx;
         varying vec2 vUv;
+        float lin(vec2 uv){float z=texture2D(tDepth,uv).x;float ndc=z*2.0-1.0;
+          return (2.0*uNear*uFar)/(uFar+uNear-ndc*(uFar-uNear));}
         vec3 toSRGB(vec3 c){return mix(c*12.92,1.055*pow(max(c,vec3(1e-5)),vec3(1./2.4))-.055,step(.0031308,c));}
         void main(){
           vec2 dir=vUv-vec2(0.5);
@@ -3714,12 +3798,28 @@ function bloomInit(){
           float l=dot(c,vec3(0.2126,0.7152,0.0722));
           c=mix(vec3(l),c,sat);
           c*=gain;
+          /* Ink outlines. The SECOND derivative of linear depth, not the first:
+             a flat plane at any angle gives zero, so the road stops registering
+             as one continuous edge the way a plain Sobel made it. Costs nothing
+             when uOutline is 0 -- the composite already reads every pixel. */
+          if(uOutline>0.0){
+            vec2 px=uPx/uRes;
+            float d0=lin(vUv);
+            float xr=lin(vUv+vec2(px.x,0.)),xl=lin(vUv-vec2(px.x,0.));
+            float yu=lin(vUv+vec2(0.,px.y)),yd=lin(vUv-vec2(0.,px.y));
+            float e=(abs(xr+xl-2.0*d0)+abs(yu+yd-2.0*d0))/max(d0,0.001);
+            c=mix(c,vec3(0.07,0.06,0.09),smoothstep(uLo,uHi,e)*uOutline);
+          }
           c=clamp(c,0.0,1.0);
           gl_FragColor=vec4(toSRGB(c),1.);}`});
     BLOOM.quad=new THREE.Mesh(g,BLOOM.mComp);
     BLOOM.quad.frustumCulled=false;
     BLOOM.scene.add(BLOOM.quad);
+    const gl=W.ren.getContext();
+    OUTLINE_OK=!!(gl && (gl instanceof WebGLRenderingContext===false ||
+                         gl.getExtension('WEBGL_depth_texture')));
     BLOOM.ok=true;
+    applyOutlines();
   }catch(e){BLOOM.ok=false;}
 }
 function bloomResize(w,h){
@@ -3730,7 +3830,20 @@ function bloomResize(w,h){
   const opt={minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,
              format:THREE.RGBAFormat,type:THREE.UnsignedByteType,
              encoding:THREE.LinearEncoding,depthBuffer:true,stencilBuffer:false};
+  /* A depth TEXTURE rather than the default renderbuffer, so the composite can
+     read it for edge detection. Roughly the same memory, and attached always
+     rather than on toggle -- rebuilding targets mid-session is the kind of
+     thing that silently breaks when the window also resizes. */
+  if(OUTLINE_OK){
+    const dt=new THREE.DepthTexture(w,h); dt.type=THREE.UnsignedIntType;
+    opt.depthTexture=dt; BLOOM.depth=dt;
+  }
   BLOOM.rtScene=new THREE.WebGLRenderTarget(w,h,opt);
+  if(BLOOM.mComp&&BLOOM.depth){
+    const u=BLOOM.mComp.uniforms;
+    u.tDepth.value=BLOOM.depth; u.uRes.value.set(w,h);
+    u.uNear.value=W.cam.near; u.uFar.value=W.cam.far;
+  }
   const hw=Math.max(1,w>>2), hh=Math.max(1,h>>2);
   const o2=Object.assign({},opt,{depthBuffer:false});
   BLOOM.rtA=new THREE.WebGLRenderTarget(hw,hh,o2);
@@ -5266,6 +5379,25 @@ function interpRemote(dt){
 }
 
 /* ================================== UI =================================== */
+/* Persisted options. localStorage can throw outright on a file:// origin in
+   some browsers, so every access is guarded and the game simply runs with the
+   defaults if storage is unavailable -- it must never be load-bearing. */
+const OPT={sound:true, outlines:false};
+try{const j=localStorage.getItem('dk.opt'); if(j)Object.assign(OPT,JSON.parse(j)||{});}catch(e){}
+function optSave(){try{localStorage.setItem('dk.opt',JSON.stringify(OPT));}catch(e){}}
+function applySound(){
+  SFX.on=OPT.sound;
+  if(!SFX.on){SFX.engineAt(0,false);SFX.squealAt(0);SFX.ambStop();SFX.rivalsStop();}
+  else if(W.course)SFX.ambSet(AMBIENCE[W.course.theme]||AMBIENCE.lido);
+  if(typeof MUSIC!=='undefined')MUSIC.setMute(!SFX.on);
+}
+function renderSettings(){
+  const so=$('optSound'), ou=$('optOutline');
+  so.textContent=OPT.sound?'On':'Off';
+  so.className='btn sm'+(OPT.sound?' tealo':'');
+  if(!OUTLINE_OK){ou.textContent='N/A';ou.disabled=true;ou.className='btn sm';}
+  else{ou.textContent=OPT.outlines?'On':'Off';ou.className='btn sm'+(OPT.outlines?' tealo':'');}
+}
 const UI={screen:'s-title',soloChar:'classic',soloCourse:'helideck',cpus:3,portraits:{},maps:{},
   lobbyChar:null,pendingName:'',joinMode:false,lastResults:null};
 function showScreen(id){
@@ -5276,7 +5408,7 @@ function showScreen(id){
     if(n&&W.course)n.textContent=W.course.name;}
   else attractStop();
 
-  if (['s-title', 's-solo', 's-name', 's-lobby', 's-wait'].includes(id)) {
+  if (['s-title', 's-set', 's-solo', 's-name', 's-lobby', 's-wait'].includes(id)) {
     if (typeof MUSIC !== 'undefined') MUSIC.play('menu');
   } else if (id === 's-results') {
     if (typeof MUSIC !== 'undefined') MUSIC.play('results');
@@ -6358,21 +6490,16 @@ function wire(){
     else toast('Code: '+txt);
   };
   $('codeIn').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');});
-  // mute
-  const mb=el('button','mut','🔊');mb.style.pointerEvents='auto';
-  mb.onclick=e=>{
-    e.stopPropagation();
-    SFX.on=!SFX.on;
-    mb.textContent=SFX.on?'🔊':'🔇';
-    if(!SFX.on){SFX.engineAt(0,false);SFX.squealAt(0);SFX.ambStop();SFX.rivalsStop();}
-    else if(W.course)SFX.ambSet(AMBIENCE[W.course.theme]||AMBIENCE.lido);
-    
-    // Toggle music volume alongside sound effects
-    if (typeof MUSIC !== 'undefined') MUSIC.setMute(!SFX.on);
+  /* Sound now lives in Settings. The old in-race button sat over the track for
+     the whole race to toggle something a phone's own volume keys already do. */
+  $('bSet').onclick=()=>{renderSettings();showScreen('s-set');};
+  $('setBack').onclick=()=>showScreen('s-title');
+  $('optSound').onclick=()=>{OPT.sound=!OPT.sound;applySound();optSave();renderSettings();};
+  $('optOutline').onclick=()=>{
+    if(!OUTLINE_OK)return;
+    OPT.outlines=!OPT.outlines;applyOutlines();optSave();renderSettings();
   };
-  document.querySelectorAll('.screen').forEach(s=>{});
-  $('hud').appendChild(mb);
-  mb.style.top='calc(var(--safeT) + 172px)';mb.style.right='38px';
+  applySound();
   /* net callbacks */
   Net.onStatus=s=>{if(s==='open'){showScreen('s-lobby');renderLobby();toast('Room '+Net.code+' is open');}};
   Net.onLobby=()=>{
