@@ -286,6 +286,29 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
 .stall.on{display:grid;}
 
 /* ---------- results: podium + stats ---------- */
+/* Results sits over the race that is still running rather than replacing it.
+   The sim never stopped here -- showResults leaves W.phase at 'done' and the
+   frame loop keeps stepping and drawing -- so this only needed the panel to
+   stop being opaque. A plain alpha wash is not enough over moving footage:
+   the scrim is heaviest where the text lives and the blur keeps bright sky
+   from eating the type. */
+#s-results{background:linear-gradient(180deg,
+    rgba(8,12,16,.14) 0%, rgba(8,12,16,.34) 38%, rgba(8,12,16,.48) 100%);
+  backdrop-filter:blur(2px) saturate(1.04);
+  -webkit-backdrop-filter:blur(2px) saturate(1.04);}
+/* the podium needs its own plate -- it is the one element read as an image */
+/* Neutral smoked glass, not the menu's navy -- over live footage a blue plate
+   reads as a leftover menu panel. Blur is local here so the podium art stays
+   clean while the race behind the rest of the screen stays legible. */
+#s-results .podium{background:radial-gradient(120% 100% at 50% 0%,
+    rgba(255,201,60,.15), rgba(10,13,17,.62) 70%), rgba(10,13,17,.55);
+  backdrop-filter:blur(9px) saturate(1.06);
+  -webkit-backdrop-filter:blur(9px) saturate(1.06);
+  border-color:rgba(255,246,231,.20);}
+#s-results .mrow{background:rgba(10,13,17,.62);
+  backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);}
+#s-results .stat-c{background:rgba(10,13,17,.62);
+  backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);}
 .podium{position:relative;border-radius:18px;overflow:hidden;margin-bottom:12px;
   background:radial-gradient(120% 100% at 50% 0%, rgba(255,201,60,.20), rgba(6,26,42,.55) 70%);
   border:1.5px solid var(--line);}
@@ -4512,6 +4535,51 @@ function renderWorld(dt){
 /* Smooth pseudo-noise in roughly [-1,1]. Layered sines rather than
    Math.random(): white noise reads as a cheap flicker, this reads as a jolt. */
 const nz1=t=>Math.sin(t*1.7)*.6+Math.sin(t*3.1+1.3)*.3+Math.sin(t*6.7+2.7)*.1;
+/* Once the race is over, following your own kart means watching yourself coast.
+   Orbit the winner instead. Blends out of wherever the chase camera was, so the
+   hand-off is not a cut, and carries the shadow frustum along with it -- that
+   walk lives in updateCamera, which no longer runs at this point. */
+function resultsCamera(dt){
+  const k=W.karts.find(x=>x.place===1)||W.meKart; if(!k)return;
+  /* Focus is smoothed, then the camera is placed straight onto the orbit circle
+     around it. The first version lerped a lagging camera toward an already
+     moving target, and the compound motion swept unpredictably. */
+  if(V.rfx==null){V.rfx=k.vx;V.rfy=k.vy;V.rfz=k.vz;
+                  V.rc0={x:W.camPos.x,y:W.camPos.y,z:W.camPos.z};}
+  /* Orbit the kart's actual visual position. Any smoothing here lags a target
+     still driving at ~50/s -- by roughly speed/rate -- and that lag comes
+     straight off the orbit radius, so the distance breathed instead of holding.
+     k.vx/vy/vz are already the smoothed visual transform, so there is nothing
+     left to filter. Height is eased only so the hand-off is not a step. */
+  V.rfx=k.vx; V.rfz=k.vz; V.rfy=lerp(V.rfy,k.vy,smooth(dt,4));
+  V.resT=Math.min(1,(V.resT||0)+dt*0.55);          // ease in from the chase pose
+  V.resA=(V.resA||0)+dt*0.20;
+  const e=V.resT*V.resT*(3-2*V.resT);
+  const R=12.5, HH=4.6;
+  const tx=V.rfx+Math.sin(V.resA)*R, ty=V.rfy+HH, tz=V.rfz+Math.cos(V.resA)*R;
+  W.camPos.x=lerp(V.rc0.x,tx,e);
+  W.camPos.y=lerp(V.rc0.y,ty,e);
+  W.camPos.z=lerp(V.rc0.z,tz,e);
+  W.cam.position.set(W.camPos.x,W.camPos.y,W.camPos.z);
+  W.camAim.x=V.rfx; W.camAim.y=V.rfy+1.4; W.camAim.z=V.rfz;
+  /* Do NOT touch rotation.z after lookAt. lookAt writes a full orientation, and
+     its Euler decomposition legitimately lands near PI at some orbit angles --
+     forcing z to 0 there rolls the camera upside down. updateCamera ADDS to this
+     value for its drift lean, which is why it never had the problem. */
+  W.cam.up.set(0,1,0);
+  W.cam.lookAt(W.camAim);
+  V.fov=lerp(V.fov,64,0.05);
+  if(Math.abs(W.cam.fov-V.fov)>.05){W.cam.fov=V.fov;W.cam.updateProjectionMatrix();}
+  if(W.sun&&W.sun.castShadow){
+    const q=(2*SHADOW_SPAN)/1024*4;
+    const gx=Math.round(k.vx/q)*q, gy=Math.round(k.vy/q)*q, gz=Math.round(k.vz/q)*q;
+    const L=Math.hypot(SUN_DIR.x,SUN_DIR.y,SUN_DIR.z), D=110;
+    W.sun.position.set(gx+SUN_DIR.x/L*D, gy+SUN_DIR.y/L*D, gz+SUN_DIR.z/L*D);
+    W.sun.target.position.set(gx,gy,gz);
+    W.sun.target.updateMatrixWorld();
+  }
+  $('speedfx').style.opacity=0; $('boostfx').style.opacity=0;
+}
 function updateCamera(dt,k,instant){
   if(!k)return;
   const yaw=k.vyaw, fx=Math.sin(yaw), fz=Math.cos(yaw);
@@ -5520,14 +5588,41 @@ function makePortraits(){
   r.toneMappingExposure=EXPOSURE;
   const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(34,PORTRAIT_W/PORTRAIT_H,.1,60);
   cam.position.set(3.6,3.0,5.6);cam.lookAt(0,1.25,0);
-  sc.add(new THREE.HemisphereLight(0xFFFFFF,LC(0x4A6B7C),.72));
-  const dl=new THREE.DirectionalLight(LC(0xFFF3D6),.78);dl.position.set(4,7,5);sc.add(dl);
+  sc.add(new THREE.HemisphereLight(0xFFFFFF,LC(0x4A6B7C),.66));
+  const dl=new THREE.DirectionalLight(LC(0xFFF3D6),.72);dl.position.set(4,7,5);sc.add(dl);
   sc.add(new THREE.AmbientLight(0xFFFFFF,.1));
+  /* These portraits never pass through the bloom composite, so they were the
+     only kart pixels in the game receiving no colour grade -- which is why the
+     podium read as washed out next to the race it follows. Apply the same
+     contrast and saturation the composite applies, on a 2D copy, since a WebGL
+     canvas cannot hand back a 2D context. Lights come down a touch so the added
+     contrast has headroom instead of clipping the highlights. */
+  const gcv=document.createElement('canvas');
+  gcv.width=PORTRAIT_W; gcv.height=PORTRAIT_H;
+  const g2=gcv.getContext('2d');
+  const GC=1.09, GS=1.16;
+  const gradePortrait=()=>{
+    g2.clearRect(0,0,PORTRAIT_W,PORTRAIT_H);
+    g2.drawImage(cv,0,0);
+    const im=g2.getImageData(0,0,PORTRAIT_W,PORTRAIT_H), a2=im.data;
+    for(let i=0;i<a2.length;i+=4){
+      if(a2[i+3]===0)continue;
+      let r2=a2[i]/255, g3=a2[i+1]/255, b2=a2[i+2]/255;
+      r2=(r2-.5)*GC+.5; g3=(g3-.5)*GC+.5; b2=(b2-.5)*GC+.5;
+      const L=r2*.2126+g3*.7152+b2*.0722;
+      r2=L+(r2-L)*GS; g3=L+(g3-L)*GS; b2=L+(b2-L)*GS;
+      a2[i]  =Math.max(0,Math.min(255,r2*255));
+      a2[i+1]=Math.max(0,Math.min(255,g3*255));
+      a2[i+2]=Math.max(0,Math.min(255,b2*255));
+    }
+    g2.putImageData(im,0,0);
+    return gcv.toDataURL('image/png');
+  };
   UI.portraitImgs=UI.portraitImgs||{};
   CHARS.forEach(c=>{
     const m=buildRacer(c);m.rotation.y=-.62;sc.add(m);
     r.render(sc,cam);
-    UI.portraits[c.id]=cv.toDataURL('image/png');
+    UI.portraits[c.id]=gradePortrait();
     const im=new Image();im.src=UI.portraits[c.id];UI.portraitImgs[c.id]=im;
     sc.remove(m);
   });
@@ -5765,6 +5860,7 @@ function beginRace(courseId,karts,cd){
   buildScene(CO(courseId));
   placeGrid();
   W.phase='count';W.cd=cd||3.2;W.cdMax=W.cd;W.t=0;W.shake=0;W.over=false;
+  V.resT=0;V.resA=0;V.rfx=null;V.rc0=null;
   W.meKart=karts.find(k=>k.local)||karts[0];
   for(const k of W.karts){k.vx=k.x;k.vy=k.y;k.vz=k.z;k.vyaw=k.yaw;k.ex=k.ey=k.ez=0;}
   skidReset();
@@ -6429,7 +6525,7 @@ function frame(){
       pingAcc+=dt;if(pingAcc>1.2){pingAcc=0;Net.ping();}
     }
     updateVisuals(dt);
-    updateCamera(dt,W.meKart);
+    if(W.over)resultsCamera(dt); else updateCamera(dt,W.meKart);
     renderWorld(dt);
     updateHUD(dt);
     if(W.phase==='done'&&!shownResults){
