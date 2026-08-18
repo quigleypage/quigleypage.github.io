@@ -382,7 +382,7 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
   </div>
   <div class="title-actions stack">
     <div class="attract-tag"><i></i><span id="attractName">Sunset Helideck</span></div>
-    <button class="btn go" id="bSolo">Race the crew <span>🦆</span></button>
+    <button class="btn go" id="bSolo">Race the crew</button>
     <div class="row">
       <button class="btn tealo" id="bHost">Host a room</button>
       <button class="btn tealg" id="bJoin">Join with a code</button>
@@ -399,8 +399,10 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
   <div class="scroll">
     <div class="setrow"><div><b>Sound</b><i>Engine, effects and music</i></div>
       <button class="btn sm" id="optSound">On</button></div>
-    <div class="setrow"><div><b>Ink outlines</b><i>Draws dark edges around karts and scenery for a bolder, illustrated look</i></div>
+    <div class="setrow"><div><b>Ink outlines</b><i id="optOutlineSub">Draws dark edges around karts and scenery for a bolder, illustrated look</i></div>
       <button class="btn sm" id="optOutline">Off</button></div>
+    <div class="setrow"><div><b>Steering copilot</b><i>A first mate takes the wheel. Steering nudges your line left and right, but never off the road. Designed for young crew members.</i></div>
+      <button class="btn sm" id="optCopilot">Off</button></div>
   </div>
   <div class="row" style="margin-top:12px">
     <button class="btn sm" id="setBack" style="flex:0 0 92px">Back</button>
@@ -633,17 +635,23 @@ const ITEMS=[null,
    g.fillStyle='rgba(255,255,255,.55)';
    g.beginPath();g.ellipse(c-r*.34,c-r*.40,r*.24,r*.15,-.6,0,TAU);g.fill();
  }},
- {id:3,name:'Sunscreen Slick',tint:'#FFE08A',draw(g,S){
-   g.fillStyle='#FFD34F';
-   g.beginPath();g.ellipse(S*.5,S*.66,S*.34,S*.20,0,0,TAU);g.fill();
-   g.fillStyle='#FFF0BE';
-   g.beginPath();g.ellipse(S*.42,S*.62,S*.14,S*.075,-.3,0,TAU);g.fill();
-   g.fillStyle='#FFF6E7';
-   g.fillRect(S*.40,S*.20,S*.20,S*.30);
-   g.fillStyle='#FF8A1E';
-   g.fillRect(S*.44,S*.12,S*.12,S*.10);
-   g.strokeStyle='#B8760A';g.lineWidth=S*.035;
-   g.strokeRect(S*.40,S*.20,S*.20,S*.30);
+ /* Was a puddle AND a bottle. At a 52px glyph the bottle was an unreadable
+    white rectangle, and it fought the shape that actually says what the item
+    DOES. One bold slick, dark-rimmed like the Beach Ball, reads at a glance. */
+ {id:3,name:'Sunscreen Slick',tint:'#F7A83C',draw(g,S){
+   const cx=S*.5, cy=S*.54, rx=S*.40, ry=S*.26;
+   g.fillStyle='#C9761A';                                  // shadow under the edge
+   g.beginPath();g.ellipse(cx,cy+S*.045,rx,ry,0,0,TAU);g.fill();
+   g.fillStyle='#F7A83C';                                  // body
+   g.beginPath();g.ellipse(cx,cy,rx,ry,0,0,TAU);g.fill();
+   g.strokeStyle='#8A4E0C';g.lineWidth=S*.05;              // dark rim, like the ball
+   g.beginPath();g.ellipse(cx,cy,rx,ry,0,0,TAU);g.stroke();
+   g.fillStyle='rgba(255,246,231,.92)';                    // two sheen streaks
+   g.beginPath();g.ellipse(cx-S*.13,cy-S*.09,S*.13,S*.045,-.28,0,TAU);g.fill();
+   g.beginPath();g.ellipse(cx+S*.12,cy+S*.04,S*.08,S*.028,-.20,0,TAU);g.fill();
+   g.fillStyle='#FFD98A';                                  // droplets flicking off
+   [[.20,.26,.055],[.80,.30,.042],[.30,.84,.038]].forEach(([x,y,r])=>{
+     g.beginPath();g.arc(S*x,S*y,S*r,0,TAU);g.fill();});
  }},
  {id:4,name:'Homing Duckling',tint:'#FFC93C',draw(g,S){
    g.strokeStyle='rgba(255,201,60,.6)';g.lineWidth=S*.05;
@@ -3255,12 +3263,12 @@ function newKart(id,name,charId,ai,local){
     x:0,y:0,z:0,yaw:0,vh:0,spd:0,lap:0,u:0,pu:0,off:0,si:0,prog:0,
     dr:0,dT:0,dh:0,bT:0,bPow:1,spT:0,slT:0,item:0,roll:0,rollT:0,
     fin:false,ft:0,place:1,stuck:0,rb:1,
-    lane:0,ph:Math.random()*9,aiT:0,aiSkill:1,
+    lane:0,ph:Math.random()*9,aiT:0,aiSkill:1,copilot:false,
     obj:null,vx:0,vy:0,vz:0,vyaw:0,vroll:0,ex:0,ey:0,ez:0,eyaw:0,
     inp:{steer:0,use:false,back:false},lastSeen:0};
 }
 /* ------------------------------ simulation ------------------------------- */
-const _s1={},_s2={};
+const _s1={},_s2={},_slk={};
 function stepKart(k,inp,dt,T){
   const C=CH(k.c),st=C.st;
   if(k.spT>0){k.spT-=dt;k.yaw+=dt*11;k.vh=lerpAng(k.vh,k.yaw,.15);}
@@ -3423,7 +3431,15 @@ function useItem(k,back){
       vx:Math.sin(a)*sp,vz:Math.cos(a)*sp,life:back?3.0:3.6});
     pushEv(4,k.id,2);
   }else if(it===3){
-    W.objs.push({id:W.objId++,ty:3,own:k.id,x:k.x-Math.sin(k.yaw)*3.6,y:k.y+.12,z:k.z-Math.cos(k.yaw)*3.6,
+    /* Sit it on the road UNDER the drop point, not at the dropper's height.
+       It lands 3.6 units behind the kart, and on a banked or sloping section
+       the surface there can be up to 0.56m higher (measured, Boardwalk) against
+       only 0.12m of clearance -- so the slick sank through the road. Host-side
+       only; clients receive the position in the snapshot either way. */
+    const sx=k.x-Math.sin(k.yaw)*3.6, sz=k.z-Math.cos(k.yaw)*3.6;
+    const ss=W.T&&W.T.sample(sx,sz,_slk);
+    W.objs.push({id:W.objId++,ty:3,own:k.id,
+      x:sx, y:(ss?ss.y:k.y)+.12, z:sz,
       vx:0,vz:0,life:24});
     pushEv(4,k.id,3);
   }else if(it===4){
@@ -3580,7 +3596,11 @@ function aiInput(k,T,dt){
   const look=(13+k.spd*.42);
   const s=T.atU(k.u+look/T.len,_ai);
   const pull=Math.abs(k.off)>T.hw*.72?.25:1;
-  const lane=(k.lane*T.hw*.5+Math.sin(W.t*.6+k.ph)*T.hw*.16)*pull;
+  /* The idle weave is what makes a field of AI look alive, but under the
+     copilot the lane IS the player's input -- a kart drifting sideways on its
+     own would read as the controls not working. */
+  const wob=k.copilot?0:Math.sin(W.t*.6+k.ph)*T.hw*.16;
+  const lane=(k.lane*T.hw*.5+wob)*pull;
   const tx=s.px+s.rx*lane, tz=s.pz+s.rz*lane;
   const want=Math.atan2(tx-k.x,tz-k.z);
   const err=-angDiff(want,k.yaw);
@@ -3603,8 +3623,11 @@ function aiInput(k,T,dt){
   k.aiT-=dt;
   if(k.aiT<=0){
     k.aiT=.35+W.rng()*.5;
-    k.lane=clamp(k.lane+(W.rng()-.5)*.7,-.55,.55);
-    if(k.item){
+    if(!k.copilot)k.lane=clamp(k.lane+(W.rng()-.5)*.7,-.55,.55);
+    /* The copilot takes the wheel, not the whole kart. Item timing is the part
+       a small child can actually do -- see a box, press the button -- so firing
+       stays entirely with the player. */
+    if(k.item&&!k.copilot){
       const it=k.item;
       if(it===1){ if(Math.abs(st)<.4)useItem(k); }                  // boost on a straight
       else{
@@ -3746,7 +3769,11 @@ const V={boxMesh:null,objMeshes:new Map(),parts:null,pData:[],pIdx:0,fov:70,mmDi
 let OUTLINE_OK=false;
 function applyOutlines(){
   if(!BLOOM.mComp)return;
-  BLOOM.mComp.uniforms.uOutline.value=(OUTLINE_OK&&OPT.outlines)?1:0;
+  /* W.outlineShed is the performance ladder talking, not the player. Kept
+     separate from OPT so a device that sheds the effect never overwrites the
+     setting the player chose. */
+  BLOOM.mComp.uniforms.uOutline.value=
+    (OUTLINE_OK&&OPT.outlines&&!W.outlineShed)?1:0;
 }
 const BLOOM={ok:false,on:true,depth:null,scene:null,cam:null,quad:null,
   rtScene:null,rtA:null,rtB:null,mBright:null,mBlur:null,mComp:null,w:0,h:0,
@@ -3863,8 +3890,28 @@ function bloomInit(){
     BLOOM.quad.frustumCulled=false;
     BLOOM.scene.add(BLOOM.quad);
     const gl=W.ren.getContext();
-    OUTLINE_OK=!!(gl && (gl instanceof WebGLRenderingContext===false ||
-                         gl.getExtension('WEBGL_depth_texture')));
+    const depthOK=!!(gl && (gl instanceof WebGLRenderingContext===false ||
+                            gl.getExtension('WEBGL_depth_texture')));
+    /* Also require real highp in the fragment shader. lin() divides by values
+       around uFar=1400, and at mediump's 10-bit mantissa that loses metres --
+       which covered a Pixel 9 Pro in contour hatching. GLSL ES 3.00 (WebGL2)
+       mandates highp; GLSL ES 1.00 (WebGL1) makes it optional, so ask rather
+       than assume. This matters now that outlines are ON by default: an
+       untested driver falls back to no outlines instead of a broken screen. */
+    let highpOK=true;
+    try{
+      const f=gl.getShaderPrecisionFormat &&
+              gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER,gl.HIGH_FLOAT);
+      /* 16, not 23. getShaderPrecisionFormat returns mantissa bits: an
+         unsupported highp reports 0, real float32 reports 23, but GLSL ES only
+         REQUIRES highp to reach 2^-16 -- and 16 bits is plenty here. At the far
+         plane (1400) that is ~2cm of error, far below the ~0.43m second
+         difference the edge test needs at 100m. mediump's 10 bits gives ~1.4m,
+         which is the hatching. So the boundary sits between 10 and 16; 23 would
+         have wrongly excluded a conformant 16-bit device. */
+      if(f)highpOK=f.precision>=16;
+    }catch(e){ highpOK=false; }
+    OUTLINE_OK=depthOK&&highpOK;
     BLOOM.ok=true;
     applyOutlines();
   }catch(e){BLOOM.ok=false;}
@@ -4477,14 +4524,36 @@ function renderWorld(dt){
           MAT({color:LC(0xF04C36),emissive:LC(0x3A0D06),emissiveIntensity:.4},'body'));
         m.rotation.x=Math.PI/2;
       }else{
-        m=new THREE.Mesh(new THREE.CylinderGeometry(2.1,2.4,.16,14),
-          MAT({color:LC(0xFFE08A),transparent:true,opacity:.72},'body'));
+        /* A pale translucent disc vanished against sand, marble, plank and the
+           pale decks -- most of the game. Amber body reads on light roads, the
+           darker rim gives it an edge on any of them, and a little emissive
+           keeps it visible on Neon Pool. Bubbles break up the flat top. */
+        m=new THREE.Group();
+        const pool=new THREE.Mesh(new THREE.CylinderGeometry(2.1,2.4,.16,16),
+          MAT({color:LC(0xF7A83C),emissive:LC(0x3A1E00),emissiveIntensity:.35,
+               transparent:true,opacity:.88},'body'));
+        /* Tube 0.20 sitting at -0.02 reached 0.22 below the group origin, and
+           the object only spawns 0.12 above the road -- so the lower half of
+           the rim was buried and read as a detached brown crescent at grazing
+           angles. Thinner, and lifted clear of the surface. */
+        const rim=new THREE.Mesh(new THREE.TorusGeometry(2.25,.14,6,20),
+          MAT({color:LC(0x8A4E0C)},'body'));
+        rim.rotation.x=Math.PI/2; rim.position.y=.06;
+        m.add(pool); m.add(rim);
+        for(let bi=0;bi<5;bi++){
+          const a2=bi/5*TAU+0.6, rr=0.7+((bi*37)%10)/10*0.9;
+          const b2=new THREE.Mesh(new THREE.SphereGeometry(.20+((bi*23)%7)/7*.16,7,5),
+            MAT({color:LC(0xFFF0C4),transparent:true,opacity:.9},'body'));
+          b2.position.set(Math.cos(a2)*rr,.10,Math.sin(a2)*rr);
+          m.add(b2);
+        }
       }
       m.castShadow=(o.ty!==3);
       W.scene.add(m);V.objMeshes.set(o.id,m);
       m.position.set(o.x,o.y,o.z);
     }
-    if(o.ty===2){m.rotation.x+=dt*7;m.rotation.z+=dt*3;}
+    if(o.ty===3){m.rotation.y+=dt*.55;}          // slow shimmer so it catches the eye
+    else if(o.ty===2){m.rotation.x+=dt*7;m.rotation.z+=dt*3;}
     else if(o.ty===4){
       /* Heading comes from actual movement, not o.vx/o.vz. Clients rebuild
          objects from snapshots with vx/vz = 0, so reading velocity made the
@@ -5474,7 +5543,7 @@ function interpRemote(dt){
 /* Persisted options. localStorage can throw outright on a file:// origin in
    some browsers, so every access is guarded and the game simply runs with the
    defaults if storage is unavailable -- it must never be load-bearing. */
-const OPT={sound:true, outlines:false};
+const OPT={sound:true, outlines:true, copilot:false};
 try{const j=localStorage.getItem('dk.opt'); if(j)Object.assign(OPT,JSON.parse(j)||{});}catch(e){}
 function optSave(){try{localStorage.setItem('dk.opt',JSON.stringify(OPT));}catch(e){}}
 function applySound(){
@@ -5487,8 +5556,20 @@ function renderSettings(){
   const so=$('optSound'), ou=$('optOutline');
   so.textContent=OPT.sound?'On':'Off';
   so.className='btn sm'+(OPT.sound?' tealo':'');
-  if(!OUTLINE_OK){ou.textContent='N/A';ou.disabled=true;ou.className='btn sm';}
-  else{ou.textContent=OPT.outlines?'On':'Off';ou.className='btn sm'+(OPT.outlines?' tealo':'');}
+  const osub=$('optOutlineSub');
+  if(!OUTLINE_OK){
+    ou.textContent='Unavailable'; ou.disabled=true; ou.className='btn sm';
+    // a bare "N/A" reads as a fault; say which way the limitation runs
+    osub.textContent='This device\u2019s graphics support cannot draw the outline pass. Everything else is unaffected.';
+  }else{
+    ou.disabled=false;
+    ou.textContent=OPT.outlines?(W.outlineShed?'On \u00b7 paused':'On'):'Off';
+    ou.className='btn sm'+(OPT.outlines?' tealo':'');
+    osub.textContent='Draws dark edges around karts and scenery for a bolder, illustrated look';
+  }
+  const cp=$('optCopilot');
+  cp.textContent=OPT.copilot?'On':'Off';
+  cp.className='btn sm'+(OPT.copilot?' tealo':'');
 }
 const UI={screen:'s-title',soloChar:'classic',soloCourse:'helideck',cpus:3,portraits:{},maps:{},
   lobbyChar:null,pendingName:'',joinMode:false,lastResults:null};
@@ -5860,6 +5941,7 @@ function beginRace(courseId,karts,cd){
   buildScene(CO(courseId));
   placeGrid();
   W.phase='count';W.cd=cd||3.2;W.cdMax=W.cd;W.t=0;W.shake=0;W.over=false;
+  W.outlineShed=false;applyOutlines();
   V.resT=0;V.resA=0;V.rfx=null;V.rc0=null;
   W.meKart=karts.find(k=>k.local)||karts[0];
   for(const k of W.karts){k.vx=k.x;k.vy=k.y;k.vz=k.z;k.vyaw=k.yaw;k.ex=k.ey=k.ez=0;}
@@ -6120,6 +6202,31 @@ function padDiag(g){
     '\nEVER pressed: '+evBt+
     '\nsteer out: '+IN.steer.toFixed(3);
 }
+/* ---------------------------- steering copilot ---------------------------
+   Assistance at the level of INTENT, not of input. Blending a player's steer
+   with the AI's fights the player -- push left, get dragged back. Instead the
+   stick chooses the lane and the AI drives to it: it still brakes, drifts and
+   takes the corner, so it physically cannot steer you into a wall, but where
+   you sit across the road is entirely yours. Someone who lets go coasts the
+   racing line; someone who holds left rides the inside kerb.
+   Applied to k.inp.steer at the single point every path reads from, so solo,
+   host and client all behave the same and the wire format is untouched. */
+const COPILOT_LANE=1.25;   // x (T.hw*.5): how far off the line the stick reaches
+const COPILOT_RATE=2.6;    // how quickly the requested lane follows the stick
+function copilotSteer(k,dt){
+  const T=W.T; if(!T||!k||k.fin||W.phase!=='race')return false;
+  k.copilot=true;
+  const want=clamp(k.inp.steer,-1,1);
+  k.lane=lerp(k.lane||0,want*COPILOT_LANE,smooth(dt,COPILOT_RATE));
+  /* aiInput ENDS with inp.use=false -- it owns the whole input object, not just
+     steer. A tap lands between frames, so pollInput (and this) always runs after
+     the press and before the sim, and the flag was being wiped every time: items
+     could never be fired with the copilot on. Carry it across the call. */
+  const use=k.inp.use, back=k.inp.back;
+  aiInput(k,T,dt);
+  k.inp.use=use; k.inp.back=back;
+  return true;
+}
 function pollInput(dt){
   if(!IN.active&&IN.relT>0){IN.relT-=dt;if(IN.relT<=0)IN.target=0;}
   let s=IN.target;
@@ -6137,6 +6244,9 @@ function pollInput(dt){
      as charge builds and steps colour at each tier. Without a visible build-up
      the boost arrives from nowhere and reads as random. */
   const b=$('steerbar'), knob=b.firstElementChild;
+  /* Last thing before the value is consumed: solo and host read k.inp directly
+     in simulate(), the client reads it for both prediction and sendInput. */
+  if(OPT.copilot&&k&&!k.ai)copilotSteer(k,dt);
   let tier=0, charge=0;
   if(k&&k.dr){
     for(let i=3;i>=1;i--)if(k.dT>=MT_TIME[i]){tier=i;break;}
@@ -6545,7 +6655,15 @@ function frame(){
     /* Hysteresis band, and a recovery path. This used to be a one-way latch:
        a single hitch (GC pause, backgrounded tab) permanently dropped pixel
        ratio and cut draw distance for the rest of the session. */
-    if(fps<44&&W.quality>0){
+    /* Degradation ladder, cheapest sacrifice first. Dropping straight to
+       quality 0 bypasses the whole composite, which costs the per-theme colour
+       grading as well as the outlines -- a cliff, not a slope. Outlines measured
+       +0.42ms at a phone-shaped framebuffer, so shedding them first buys real
+       headroom while keeping the colour pipeline intact. */
+    const outlinesLive=OUTLINE_OK&&OPT.outlines&&!W.outlineShed;
+    if(fps<44&&outlinesLive){                // rung 1: lose the outlines
+      W.outlineShed=true;W.good=0;applyOutlines();
+    }else if(fps<44&&W.quality>0){           // rung 2: lose resolution and draw distance
       W.quality=0;W.good=0;
       W.ren.setPixelRatio(1);
       if(W.scene&&W.scene.fog)W.scene.fog.far=W.fogFar*.72;
@@ -6555,6 +6673,8 @@ function frame(){
         W.ren.setPixelRatio(Math.min(devicePixelRatio,1.8));
         if(W.scene&&W.scene.fog)W.scene.fog.far=W.fogFar;
       }
+    }else if(fps>56&&W.outlineShed&&OUTLINE_OK&&OPT.outlines){
+      if(++W.good>=2){W.outlineShed=false;W.good=0;applyOutlines();}
     }else W.good=0;
   }
 }
@@ -6618,6 +6738,12 @@ function wire(){
   $('optOutline').onclick=()=>{
     if(!OUTLINE_OK)return;
     OPT.outlines=!OPT.outlines;applyOutlines();optSave();renderSettings();
+  };
+  $('optCopilot').onclick=()=>{
+    OPT.copilot=!OPT.copilot;
+    // stale flag would leave the idle weave suppressed after turning it off
+    if(!OPT.copilot)for(const k of W.karts)k.copilot=false;
+    optSave();renderSettings();
   };
   applySound();
   /* net callbacks */
