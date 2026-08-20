@@ -1445,7 +1445,7 @@ const THEME={
   lido:{sky:'skyDay',fog:0xBFE3F0,fogN:120,fogF:520,road:'tile',roadRep:8,apron:0x2E9BC4,deck:0xF0EFE6,
         base:0xE9E6DA,rail:0xFFFFFF,ocean:true,amb:.62,sun:0xFFF3D6,sunI:.85,props:'lido',
         waterBase:0x11577D,waterTint:0xEAF6FF},
-  prom:{sky:'skyIn',fog:0x2C4257,fogN:60,fogF:300,road:'carpet',roadRep:10,apron:0xC9B896,deck:0xEDE3CE,
+  prom:{indoor:true,apronW:20,sky:'skyIn',fog:0x2C4257,fogN:60,fogF:300,road:'carpet',roadRep:10,apron:0xC9B896,deck:0xEDE3CE,
         base:0x3A3128,rail:0xC9A227,ocean:false,amb:.75,sun:0xFFE7C0,sunI:.5,props:'prom',fxScale:.7,
         clouds:false,sunR:0},
   /* Atrium used to share the `prom` theme outright -- same palette, fog, road,
@@ -1454,7 +1454,7 @@ const THEME={
      is a dim covered street, an atrium is a bright multi-deck void under a
      glass dome. Hence brighter ambient, warmer and much further fog, marble
      instead of carpet. */
-  atrium:{sky:'skyAtr',fog:0xE4D8BE,fogN:90,fogF:460,road:'marble',roadRep:6,apron:0xE8E0CE,deck:0xF2ECDC,
+  atrium:{indoor:true,apronW:20,sky:'skyAtr',fog:0xE4D8BE,fogN:90,fogF:460,road:'marble',roadRep:6,apron:0xE8E0CE,deck:0xF2ECDC,
         base:0x6B5B44,rail:0xC9A227,ocean:false,amb:.88,sun:0xFFF2D8,sunI:.62,props:'atrium',fxScale:.7,
         gnd:0xD8CBB0,skirt:0xE0D6C0,rib:0xEDE4CE,cabin:0xFFFFFF,
         clouds:false,sunR:0},
@@ -1462,7 +1462,7 @@ const THEME={
         base:0x6E4B26,rail:0xF4F1EA,ocean:true,amb:.6,sun:0xFFC07A,sunI:.9,props:'board',
         cloudA:.30,sunDisc:0xFFB070,sunR:30,waterBase:0x123F5A,waterTint:0xFFD6AE},
   sundeck:{sky:'skyGold',fog:0xF3C892,fogN:130,fogF:560,road:'tile',roadRep:8,apron:0x1F7FA8,deck:0xF6ECD8,
-        base:0xEDDFC2,rail:0xFFF3DC,ocean:true,amb:.58,sun:0xFFC178,sunI:.95,props:'lido',
+        base:0xEDDFC2,rail:0xFFF3DC,ocean:true,amb:.58,sun:0xFFC178,sunI:.95,props:'sundeck',
         gnd:0x6B5340,skirt:0xE7D3AE,rib:0xF0DFC0,cabin:0xFFF0D8,
         cloudA:.34,sunDisc:0xFFC178,sunR:34,waterBase:0x14506E,waterTint:0xFFE2BC},
   /* A night course still has to be readable: dropping the lights alone put 91%
@@ -1498,7 +1498,7 @@ const THEME={
         cloudA:.24,sunDisc:0xFFF8EC,sunR:22,
         waterBase:0x1FBAC6,waterTint:0xEAFFFB},
   neon:{sky:'skyNight',fog:0x271C55,fogN:110,fogF:520,road:'neon',roadRep:9,apron:0x37276B,deck:0x3A2F72,
-        base:0x241B52,rail:0x53E4FF,ocean:true,amb:.60,sun:0xC5A0FF,sunI:.52,props:'lido',
+        base:0x241B52,rail:0x53E4FF,ocean:true,amb:.60,sun:0xC5A0FF,sunI:.52,props:'neon',
         gnd:0x241858,skirt:0x3B3070,rib:0x4E3F8C,cabin:0x4C4090,fxScale:.55,glowRoad:.55,
         cloudA:.13,sunDisc:0xCFC0FF,sunR:18,bloom:1.5,bloomT:.52,
         waterBase:0x0E1038,waterTint:0xBFA8FF}
@@ -1593,6 +1593,373 @@ function pPlanter(mb,x,y,z,s){
   mb.add(G_BOX,M4(x,y+.5,z,0,0,0,2.2*s,1.0,2.2*s),0xE4DCC8);
   for(let i=0;i<5;i++)mb.add(G_SPH_LO,M4(x+(Math.random()-.5)*1.4,y+1.2+Math.random()*.5,z+(Math.random()-.5)*1.4,0,0,0,1.1),0x3FA46A);
 }
+/* ---- per-course prop kits --------------------------------------------
+   One kit per deck course, so nothing is shared by accident. Colours come from
+   each theme's own palette rather than a global constant. */
+/* Promenade: a covered shopping street. Two storeys, because the height is what
+   makes it read as indoors rather than as huts on an open deck. */
+function pStreetFront(mb,x,y,z,rot,col){
+  const fx=-Math.sin(rot), fz=-Math.cos(rot);
+  mb.add(G_BOX,M4(x,y+5.6,z,0,rot,0,7,11.2,11),0xEFE7D6);            // block
+  /* Three separate units rather than one 9-unit colour slab. Close to the road
+     a single flat panel filled a third of the screen and read as a wall. */
+  for(let u=-1;u<=1;u++){
+    const ux=Math.cos(rot)*u*3.3, uz=-Math.sin(rot)*u*3.3;
+    mb.add(G_BOX,M4(x+fx*3.4+ux,y+2.2,z+fz*3.4+uz,0,rot,0,.4,3.4,2.7),col);
+    mb.add(G_BOX,M4(x+fx*3.5+ux,y+4.0,z+fz*3.5+uz,0,rot,0,.3,.5,2.9),0xC9A227);
+  }
+  mb.add(G_BOX,M4(x+fx*3.9,y+4.4,z+fz*3.9,0,rot,0,1.5,.45,9.8),col); // awning
+  mb.add(G_BOX,M4(x+fx*3.5,y+6.6,z+fz*3.5,0,rot,0,.35,.35,9.6),0xC9A227); // balcony rail
+  mb.add(G_BOX,M4(x+fx*3.2,y+5.9,z+fz*3.2,0,rot,0,1.6,.4,9.6),0xE4DCC8);  // balcony floor
+  for(let i=-1;i<=1;i++)                                              // upper windows
+    mb.add(G_BOX,M4(x+fx*3.3+Math.cos(rot)*i*2.9,y+8.2,z+fz*3.3-Math.sin(rot)*i*2.9,
+      0,rot,0,.3,2.2,2.0),0x2B3A46);
+  mb.add(G_BOX,M4(x,y+11.5,z,0,rot,0,7.4,.6,11.4),0xC9A227);          // cornice
+}
+function pCafeTable(mb,x,y,z,rot,col){
+  mb.add(G_CYL,M4(x,y+.85,z,0,0,0,.12,1.7,.12),0x6B5B44);
+  mb.add(G_CYL,M4(x,y+1.7,z,0,0,0,1.05,.14,1.05),0xEFE7D6);
+  for(let i=0;i<3;i++){const a=i/3*TAU+rot;
+    mb.add(G_BOX,M4(x+Math.cos(a)*1.7,y+.7,z+Math.sin(a)*1.7,0,-a,0,.7,1.4,.7),col);}
+}
+/* Helideck: flight-deck furniture. Palms on a helipad were the giveaway that
+   this course had no kit of its own. */
+function pWindsock(mb,x,y,z,rot){
+  mb.add(G_CYL,M4(x,y+3.4,z,0,0,0,.18,6.8,.18),0xD8D3C4);
+  const fx=Math.sin(rot),fz=Math.cos(rot);
+  for(let i=0;i<4;i++){
+    const t=i/4, r=(.95-t*.45);
+    mb.add(G_CYL,M4(x+fx*(1.1+t*3.1),y+6.4-t*.5,z+fz*(1.1+t*3.1),
+      Math.PI/2,rot,0,r,1.0,r), i%2?0xFFF6E7:0xE4404A);
+  }
+}
+function pTiedown(mb,x,y,z){
+  mb.add(G_CYL,M4(x,y+.06,z,0,0,0,.85,.12,.85),0x8A8578);
+  mb.add(G_TOR,M4(x,y+.26,z,Math.PI/2,0,0,.42,.42,.09),0x2B3A46);
+}
+function pFloodMast(mb,x,y,z,rot){
+  mb.add(G_CYL,M4(x,y+5.2,z,0,0,0,.24,10.4,.24),0x9AA3A8);
+  mb.add(G_BOX,M4(x,y+10.2,z,0,rot,0,3.4,.35,.9),0x6E777C);
+  for(let i=-1;i<=1;i+=2)
+    mb.add(G_BOX,M4(x+Math.cos(rot)*i*1.3,y+9.8,z-Math.sin(rot)*i*1.3,.35,rot,0,1.0,.8,.5),0xFFF3C4);
+}
+function pHelicopter(mb,x,y,z,rot,s){
+  const fx=Math.sin(rot),fz=Math.cos(rot);
+  mb.add(G_SPH_LO,M4(x,y+2.4*s,z,0,rot,0,2.4*s,2.0*s,4.2*s),0x2E5F86);      // cabin
+  mb.add(G_BOX,M4(x-fx*5.4*s,y+2.8*s,z-fz*5.4*s,0,rot,0,.7*s,.7*s,6.0*s),0x2E5F86); // boom
+  mb.add(G_BOX,M4(x-fx*8.4*s,y+3.6*s,z-fz*8.4*s,0,rot,0,.25*s,2.2*s,1.1*s),0xE4404A); // fin
+  mb.add(G_CYL,M4(x,y+4.3*s,z,0,0,0,.32*s,1.4*s,.32*s),0x39424A);           // mast
+  for(let i=0;i<4;i++){const a=i/4*Math.PI*2+.4;
+    mb.add(G_BOX,M4(x+Math.cos(a)*4.6*s,y+5.0*s,z+Math.sin(a)*4.6*s,0,-a,0,9.2*s,.16*s,.55*s),0x39424A);}
+  for(const sd of [-1,1])
+    mb.add(G_CYL,M4(x+Math.cos(rot)*sd*1.9*s,y+.5*s,z-Math.sin(rot)*sd*1.9*s,Math.PI/2,rot,0,.18*s,4.6*s,.18*s),0x39424A);
+}
+/* Neon Pool: a night club that happens to be a pool deck. */
+function pSpeakerStack(mb,x,y,z,rot){
+  for(let i=0;i<3;i++)
+    mb.add(G_BOX,M4(x,y+1.3+i*2.5,z,0,rot,0,2.4,2.3,2.0),0x14141E);
+  const fx=-Math.sin(rot),fz=-Math.cos(rot);
+  for(let i=0;i<3;i++)
+    mb.add(G_CYL,M4(x+fx*1.05,y+1.3+i*2.5,z+fz*1.05,Math.PI/2,rot,0,.75,.2,.75),0x12C3B4);
+}
+function pLaserRig(mb,x,y,z,rot){
+  mb.add(G_CYL,M4(x,y+3.6,z,0,0,0,.2,7.2,.2),0x22303C);
+  mb.add(G_BOX,M4(x,y+7.3,z,0,rot,0,4.6,.4,.6),0x22303C);
+  const cols=[0xFF3DBE,0x12C3B4,0xFFC93C,0x7B5BFF];
+  for(let i=-2;i<=2;i++)
+    mb.add(G_SPH_XS,M4(x+Math.cos(rot)*i*1.0,y+7.0,z-Math.sin(rot)*i*1.0,0,0,0,.34,.34,.34),cols[(i+2)%4]);
+}
+function pGlowLounger(mb,x,y,z,rot,col){
+  mb.add(G_BOX,M4(x,y+.55,z,0,rot,-.18,1.5,.3,4.0),col);
+  mb.add(G_BOX,M4(x,y+1.35,z-1.5,0,rot,-.9,1.4,.28,1.7),col);
+  for(const sd of [-1,1])
+    mb.add(G_CYL,M4(x+Math.cos(rot)*sd*.6,y+.25,z,0,0,0,.11,.5,.11),0x14141E);
+}
+/* Boardwalk: a seaside carnival.
+   The first version of this was a cream box with a tilted colour awning and a
+   colour roof lip -- which is, line for line, the recipe pShop uses on the
+   Promenade. At 27 instances it was the dominant object on the course, so
+   Boardwalk's roadside read as a shopping street with the signs swapped. A
+   fairground kiosk is a different SHAPE: narrow, tall, on cart wheels, under a
+   scalloped conical roof with a finial. Nothing here is a wide flat box. */
+function pFoodStand(mb,x,y,z,rot,col){
+  const fx=-Math.sin(rot),fz=-Math.cos(rot);     // toward the road
+  const rx=Math.cos(rot),rz=-Math.sin(rot);
+  // wagon chassis on wheels -- the single strongest cue that this is a cart.
+  // G_CYL6 throughout: at 21 instances the 12-sided cylinder was costing more
+  // triangles in wheels and brackets than the entire body of the kiosk.
+  for(const sd of [-1,1])
+    mb.add(G_CYL6,M4(x+rx*sd*1.25,y+.62,z+rz*sd*1.25,0,0,Math.PI/2,1.24,.24,1.24),0x4A3324);
+  mb.add(G_BOX,M4(x,y+1.15,z,0,rot,0,2.9,.42,2.3),0x8C6239);
+  // body: narrow and upright, panelled in the stand's colour
+  mb.add(G_BOX,M4(x,y+2.75,z,0,rot,0,2.7,2.8,2.1),col);
+  mb.add(G_BOX,M4(x,y+1.62,z,0,rot,0,2.8,.34,2.2),0xFFF6E7);           // skirt band
+  mb.add(G_BOX,M4(x,y+3.90,z,0,rot,0,2.9,.36,2.3),0xFFF6E7);           // cornice
+  // serving hatch and fold-down shelf facing the track
+  mb.add(G_BOX,M4(x+fx*1.06,y+2.85,z+fz*1.06,0,rot,0,1.9,1.7,.16),0x2B3A46);
+  mb.add(G_BOX,M4(x+fx*1.55,y+2.05,z+fz*1.55,0,rot,0,2.1,.16,1.0),0xFFF6E7);
+  for(const sd of [-1,1])                                              // shelf brackets
+    mb.add(G_CYL6,M4(x+fx*1.9+rx*sd*.85,y+1.6,z+fz*1.9+rz*sd*.85,0,0,0,.09,.9,.09),0x2B3A46);
+  // scalloped conical roof: cone body, a ruffled valance, and a finial.
+  // The cone is 4.4 wide, so its base radius is 2.2 and its base sits at y+4.0 --
+  // the valance has to be placed off those numbers or it hides inside the cone,
+  // which is where the first version of it was.
+  mb.add(G_CONE,M4(x,y+5.05,z,0,rot,0,4.4,2.1,4.0),col);
+  for(let i=0;i<6;i++){
+    const a=rot+i/6*TAU;
+    mb.add(G_BOX,M4(x+Math.cos(a)*2.05,y+3.94,z-Math.sin(a)*2.05,0,-a,0,1.15,.42,.26),0xFFF6E7);
+  }
+  mb.add(G_CYL6,M4(x,y+6.35,z,0,0,0,.10,.9,.10),0xFFF6E7);
+  mb.add(G_SPH_XS,M4(x,y+6.95,z,0,0,0,.52,.62,.52),0xFFC93C);          // finial
+}
+/* Hoopla / ring-toss stall. Cheap in triangles and unmistakably a fairground
+   game, which the kit was otherwise missing -- it had food and arcades but
+   nothing you could win a prize at. */
+function pStall(mb,x,y,z,rot,col){
+  const fx=-Math.sin(rot),fz=-Math.cos(rot), rx=Math.cos(rot),rz=-Math.sin(rot);
+  for(const sd of [-1,1])                                              // corner posts
+    mb.add(G_CYL6,M4(x+rx*sd*2.1,y+1.6,z+rz*sd*2.1,0,0,0,.15,3.2,.15),0xB98A55);
+  mb.add(G_BOX,M4(x-fx*.9,y+1.5,z-fz*.9,0,rot,0,4.4,3.0,.3),0x3B2E52);  // back board
+  mb.add(G_BOX,M4(x,y+1.0,z,0,rot,0,4.2,.30,1.6),0xB98A55);             // counter
+  // prize bottles in a row on the back board
+  for(let i=-2;i<=2;i++)
+    mb.add(G_CYL6,M4(x+rx*i*.85-fx*.55,y+2.05,z+rz*i*.85-fz*.55,0,0,0,.24,.9,.24),
+      [0xFF6B57,0x12C3B4,0xFFC93C][(i+2)%3]);
+  // pitched striped canopy
+  for(let i=-2;i<=2;i++)
+    mb.add(G_BOX,M4(x+rx*i*.95+fx*.35,y+3.45,z+rz*i*.95+fz*.35,.26,rot,0,.95,.22,2.6),
+      i%2?0xFFF6E7:col);
+  mb.add(G_BOX,M4(x,y+3.15,z,0,rot,0,5.0,.30,.34),col);                 // fascia
+}
+function pArcadeRow(mb,x,y,z,rot){
+  for(let i=-1;i<=1;i++){
+    const ox=Math.cos(rot)*i*1.9, oz=-Math.sin(rot)*i*1.9;
+    mb.add(G_BOX,M4(x+ox,y+1.5,z+oz,0,rot,0,1.6,3.0,1.4),0x3B2E52);
+    mb.add(G_BOX,M4(x+ox-Math.sin(rot)*.75,y+2.1,z+oz-Math.cos(rot)*.75,-.35,rot,0,1.2,1.1,.2),0x12C3B4);
+  }
+}
+function pBunting(mb,x,y,z,rot){
+  mb.add(G_CYL,M4(x,y+2.6,z,0,0,0,.14,5.2,.14),0xB98A55);
+  const cols=[0xFF6B57,0xFFC93C,0x12C3B4,0xFFF6E7];
+  for(let i=0;i<6;i++)
+    mb.add(G_BOX,M4(x+Math.cos(rot)*(i-2.5)*1.5,y+4.6-Math.abs(i-2.5)*.16,z-Math.sin(rot)*(i-2.5)*1.5,
+      .5,rot,0,.7,.8,.08),cols[i%4]);
+}
+/* The thing the course is named after. The infield is unreachable -- the
+   containment wall sits at T.hw+OFFROAD -- so this is pure silhouette, seen
+   across the middle of the loop for most of a lap. Flat by design: a tall
+   centrepiece would hide the pack on the far side. */
+function pHelipad(mb,cx,cy,cz,R,H0){
+  /* Raised, not painted on. Flat read fine from the air and barely at all from
+     the road -- at 80 units and below eye level a marking has no silhouette.
+     A plinth gives it an edge, a shadow and a horizon line.
+     Colour has to fight the course grade: sundeck runs gain [1.09,1.00,0.91]
+     under an orange sun, so anything desaturated turns tan. Value contrast
+     (near-black deck) and saturated accents are the only things that survive. */
+  /* Height is the whole point. The ground plate is ~8 units BELOW the road, so
+     a low pad sat in a well and the driver saw the rim and nothing else. Raised
+     until the deck clears the racing surface, it reads as a platform with the
+     aircraft silhouetted against the sky. */
+  const H=H0==null?2.6:H0;
+  /* R IS A SCALE, NOT A RADIUS. Every base geometry here has radius .5, so
+     mb.add(G_CYL, scale R) draws a cylinder of radius R/2. Anything POSITIONED
+     with cos(a)*R*k, though, treats R as a full distance -- so the rim lights,
+     the plinth ribs and the approach chevrons were all being placed at roughly
+     TWICE the pad's actual radius. Measured: deck surface outer radius 24.9,
+     ring of 24 rim lights at 51.1, chevrons out at 52-64, all in mid-air with
+     nothing beneath them. That floating ring is also what the infield ramp had
+     started running up to. RR is the real radius; use it for every position. */
+  const RR=R*.5;
+  /* A single dark cylinder 12 units tall read as a black wall from the road.
+     Stepped, banded and a shade lighter so it reads as structure. */
+  mb.add(G_CYL,M4(cx,cy+H*.16,cz,0,0,0,R*1.06,H*.32,R*1.06),0x2B343D);   // base step
+  mb.add(G_CYL,M4(cx,cy+H*.5,cz,0,0,0,R,H,R),0x39444F);                  // plinth
+  for(const t of [.42,.68])                                              // banding
+    mb.add(G_TOR,M4(cx,cy+H*t,cz,Math.PI/2,0,0,R,R,.42),0x1F7FA8);
+  mb.add(G_TOR,M4(cx,cy+H,cz,Math.PI/2,0,0,R,R,1.05),0x18A6C8);           // teal edge band
+  mb.add(G_CYL,M4(cx,cy+H+.12,cz,0,0,0,R*.97,.24,R*.97),0x1B2229);       // deck surface
+  mb.add(G_TOR,M4(cx,cy+H+.30,cz,Math.PI/2,0,0,R*.86,R*.86,.62),0xFFF6E7); // touchdown ring
+  const hW=R*.50, hT=R*.115;
+  for(const sd of [-1,1])
+    mb.add(G_BOX,M4(cx+sd*hW*.42,cy+H+.34,cz,0,0,0,hT,.26,hW*1.25),0xFFF6E7);
+  mb.add(G_BOX,M4(cx,cy+H+.34,cz,0,0,0,hW*.84,.26,hT),0xFFF6E7);
+  for(let i=0;i<24;i++){                                                 // rim lights, ON the rim
+    const a2=i/24*TAU;
+    mb.add(G_SPH_XS,M4(cx+Math.cos(a2)*RR*.96,cy+H+.55,cz+Math.sin(a2)*RR*.96,0,0,0,.62,.5,.62),
+      i%4===0?0xE4404A:0xFFF3C4);
+  }
+  /* Chevrons march IN from the deck edge toward the touchdown ring. They were
+     at 52-64 units on a pad of radius 24.9, i.e. hanging over open deck. */
+  for(let i=0;i<3;i++){
+    const d=RR*(.80-i*.13);       // .92 put the outermost one 2.4 past the deck edge
+    for(const sd of [-1,1])
+      mb.add(G_BOX,M4(cx+sd*RR*.16,cy+H+.30,cz+d,0,sd*0.5,0,RR*.26,.24,1.7),0xFFC93C);
+  }
+  for(let i=0;i<8;i++){                                                  // ribs, ON the plinth
+    const a2=i/8*TAU;
+    mb.add(G_BOX,M4(cx+Math.cos(a2)*RR*.99,cy+H*.5,cz+Math.sin(a2)*RR*.99,0,-a2,0,1.1,H,2.4),0x18A6C8);
+  }
+}
+/* One ramp implementation for every centrepiece. Two things it has to get right,
+   both of which were bugs the first time: the tilt sign (atan2(drop,rl) raises
+   the OUTER end, i.e. a ramp pointing the wrong way), and the direction, since a
+   fixed heading ran straight across the racing line. */
+function infieldRamp(mb,T,cx,cz,py,R,PH,accent){
+  const _rp={};
+  const reachOf=(ang)=>{
+    for(let d=R+4;d<220;d+=2){
+      const sm=T.sample(cx+Math.cos(ang)*d,cz+Math.sin(ang)*d,_rp);
+      if(sm&&Math.abs(sm.off)<T.hw+OFFROAD+3)return d;
+    }
+    return 220;
+  };
+  let a3=0,best=0;
+  for(let q=0;q<16;q++){const ang=q/16*TAU,r2=reachOf(ang); if(r2>best){best=r2;a3=ang;}}
+  const drop=PH-.35, rl=drop*2.4;
+  if(best-4-R<rl)return;
+  const mx=cx+Math.cos(a3)*(R+rl*.5), mz=cz+Math.sin(a3)*(R+rl*.5);
+  const tilt=-Math.atan2(drop,rl);
+  mb.add(G_BOX,M4(mx,py+drop*.5,mz,0,-a3,tilt,rl*1.05,.7,9),0x1B2229);
+  for(const sd of [-1,1])
+    mb.add(G_BOX,M4(mx+Math.sin(-a3)*sd*4.6,py+drop*.5+1.1,mz+Math.cos(-a3)*sd*4.6,
+      0,-a3,tilt,rl*1.05,.35,.35),accent);
+}
+/* A pool sunk into the podium: rim coping, water, steps. `glow` drives the
+   emissive so the same builder serves a sunlit lido and a lit night club. */
+/* A rectangular pool with actual pool anatomy: a surround deck, a raised coping
+   lip, water RECESSED below that lip, a waterline tile band, lane lines, steps
+   at the shallow end and ladders on the flanks. A coloured disc reads as a blob;
+   what makes it read as a pool is the lip and the recess catching shadow. */
+function pPoolRect(mb,cx,cy,cz,hL,hW,rot,water,deckCol,coping,tile,glow){
+  const S=Math.sin(rot), C=Math.cos(rot);
+  const at=(u,v)=>[cx+C*u+S*v, cz-S*u+C*v];       // u across, v along
+  const D=6.5;                                     // surround width
+  mb.add(G_BOX,M4(cx,cy+.10,cz,0,rot,0,(hW+D)*2,.30,(hL+D)*2),deckCol);
+  // coping lip -- four bars standing proud of the deck
+  const LIP=1.5, LH=.85;
+  for(const sd of [-1,1]){
+    let q=at(sd*(hW+LIP*.5),0);
+    mb.add(G_BOX,M4(q[0],cy+.25+LH*.5,q[1],0,rot,0,LIP,LH,(hL+LIP)*2),coping);
+    q=at(0,sd*(hL+LIP*.5));
+    mb.add(G_BOX,M4(q[0],cy+.25+LH*.5,q[1],0,rot,0,(hW+LIP)*2,LH,LIP),coping);
+  }
+  // water, set down inside the lip so the rim casts a shadow onto it
+  mb.add(G_BOX,M4(cx,cy+.28,cz,0,rot,0,hW*2,.42,hL*2),water);
+  if(glow)mb.add(G_BOX,M4(cx,cy+.46,cz,0,rot,0,hW*1.94,.14,hL*1.94),glow);
+  // waterline tile band, just inside the lip
+  const TB=1.1;
+  for(const sd of [-1,1]){
+    let q=at(sd*(hW-TB*.5),0);
+    mb.add(G_BOX,M4(q[0],cy+.52,q[1],0,rot,0,TB,.16,hL*2),tile);
+    q=at(0,sd*(hL-TB*.5));
+    mb.add(G_BOX,M4(q[0],cy+.52,q[1],0,rot,0,hW*2,.16,TB),tile);
+  }
+  // lane lines down the long axis
+  const lanes=Math.max(3,Math.round(hW/9));
+  for(let i=1;i<lanes;i++){
+    const u=(i/lanes*2-1)*hW;
+    const q=at(u,0);
+    mb.add(G_BOX,M4(q[0],cy+.50,q[1],0,rot,0,.55,.14,hL*1.86),tile);
+  }
+  // steps at one end
+  for(let i=0;i<3;i++){
+    const q=at(0,-(hL-1.6-i*2.2));
+    mb.add(G_BOX,M4(q[0],cy+.34+i*.16,q[1],0,rot,0,hW*.46,.22,2.0),coping);
+  }
+  // ladders on the flanks
+  for(const sd of [-1,1])for(const t of [-.45,.35]){
+    const q=at(sd*hW,t*hL);
+    for(const o of [-.8,.8]){
+      const r2=at(sd*hW+o*C*0,t*hL+o);
+      mb.add(G_CYL,M4(r2[0],cy+1.5,r2[1],0,0,0,.16,2.4,.16),coping);
+    }
+    mb.add(G_BOX,M4(q[0],cy+2.6,q[1],0,rot,0,.5,.22,2.0),coping);
+  }
+}
+function pDJBooth(mb,x,y,z,rot,s){
+  mb.add(G_BOX,M4(x,y+1.6*s,z,0,rot,0,9*s,3.2*s,5*s),0x1A1430);
+  mb.add(G_BOX,M4(x,y+3.4*s,z,0,rot,0,9.6*s,.5*s,5.6*s),0xFF3DBE);
+  const fx=-Math.sin(rot),fz=-Math.cos(rot);
+  mb.add(G_BOX,M4(x+fx*2.6*s,y+2.2*s,z+fz*2.6*s,0,rot,0,.4*s,1.6*s,7*s),0x12C3B4);
+  for(const sd of [-1,1])
+    mb.add(G_BOX,M4(x+Math.cos(rot)*sd*5.6*s,y+2.6*s,z-Math.sin(rot)*sd*5.6*s,0,rot,0,2.4*s,5.2*s,2.2*s),0x14141E);
+  mb.add(G_CYL,M4(x,y+7.4*s,z,0,0,0,.24*s,8*s,.24*s),0x3B2E52);
+  mb.add(G_SPH_XS,M4(x,y+11.4*s,z,0,0,0,1.1*s,1.1*s,1.1*s),0xFF3DBE);
+}
+/* The vertical anchor. A flat infield gives the eye nothing to measure against,
+   and the pad alone reads as a pale disc from the racing line. */
+function pControlTower(mb,x,y,z,rot,s){
+  for(const sx of [-1,1])for(const sz of [-1,1])
+    mb.add(G_CYL,M4(x+sx*2.2*s,y+8*s,z+sz*2.2*s,0,0,0,.5*s,16*s,.5*s),0x2E3740);
+  mb.add(G_BOX,M4(x,y+8*s,z,0,rot,0,5.4*s,.6*s,5.4*s),0x232A31);         // mid platform
+  mb.add(G_BOX,M4(x,y+17.4*s,z,0,rot,0,9.2*s,4.2*s,9.2*s),0x1F7FA8);     // cab, teal
+  mb.add(G_BOX,M4(x,y+17.6*s,z,0,rot,0,9.6*s,2.6*s,9.6*s),0x9FE8FF);     // glazing band
+  mb.add(G_BOX,M4(x,y+19.9*s,z,0,rot,0,10.2*s,.7*s,10.2*s),0xFFF6E7);    // roof lip
+  mb.add(G_CYL,M4(x,y+22.4*s,z,0,0,0,.28*s,5*s,.28*s),0xE4404A);         // mast
+  mb.add(G_SPH_XS,M4(x,y+25*s,z,0,0,0,.9*s,.9*s,.9*s),0xE4404A);         // beacon
+}
+/* Roadside prop mix per theme, as data. Weights are the same numbers the old
+   if/else chain used, so existing courses are unchanged. Keyed by theme with no
+   default: adding a course means adding an entry, not inheriting one. */
+const PROP_SETS={
+  lido:[
+    [.30,(mb,x,y,z,rot,rng)=>pPalm(mb,x,y,z,.8+rng()*.5,rng)],
+    [.22,(mb,x,y,z,rot,rng,i)=>pChair(mb,x,y,z,rot,[0xFFF6E7,0x12C3B4,0xFFC93C][i%3])],
+    [.14,(mb,x,y,z)=>pUmbrella(mb,x,y,z,0xFF6B57,0xFFF6E7)],
+    [.12,(mb,x,y,z,rot)=>pRing(mb,x,y,z,rot)],
+    [.12,(mb,x,y,z)=>pPlanter(mb,x,y,z,.9)],
+    [.10,(mb,x,y,z)=>pLamp(mb,x,y,z,0x2B3A46)]
+  ],
+  /* Street furniture only -- the shopfronts themselves are hand-placed in a
+     continuous row (see props==='prom'), because a shopping street reads as a
+     street when the frontage is unbroken, not when it is scattered. */
+  prom:[
+    [.30,(mb,x,y,z,rot,rng,i)=>pCafeTable(mb,x,y,z,rot,[0xFF6B57,0x12C3B4,0xFFC93C,0x8E5BA6][i%4])],
+    [.24,(mb,x,y,z)=>pPlanter(mb,x,y,z,1.1)],
+    [.26,(mb,x,y,z)=>pLamp(mb,x,y,z,0xC9A227)],
+    [.20,(mb,x,y,z,rot,rng,i)=>pShop(mb,x,y,z,rot,[0x8E5BA6,0xFFC93C][i%2],0xFFF6E7)]
+  ],
+  atrium:[
+    [.30,(mb,x,y,z)=>pPlanter(mb,x,y,z,1.3)],
+    [.22,(mb,x,y,z)=>pLamp(mb,x,y,z,0xC9A227)],
+    [.18,(mb,x,y,z,rot)=>pChair(mb,x,y,z,rot,0x8E2436)],
+    [.14,(mb,x,y,z,rot)=>pStatue(mb,x,y,z,rot,.9)],
+    [.16,(mb,x,y,z,rot)=>pPiano(mb,x,y,z,rot)]
+  ],
+  // Sunset Helideck: flight deck, not a garden. No palms.
+  sundeck:[
+    [.30,(mb,x,y,z)=>pTiedown(mb,x,y,z)],
+    [.18,(mb,x,y,z,rot)=>pWindsock(mb,x,y,z,rot)],
+    [.16,(mb,x,y,z,rot)=>pFloodMast(mb,x,y,z,rot)],
+    [.16,(mb,x,y,z,rot)=>pCrate(mb,x,y,z,rot)],
+    [.12,(mb,x,y,z,rot)=>pRing(mb,x,y,z,rot)],
+    [.08,(mb,x,y,z)=>pLamp(mb,x,y,z,0x22303C)]
+  ],
+  // Neon Pool Party: the strongest theme in the game, previously the weakest kit.
+  neon:[
+    [.26,(mb,x,y,z,rot,rng,i)=>pGlowLounger(mb,x,y,z,rot,[0xFF3DBE,0x12C3B4,0x7B5BFF][i%3])],
+    [.20,(mb,x,y,z,rot)=>pSpeakerStack(mb,x,y,z,rot)],
+    [.18,(mb,x,y,z,rot)=>pLaserRig(mb,x,y,z,rot)],
+    [.16,(mb,x,y,z)=>pPlanter(mb,x,y,z,.9)],
+    [.12,(mb,x,y,z,rot)=>pRing(mb,x,y,z,rot)],
+    [.08,(mb,x,y,z)=>pLamp(mb,x,y,z,0x3B2E52)]
+  ],
+  /* Boardwalk Coaster: seaside carnival. The kiosk was at .26 and therefore
+     fired 27 times out of 71 -- one object was more than a third of the
+     roadside, which is how a course ends up looking like one repeated prop.
+     Spread across five distinct silhouettes instead: a cart, a game stall, an
+     arcade block, bunting on a pole, and a crate. */
+  board:[
+    [.20,(mb,x,y,z,rot,rng,i)=>pFoodStand(mb,x,y,z,rot,[0xFF6B57,0x12C3B4,0xFFC93C,0x8E5BA6][i%4])],
+    [.18,(mb,x,y,z,rot,rng,i)=>pStall(mb,x,y,z,rot,[0xE4404A,0x12C3B4,0xFFC93C][i%3])],
+    [.18,(mb,x,y,z,rot)=>pBunting(mb,x,y,z,rot)],
+    [.16,(mb,x,y,z,rot)=>pArcadeRow(mb,x,y,z,rot)],
+    [.14,(mb,x,y,z,rot,rng,i)=>pChair(mb,x,y,z,rot,[0xFFF6E7,0xE4404A][i%2])],
+    [.08,(mb,x,y,z,rot)=>pCrate(mb,x,y,z,rot)],
+    [.06,(mb,x,y,z)=>pLamp(mb,x,y,z,0x6E4B26)]
+  ]
+  // dr and bm intentionally absent: both hand-place their own dressing.
+};
 /* ---- atrium landmarks -------------------------------------------------
    All of these take a track yaw and a side. Convention: a box rotated by
    ry=yaw has local +Z along the track forward and local +X along the track
@@ -1757,18 +2124,80 @@ function pShop(mb,x,y,z,rot,c1,c2){
   for(let i=0;i<5;i++)mb.add(G_BOX,M4(x+Math.sin(rot)*(-3+i*1.5)+Math.sin(rot+Math.PI/2)*-2.5,y+4.0,z+Math.cos(rot)*(-3+i*1.5)+Math.cos(rot+Math.PI/2)*-2.5,.35,rot,0,1.45,.16,1.9),i%2?c1:c2);
   mb.add(G_BOX,M4(x,y+7.0,z,0,rot,0,9.4,.5,4.4),c1);
 }
-function pArch(mb,x,y,z,rot,w,col){
-  for(let s=-1;s<=1;s+=2)mb.add(G_CYL,M4(x+Math.cos(rot)*w*s,y+4,z-Math.sin(rot)*w*s,0,0,0,.5,8,.5),col);
-  mb.add(G_BOX,M4(x,y+8.3,z,0,-rot,0,w*2+1.4,1.0,1.4),col);
-  for(let i=-2;i<=2;i++)mb.add(G_SPH_LO,M4(x+Math.cos(rot)*i*w*.4,y+7.6,z-Math.sin(rot)*i*w*.4,0,0,0,.5),0xFFF0B8);
-}
-function pCoaster(mb,x,y,z,rot,s){
-  for(let i=0;i<12;i++){
-    const a=i/11*Math.PI,r=11*s;
-    const cx=x+Math.cos(rot)*Math.cos(a)*r, cz=z-Math.sin(rot)*Math.cos(a)*r, cy=y+Math.sin(a)*r*.9;
-    mb.add(G_BOX,M4(cx,cy,cz,0,-rot,a-Math.PI/2,1.6,.5,2.2),0xE4404A);
-    if(i%3===0&&Math.sin(a)>0)mb.add(G_CYL,M4(cx,y+cy*.5-y*.5,cz,0,0,0,.4,cy-y,.4),PROP_RIB);
+/* Two things were wrong here and they compounded into "a red bar floating over
+   the course with no poles under it".
+
+   1. SIGN. The legs are placed along (cos rot, -sin rot). A box with ry=T has
+      its local +X along (cos T, -sin T), so the span needs ry=rot -- it was
+      ry=-rot, which mirrors the beam about the track axis. Measured, the beam
+      ends missed their poles by up to 31.5 units (Helideck) and 29.9
+      (Boardwalk); only the arches that happened to sit near rot=0 or 180 lined
+      up, which is why this survived so long.
+   2. HEIGHT. y came from the road CENTRELINE while the legs stand w=hw+8 units
+      out to the side. On a banked road that is wrong in opposite directions for
+      the two legs: on Boardwalk one foot floated 3.0 above the deck while its
+      partner was buried 3.7 below it.
+
+   gy(px,pz) returns the real surface under a leg. Each leg now stands on its
+   own ground and the beam rides on top of the taller one. */
+function pArch(mb,x,y,z,rot,w,col,gy){
+  const feet=[],legs=[];
+  for(let s=-1;s<=1;s+=2){
+    const px=x+Math.cos(rot)*w*s, pz=z-Math.sin(rot)*w*s;
+    const fy=gy?gy(px,pz):y;
+    legs.push([px,pz,fy]);feet.push(fy);
   }
+  const top=Math.max(feet[0],feet[1])+8;
+  for(const [px,pz,fy] of legs)
+    mb.add(G_CYL,M4(px,(fy+top)/2,pz,0,0,0,.5,top-fy,.5),col);
+  mb.add(G_BOX,M4(x,top+.3,z,0,rot,0,w*2+1.4,1.0,1.4),col);
+  for(let i=-2;i<=2;i++)mb.add(G_SPH_LO,M4(x+Math.cos(rot)*i*w*.4,top-.4,z-Math.sin(rot)*i*w*.4,0,0,0,.5),0xFFF0B8);
+}
+/* A vertical semicircle of coloured blocks reads as HALF A FERRIS WHEEL -- which
+   is the one silhouette this course cannot afford, because the real Ferris wheel
+   now stands in the middle of the infield. What makes a coaster legible is the
+   PROFILE, not a curve: a lift hill, a first drop, and camelbacks, all carried
+   on a run of trestle bents. Built along the track's local forward axis. */
+function pCoaster(mb,x,y,z,rot,s){
+  const fx=Math.sin(rot), fz=Math.cos(rot);      // along the run
+  const rx=Math.cos(rot), rz=-Math.sin(rot);     // across it
+  const L=36*s, N=24;      // 43 units at s=1.2; longer and it eats the cabin ring
+  // height profile, in units of s, measured from the base
+  const H=t=>{
+    if(t<.30)return (2.5+(t/.30)*24)*s;                          // lift hill
+    if(t<.42)return (26.5-((t-.30)/.12)*21)*s;                   // first drop
+    if(t<.64)return (5.5+Math.sin((t-.42)/.22*Math.PI)*12)*s;    // camelback
+    if(t<.84)return (5.5+Math.sin((t-.64)/.20*Math.PI)*7.5)*s;   // camelback
+    return (5.5-((t-.84)/.16)*2.2)*s;                            // run-in
+  };
+  const LAT=t=>Math.sin(t*TAU*.75)*5.5*s;        // gentle S in plan
+  const P=t=>{
+    const u=(t-.5)*L, v=LAT(t);
+    return [x+fx*u+rx*v, y+H(t), z+fz*u+rz*v];
+  };
+  let prev=P(0);
+  for(let i=1;i<=N;i++){
+    const t=i/N, p=P(t);
+    // twin rails plus the tie between them, so the track has thickness
+    for(const sd of [-1,1]){
+      spanBox(mb,prev[0]+rx*sd*.85,prev[1],prev[2]+rz*sd*.85,
+                 p[0]+rx*sd*.85,   p[1],   p[2]+rz*sd*.85, .34*s, 0xE4404A);
+    }
+    spanBox(mb,prev[0],prev[1]-.45*s,prev[2],p[0],p[1]-.45*s,p[2],.55*s,0xC22B36);
+    // trestle bent every third segment: two legs and a cross brace
+    if(i%3===0&&p[1]-y>1.2*s){
+      const h=p[1]-y, sp=1.5*s;
+      for(const sd of [-1,1])
+        mb.add(G_CYL,M4(p[0]+rx*sd*sp,y+h*.5,p[2]+rz*sd*sp,0,0,0,.30*s,h,.30*s),PROP_RIB);
+      spanBox(mb,p[0]-rx*sp,y+h*.55,p[2]-rz*sp,p[0]+rx*sp,y+h*.25,p[2]+rz*sp,.20*s,PROP_RIB);
+    }
+    prev=p;
+  }
+  // station shed at the boarding end, so the run reads as a ride and not a bridge
+  const st=P(.02);
+  mb.add(G_BOX,M4(st[0],y+2.0*s,st[2],0,rot,0,7.0*s,4.0*s,9.0*s),0xFFF6E7);
+  mb.add(G_BOX,M4(st[0],y+4.4*s,st[2],0,rot,0,7.8*s,1.0*s,9.8*s),0xE4404A);
+  mb.add(G_BOX,M4(st[0],y+5.6*s,st[2],0,rot,0,4.4*s,1.4*s,.5*s),0xFFC93C);   // sign board
 }
 function pFunnel(mb,x,y,z,s){
   mb.add(G_CYL,M4(x,y+7*s,z,0,0,0,5*s,14*s,3.6*s),0x14324A);
@@ -2469,7 +2898,7 @@ function pCruiseShip(scene,T,baseY,out){
   m.frustumCulled=false;
   scene.add(m); out.objs.push(m);
 }
-function pCabins(mb,T,course,baseY){
+function pCabins(mb,T,course,baseY,lmPos){
   /* The superstructure is the largest visual mass in every frame. It used to be
      30 identical grey boxes, which read as placeholder. Now: varied block
      heights and depths, a stepped roofline, balcony rails, and rows of window
@@ -2482,8 +2911,22 @@ function pCabins(mb,T,course,baseY){
   const litA=night?0xFFE7A8:0x9FC4D8, litB=night?0x8FD8F0:0x7FA8BE;
   const rng=mulberry(course.id.length*104729+7);
   const N=34;
+  const _tc={};
   for(let i=0;i<N;i++){
     const a=i/N*TAU, x=cx+Math.cos(a)*R, z=cz+Math.sin(a)*R;
+    /* A fixed-radius ring around a non-circular track will cross it. Blocks are
+       up to 18 wide, so anything this close is standing on the racing line. */
+    const _sm=T.sample(x,z,_tc);
+    if(_sm&&Math.abs(_sm.off)<T.hw+11){rng();rng();continue;}
+    /* Same reasoning applied to the landmarks: the ring radius is derived from
+       the track bounds and the landmark offset is derived from the track, so at
+       the widest point the two coincide. Leaving a gap where a ride stands is
+       what a real deck looks like anyway. */
+    if(lmPos){
+      let hit=false;
+      for(const L of lmPos)if(Math.hypot(x-L.x,z-L.z)<L.r+9){hit=true;break;}
+      if(hit){rng();rng();continue;}
+    }
     const tall=(i%5===0), h=(tall?20:11)+Math.floor(rng()*4)*2.4;
     const wdt=13+rng()*5, dep=9+rng()*3;
     const ox=-Math.cos(a), oz=-Math.sin(a);          // inward-facing normal
@@ -2613,8 +3056,12 @@ function buildWorldMeshes(scene,T,course){
   // static scenery -> one merged mesh
   const mb=new MB(),rng=mulberry(course.id.length*7919+T.N);
   const SKIRT=THC(th,'skirt'), RIB=THC(th,'rib');
-  ribbon(mb,T,T.hw+1.3,T.hw+8.5,-.06,-.35,th.apron);
-  ribbon(mb,T,-(T.hw+8.5),-(T.hw+1.3),-.35,-.06,th.apron);
+  /* Apron half-width, per theme. Everything roadside has to sit inside this --
+     it is the last real floor before open water. Promenade and Atrium need a
+     wider one because their architecture stands well back from the road. */
+  const AP=th.apronW==null?8.5:th.apronW;
+  ribbon(mb,T,T.hw+1.3,T.hw+AP,-.06,-.35,th.apron);
+  ribbon(mb,T,-(T.hw+AP),-(T.hw+1.3),-.35,-.06,th.apron);
   // skirts down to the deck (terrain themes have real ground; the skirt would
   // just be a buried wall)
   if(!th.terrain)(function(){
@@ -2929,54 +3376,284 @@ function buildWorldMeshes(scene,T,course){
     const R=Math.min(T.bounds.maxx-T.bounds.minx,T.bounds.maxz-T.bounds.minz)*0.5*0.52;
     pDome(mb,cxa,ymean+24,cza,R,20);
   }
+  /* Royal Promenade. A shopping street reads as a street when the frontage is
+     CONTINUOUS -- scattered huts read as an open deck with sheds on it, which is
+     what it looked like while pCabins was standing in for architecture. Both
+     sides, unbroken, two storeys, so the eye reads walls rather than objects. */
+  if(props==='prom'){
+    const pr=mulberry(course.id.length*7717+29);
+    const COLS=[0xFF6B57,0x12C3B4,0xFFC93C,0x8E5BA6,0xF06B8A,0x3FB8C4];
+    const step=Math.max(4,Math.round(T.N/56));
+    const tmpP={};
+    for(let i=0;i<T.N;i+=step){
+      for(const sd of [-1,1]){
+        const o=sd*(T.hw+14.5);   // back of the widened apron, still on real floor
+        const x=T.px[i]+T.rx[i]*o, z=T.pz[i]+T.rz[i]*o;
+        /* Promenade is a figure-eight, so an offset measured from one pass can
+           land on another. Ask where the nearest road actually is -- the block
+           is 7 deep, so it needs its half-depth plus margin. */
+        const smP=T.sample(x,z,tmpP);
+        if(smP&&Math.abs(smP.off)<T.hw+5.5){pr();continue;}
+        const rot=Math.atan2(T.rx[i]*sd,T.rz[i]*sd);
+        pStreetFront(mb,x,(smP?smP.y:T.py[i])-.6,z,rot,COLS[(pr()*COLS.length)|0]);
+      }
+    }
+    // a skylight ribbon down the middle, so it still reads as enclosed overhead
+    for(let i=0;i<T.N;i+=step*2){
+      const s2=T.atU(i/T.N,{});
+      /* Raised from 13.5: the countdown pan swings up to ~21 units above the
+         kart, so the old ceiling was punched straight through on the way in. */
+      mb.add(G_BOX,M4(s2.px,s2.py+19,s2.pz,0,Math.atan2(s2.fx,s2.fz),0,
+        2*(T.hw+13),.6,T.len/(T.N/(step*2))*1.02),0xC9A227);
+      mb.add(G_BOX,M4(s2.px,s2.py+18.7,s2.pz,0,Math.atan2(s2.fx,s2.fz),0,
+        2*(T.hw+4),.35,T.len/(T.N/(step*2))*.86),0xFFF0C8);
+      // upper storey, so the ceiling is carried by the walls rather than floating
+      for(const sd2 of [-1,1]){
+        const o2=sd2*(T.hw+14.5);
+        mb.add(G_BOX,M4(s2.px+s2.rx*o2,s2.py+14.6,s2.pz+s2.rz*o2,
+          0,Math.atan2(s2.fx,s2.fz),0,7,6.4,T.len/(T.N/(step*2))*1.02),0xE4DCC8);
+        void o2;
+      }
+    }
+  }
+  /* Sunset Helideck centrepiece. The infield was a bare plate the width of the
+     whole loop -- the largest empty surface in the game. */
+  if(props==='sundeck'){
+    /* In the infield, which is the point of it: the course is named after this.
+       Raised until the deck clears the racing surface -- the ground plate sits
+       ~8 units BELOW the road, so a low pad sat in a well and the driver saw the
+       rim and nothing else. */
+    const b2=T.bounds, cx=(b2.minx+b2.maxx)/2, cz=(b2.minz+b2.maxz)/2;
+    let inR=1e9;
+    for(let i=0;i<T.N;i++)
+      inR=Math.min(inR,Math.hypot(T.px[i]-cx,T.pz[i]-cz));
+    const R=Math.min(52,inR*.62);
+    const py=baseY-.35;                       // groundPlate sits at baseY-.4
+    let meanY=0; for(let i=0;i<T.N;i++)meanY+=T.py[i]; meanY/=T.N;
+    /* Deck at eye level turned the plinth into a wall that hid the tower legs
+       and the aircraft. Below eye level you look down onto the platform instead,
+       and the helicopters clear the rim. */
+    const PH=Math.max(3,(meanY+1.6)-py);
+    pHelipad(mb,cx,py,cz,R,PH);
+    /* R is the SCALE handed to pHelipad; the pad's real radius is half of it
+       (every base geometry has radius .5). Positions here have to use PR or they
+       land at twice the distance -- which is why the second helicopter was
+       parked 28.5 units out on a deck that ends at 24.9, i.e. off the edge. */
+    const PR=R*.5;
+    const deck=py+PH+.12;                     // plinth top
+    pHelicopter(mb,cx-PR*.40,deck,cz+PR*.28,-0.7,1.9);
+    pHelicopter(mb,cx+PR*.44,deck,cz-PR*.34, 2.3,1.7);
+    (function(){                              // ramp up from the lower deck
+      /* Sized and aimed to stay clear of the road. At a fixed length and angle it
+         ran 5 units INSIDE the road edge and past the containment wall, so karts
+         drove through it. Pick the direction with the most infield, then stop
+         short of the wall rather than assuming there is room. */
+      const _rp={};
+      const reachOf=(ang)=>{
+        for(let d=PR+4;d<220;d+=2){
+          const sm=T.sample(cx+Math.cos(ang)*d,cz+Math.sin(ang)*d,_rp);
+          if(sm&&Math.abs(sm.off)<T.hw+OFFROAD+3)return d;
+        }
+        return 220;
+      };
+      let a3=5.0, bestReach=0;
+      for(let q=0;q<16;q++){const ang=q/16*TAU, r2=reachOf(ang);
+        if(r2>bestReach){bestReach=r2;a3=ang;}}
+      /* Build the ramp from its two ENDPOINTS, not from a drop and a gradient
+         and a hope. The old version derived its height from `PH-.35`, its
+         position from `R+rl*.5` and its length from `rl*1.05` -- three different
+         numbers standing in for "the top of the pad", none of which was the
+         surface pHelipad actually draws. Measured, the inner top corner landed
+         at radius 51.71 / y 1.45 while the walkable deck ends at radius 49.7 /
+         y 1.90: 2.0 units short and 0.45 low, dying against the outside of the
+         rim band. The sign of the tilt still matters -- atan2(drop,run) raises
+         the OUTER end, i.e. a ramp pointing the wrong way.
+
+         Top end sits at 0.90R, INSIDE the deck disc, so the two surfaces
+         overlap rather than meeting at a seam that any rounding can open. */
+      const deckTop=py+PH+.24;                // the surface pHelipad really draws
+      const topR=PR*.90, drop=deckTop-py;     // PR, not R: see above
+      const run=drop*2.4;                     // ~22 degrees
+      if(bestReach-4-PR<run)return;           // not enough infield: skip, do not clip
+      const tilt=-Math.atan2(drop,run);       // high at the pad, descending outward
+      const ct=Math.cos(tilt);
+      const len=Math.hypot(run,drop);
+      const mr=topR+run*.5;
+      const mx=cx+Math.cos(a3)*mr, mz=cz+Math.sin(a3)*mr;
+      /* The slab is .7 thick about its centreline, so drop the centre by
+         .35/cos(tilt): on a tilted plane a vertical shift of h moves the
+         surface h*cos(tilt) perpendicular. That puts the TOP FACE on the line
+         between the endpoints, which is the surface a kart would run on. */
+      const cy0=(deckTop+py)/2-.35/ct;
+      mb.add(G_BOX,M4(mx,cy0,mz,0,-a3,tilt,len,.7,9),0x1B2229);
+      for(const sd of [-1,1])
+        mb.add(G_BOX,M4(mx+Math.sin(-a3)*sd*4.6,cy0+1.1,mz+Math.cos(-a3)*sd*4.6,
+          0,-a3,tilt,len,.35,.35),0x18A6C8);
+    })();
+    pControlTower(mb,cx+Math.cos(2.0)*R*1.30,py,cz+Math.sin(2.0)*R*1.30,2.0-Math.PI/2,1.0);
+    for(const a2 of [0.5,3.6,5.1]){           // floodlights round the pad
+      pFloodMast(mb,cx+Math.cos(a2)*R*1.26,py,cz+Math.sin(a2)*R*1.26,a2+Math.PI);
+    }
+  }
+  /* Centrepieces. NOT the helipad treatment: no podium, no ramp, no ring of
+     furniture. The infield floor already sits ~8 units below the road, so from
+     the racing line you look DOWN into it -- which is exactly what you want for
+     water. The point is that the middle of the course is a different surface,
+     not that it has more objects on it. Promenade is excluded: infield radius 21
+     on a figure-eight, so there is no middle. */
+  if(props==='lido'||props==='neon'||props==='board'){
+    const b3=T.bounds, ccx=(b3.minx+b3.maxx)/2, ccz=(b3.minz+b3.maxz)/2;
+    let iR=1e9;
+    for(let i=0;i<T.N;i++)iR=Math.min(iR,Math.hypot(T.px[i]-ccx,T.pz[i]-ccz));
+    const cpy=baseY-.30;                       // straight onto the infield floor
+    if(props==='board'){
+      // One wheel, standing on its own. There were three on this course.
+      pFerris(mb,ccx,cpy,ccz,0.4,2.6,out);
+    }else{
+      /* Rectangle inscribed in the infield: corners have to stay inside iR, so
+         with a 1.7:1 pool the half-width caps at ~0.45*iR. Long axis follows the
+         course's own long axis. */
+      const spanX=b3.maxx-b3.minx, spanZ=b3.maxz-b3.minz;
+      const rot=spanX>spanZ?Math.PI/2:0;
+      /* Solve the fit rather than guessing a fraction. It is the CORNERS that
+         run out of room, and they have to clear the inner edge of the road
+         (iR - hw), not just the centreline -- at iR*0.45 the Neon Pool corners
+         landed 10 units onto the racing surface. With aspect A and surround D:
+           (hW+D)^2 + (A*hW+D)^2 = Rsafe^2  ->  quadratic in hW. */
+      const A=1.7, D=6.5, Rsafe=Math.max(12,iR-T.hw-5);
+      const qa=1+A*A, qb=2*D*(1+A), qc=2*D*D-Rsafe*Rsafe;
+      const hW=(-qb+Math.sqrt(qb*qb-4*qa*qc))/(2*qa), hL=A*hW;
+      const neon=props==='neon';
+      pPoolRect(mb,ccx,cpy,ccz,hL,hW,rot,
+        neon?0x123A8C:0x1E86B8,                 // water
+        neon?0x2A1F5E:0xEDE6D2,                 // surround deck
+        neon?0x53E4FF:0xFFFFFF,                 // coping lip
+        neon?0x7B5BFF:0x2E9BC4,                 // tile band + lanes
+        neon?0x2FD8FF:0);
+    }
+  }
   /* Prop spacing follows track length rather than sample count, so a course at
      twice the length costs roughly the same to build instead of twice as much.
      Deck courses (N~300-380) are unchanged at every 5th sample. */
   const pstep=Math.max(5,Math.round(T.N/74));
-  for(let i=0;props!=='dr'&&i<T.N;i+=pstep){
-    const side=(i%14===0)?1:-1, o=side*(T.hw+11+rng()*10);
-    const x=T.px[i]+T.rx[i]*o, z=T.pz[i]+T.rz[i]*o, y=T.py[i]-.6;
+  const set=PROP_SETS[props];
+  /* Deliberately no fallback. The old chain ended in an `else`, so any course
+     without a branch silently inherited the generic deck filler -- which is how
+     Horseshoe Bay ended up with 26 lamps, 7 crates and 10 life rings scattered
+     over a beach at ROAD height. Sunset Helideck and Neon Pool were a separate
+     case: their themes pointed props at 'lido' outright, so a helipad and a
+     night club were dressed with Lido's palms and sun loungers. Both now name
+     their own kit. A course with no entry draws nothing and looks obviously
+     unfinished, which is the failure mode we want. */
+  const _ps={};
+  if(set)for(let i=0;i<T.N;i+=pstep){
+    /* Was T.hw+11 .. T.hw+21, which is 2.5 to 12.5 units PAST the apron edge --
+       every scattered prop on every deck course was standing over open water.
+       Scaled to the apron so a wider floor spreads them further. */
+    const _apr=(THEME[course.theme].apronW==null?8.5:THEME[course.theme].apronW);
+    /* Inner edge must clear the containment wall at T.hw+OFFROAD, or props end
+       up inside the band a kart can actually reach -- and props have no
+       collision, so you would drive straight through them. Outer edge stays on
+       the apron, which is the last real floor. */
+    const _lo=T.hw+OFFROAD+0.6, _hi=T.hw+_apr-0.7;
+    const side=(i%14===0)?1:-1, o=side*(_lo+rng()*Math.max(1.2,_hi-_lo));
+    const x=T.px[i]+T.rx[i]*o, z=T.pz[i]+T.rz[i]*o;
+    /* Height came from the CENTRELINE while the prop sits 11-21 units out to
+       the side. On a banked road that is wrong by 1.5-3.2m on average (4.8m
+       worst, Boardwalk): above the deck on the inside of a turn, buried on the
+       outside. Sample the surface under the prop instead. */
+    const _sm=T.sample(x,z,_ps);
+    if(_sm&&Math.abs(_sm.off)<T.hw+4)continue;   // landed on another pass of the loop
+    const y=(_sm?_sm.y:T.py[i])-.3;
     const r=rng(), rot=Math.atan2(T.rx[i]*side,T.rz[i]*side);
-    if(props==='lido'){
-      if(r<.30)pPalm(mb,x,y,z,.8+rng()*.5,rng);
-      else if(r<.52)pChair(mb,x,y,z,rot,[0xFFF6E7,0x12C3B4,0xFFC93C][i%3]);
-      else if(r<.66)pUmbrella(mb,x,y,z,0xFF6B57,0xFFF6E7);
-      else if(r<.78)pRing(mb,x,y,z,rot);
-      else if(r<.9)pPlanter(mb,x,y,z,.9);
-      else pLamp(mb,x,y,z,0x2B3A46);
-    }else if(props==='atrium'){
-      if(r<.30)pPlanter(mb,x,y,z,1.3);
-      else if(r<.52)pLamp(mb,x,y,z,0xC9A227);
-      else if(r<.70)pChair(mb,x,y,z,rot,0x8E2436);
-      else if(r<.84)pStatue(mb,x,y,z,rot,.9);
-      else pPiano(mb,x,y,z,rot);
-    }else if(props==='prom'){
-      if(r<.42)pShop(mb,x,y,z,rot,[0xFF6B57,0x12C3B4,0xFFC93C,0x8E5BA6][i%4],0xFFF6E7);
-      else if(r<.6)pPlanter(mb,x,y,z,1.1);
-      else if(r<.78)pLamp(mb,x,y,z,0xC9A227);
-      else pCrate(mb,x,y,z,rot);
-    }else{
-      if(r<.26)pLamp(mb,x,y,z,0x22303C);
-      else if(r<.44)pCrate(mb,x,y,z,rot);
-      else if(r<.6)pPalm(mb,x,y,z,.7+rng()*.4,rng);
-      else if(r<.74)pRing(mb,x,y,z,rot);
-      else if(r<.88)pChair(mb,x,y,z,rot,0xFF6B57);
-      else pPlanter(mb,x,y,z,.8);
+    let acc=0;
+    for(let q=0;q<set.length;q++){
+      acc+=set[q][0];
+      if(r<acc||q===set.length-1){ set[q][1](mb,x,y,z,rot,rng,i); break; }
     }
   }
   // landmarks + arches over the road
+  /* Ground height under an arch leg. The legs sit at hw+7..hw+8, which is
+     inside the apron, so the ribbon sample is the real floor there. */
+  const _ac={};
+  const _archY=(px,pz)=>{const g=T.sample(px,pz,_ac);return g?g.y-.4:baseY-.4;};
+  /* An arch leg stands w units out from ITS OWN station. On a course that folds
+     back on itself that can put the leg on a completely different pass of the
+     loop: measured, 4 of Helideck's 8 legs sat inside the drivable band (worst
+     1.3 units from the racing line) and all 8 of Promenade's did. It went
+     unnoticed for as long as the arches floated -- planting them on the surface
+     is what put poles in the road. So don't trust the offset: walk the arch
+     along the track until BOTH legs clear every pass, and drop it if none does. */
+  const _lc={};
+  const _legsClear=(u,w)=>{
+    const sm=T.atU(u,{}), rot=Math.atan2(sm.rz,sm.rx);
+    for(const sd of [-1,1]){
+      const px=sm.px+Math.cos(rot)*w*sd, pz=sm.pz-Math.sin(rot)*w*sd;
+      const g=T.sample(px,pz,_lc);
+      if(g&&Math.abs(g.off)<T.hw+OFFROAD+1.2)return false;
+    }
+    return true;
+  };
+  const _archU=(u0,w)=>{
+    for(let d=0;d<=.10;d+=.0035)
+      for(const sg of (d?[-1,1]:[1])){
+        const u=(u0+sg*d+1)%1;
+        if(_legsClear(u,w))return u;
+      }
+    return null;                                  // nowhere clear: no arch here
+  };
   const lm=th.terrain?[]:[.06,.3,.55,.8];
+  const lmPos=[];        // so pCabins can avoid standing a tower on one
   lm.forEach((u,k)=>{
+    /* T.hw+24 is past the apron edge, so these sit out on the open deck plate
+       rather than on the apron. That is fine -- the plate is real floor and it
+       reaches well past the cabin ring. What was NOT fine: the height came from
+       the road CENTRELINE 24 units away. Measured, all sixteen deck-course
+       landmarks hung in the air, 5.8 to 25.1 units up (worst on Boardwalk,
+       whose road climbs 19.3). Same bug as the helideck crates: placed by
+       offset, elevated by something that has no idea where the offset landed.
+       The floor out here is the deck plate, so use the deck plate. */
     const s=T.atU(u,{}),o=(k%2?1:-1)*(T.hw+24);
-    const x=s.px+s.rx*o,z=s.pz+s.rz*o,y=s.py-.6,rot=Math.atan2(s.rx,s.rz);
-    if(props==='lido'){[()=>pFunnel(mb,x,y,z,1.1),()=>pSlide(mb,x,y,z,1,0x12C3B4),()=>pSlide(mb,x,y,z,.9,0xFFC93C),()=>pFerris(mb,x,y,z,rot,.9,out)][k]();}
-    else if(props==='board'){[()=>pCoaster(mb,x,y,z,rot,1.2),()=>pFerris(mb,x,y,z,rot,1,out),()=>pCoaster(mb,x,y,z,rot,1),()=>pSlide(mb,x,y,z,.9,0xE4404A)][k]();}
-    else if(props!=='atrium'){pArch(mb,s.px,s.py-.4,s.pz,Math.atan2(s.rz,s.rx),T.hw+7,0xC9A227);}
+    const x=s.px+s.rx*o,z=s.pz+s.rz*o,y=baseY-.4,rot=Math.atan2(s.rx,s.rz);
+    /* Clearance the cabin ring has to respect. The offset above lands almost
+       exactly ON the ring at the widest part of the track (measured: two of
+       Lido's landmarks sat 0.1 units from it, i.e. inside a tower), so this is
+       not a theoretical collision. A coaster run is long, hence the bigger
+       radius on that one. */
+    const lmr=r=>{lmPos.push({x,z,r});};
+    if(props==='lido'){lmr(15);[()=>pFunnel(mb,x,y,z,1.1),()=>pSlide(mb,x,y,z,1,0x12C3B4),()=>pSlide(mb,x,y,z,.9,0xFFC93C),()=>pFunnel(mb,x,y,z,.95)][k]();}
+    /* The coaster is the only landmark with real length, and `rot` here is the
+       track's RIGHT vector -- so a 43-unit run was pointing straight at the
+       road and its inner end came back to offset 10.4, inside the wall at 11.6.
+       Run it along the track's FORWARD axis instead: it then holds a constant
+       offset for its whole length, and a coaster running parallel to the
+       boardwalk is what a seaside one actually does. */
+    else if(props==='board'){lmr(k%2?15:32);
+      const rf=Math.atan2(s.fx,s.fz);
+      [()=>pCoaster(mb,x,y,z,rf,1.2),()=>pSlide(mb,x,y,z,1.05,0xFFC93C),
+       ()=>pCoaster(mb,x,y,z,rf,1),()=>pSlide(mb,x,y,z,.9,0xE4404A)][k]();}
+    else if(props==='sundeck'){lmr(12);[()=>pControlTower(mb,x,y,z,rot,.55),()=>pFloodMast(mb,x,y,z,rot),
+      ()=>pWindsock(mb,x,y,z,rot),()=>pFloodMast(mb,x,y,z,rot)][k]();}
+    else if(props==='neon'){lmr(12);[()=>pSpeakerStack(mb,x,y,z,rot),()=>pLaserRig(mb,x,y,z,rot),
+      ()=>pSpeakerStack(mb,x,y,z,rot),()=>pLaserRig(mb,x,y,z,rot)][k]();}
+    else if(props!=='atrium'){
+      const au=_archU(u,T.hw+7);
+      if(au!=null){const a=T.atU(au,{});
+        pArch(mb,a.px,a.py-.4,a.pz,Math.atan2(a.rz,a.rx),T.hw+7,0xC9A227,_archY);}
+    }
   });
   if(props!=='prom'&&props!=='atrium'&&!th.terrain){
-    [.18,.45,.68,.92].forEach(u=>{const s=T.atU(u,{});pArch(mb,s.px,s.py-.4,s.pz,Math.atan2(s.rz,s.rx),T.hw+8,props==='lido'?0xFFFFFF:0xE4404A);});
+    [.18,.45,.68,.92].forEach(u=>{
+      const au=_archU(u,T.hw+8); if(au==null)return;
+      const s=T.atU(au,{});
+      pArch(mb,s.px,s.py-.4,s.pz,Math.atan2(s.rz,s.rx),T.hw+8,props==='lido'?0xFFFFFF:0xE4404A,_archY);
+    });
   }
-  if(!th.terrain)pCabins(mb,T,course,baseY);
+  /* pCabins rings the course with 34 exterior cabin blocks. That is the right
+     silhouette for an open deck and nonsense for an indoor one -- Promenade is
+     a covered street and Atrium is a void under a dome, and both were being
+     surrounded by the outside of the ship. */
+  if(!th.terrain&&!th.indoor)pCabins(mb,T,course,baseY,lmPos);
   const scen=mb.mesh({__kind:'deck'});
   scen.castShadow=true;scen.receiveShadow=true;
   scene.add(scen);out.objs.push(scen);
@@ -4668,7 +5345,11 @@ function updateCamera(dt,k,instant){
     const p=clamp(1-W.cd/W.cdMax,0,1);
     const e=clamp(p/.78,0,1), ease=e*e*(3-2*e);
     const ang=k.vyaw+Math.PI*.85*(1-ease);
-    const dist=back+30*(1-ease), high=up+17*(1-ease);
+    /* Indoors there is a ceiling to fly through. Belt and braces alongside
+       raising the Promenade roof -- any future indoor course inherits this. */
+    const _ith=W.course&&THEME[W.course.theme];
+    const rise=(_ith&&_ith.indoor)?7:17;
+    const dist=back+30*(1-ease), high=up+rise*(1-ease);
     tx=lerp(k.vx-Math.sin(ang)*dist,tx,ease);
     ty=lerp(k.vy+high,ty,ease);
     tz=lerp(k.vz-Math.cos(ang)*dist,tz,ease);
