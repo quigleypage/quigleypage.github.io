@@ -768,7 +768,29 @@ const COURSES=[
        [188,5,-196],[226,7,-152],[248,10,-98],[254,13,-40],
        [244,16,22],[216,18,78],[172,19,124],[116,20,156],
        [52,20,172],[-14,19,174],[-78,17,162],[-136,14,138],
-       [-184,11,104],[-218,8,62],[-238,5,14],[-244,2,-44]]}
+       [-184,11,104],[-218,8,62],[-238,5,14],[-244,2,-44]]},
+ /* Glacier Bay. Laid out around the landmarks like the other two excursions.
+    Reading from the start line: a shore straight with the glacier wall standing
+    across the water on the seaward side, round the head of the bay, then a long
+    climb inland into the spruce. The ice arch sits at the high shoulder where
+    the course has stopped climbing, so you go under it at speed. The descent
+    runs back down past the lodge and the totems, crosses the meltwater ravine on
+    the trestle, and returns to the shore.
+
+    The seaward side is south-west throughout the first half, so a single coast
+    direction keeps the water on the correct side of the terrain -- the same
+    constraint that shaped Puerto Plata.
+
+    Climbs to 45 and back, against Puerto Plata's 40: this is the most vertical
+    course in the game, which is the point of putting mountains in it. */
+ {id:'ak',name:'Excursion: Glacier Bay',sub:'Glacier · ice arch · spruce · orcas',
+  theme:'ak',w:15.5,bank:.45,laps:2,
+  pts:[[-244,1,-64],[-238,1,-124],[-214,2,-180],[-172,3,-228],
+       [-116,4,-262],[-52,5,-278],[16,7,-276],[80,11,-258],
+       [138,17,-226],[186,24,-182],[220,32,-128],[238,39,-68],
+       [240,44,-4],[224,45,58],[192,43,114],[146,38,160],
+       [90,32,194],[28,25,210],[-36,19,208],[-98,14,190],
+       [-152,10,160],[-196,7,120],[-226,4,72],[-240,2,6]]}
 ];
 const CO=id=>COURSES.find(c=>c.id===id)||COURSES[0];
 
@@ -845,6 +867,10 @@ const G_SPH_LO=new THREE.SphereGeometry(.5,8,6);
    the vertex count here sets the course build time as much as the frame rate. */
 const G_SPH_XS=new THREE.SphereGeometry(.5,6,4);
 const G_CONE=new THREE.ConeGeometry(.5,1,12);
+/* 10 triangles against G_CONE's 22. The spruce forest on Glacier Bay is the
+   highest-count prop in the game, and a conifer viewed at distance as a dark
+   spike does not need twelve sides. */
+const G_CONE6=new THREE.ConeGeometry(.5,1,6);
 const G_TOR=new THREE.TorusGeometry(.5,.16,8,16);
 const _v3=new THREE.Vector3(),_q=new THREE.Quaternion(),_e=new THREE.Euler(),_sc=new THREE.Vector3();
 /* Colour management (three r128 has no automatic ColorManagement).
@@ -1116,6 +1142,30 @@ function buildTextures(){
     const dl=h/4;
     for(let k=0;k<4;k++)g.fillRect(w*.5-2.1*S, k*dl+dl*.22, 4.2*S, dl*.52);
   });
+  /* Glacier Bay: plowed and compacted snow. U runs ACROSS the road, so a band
+     drawn at fixed u becomes a stripe running WITH the track -- which is what
+     wheel ruts are. Kept high-key: the value contrast on this course comes from
+     the spruce and the rock, and a grey road would flatten the whole frame. */
+  TEX.akroad=tex(128*Q,128*Q,(g,w,h)=>{
+    const S=w/128;
+    g.fillStyle='#E9F0F6';g.fillRect(0,0,w,h);
+    for(const u of [.30,.70]){                       // compacted wheel tracks
+      g.fillStyle='rgba(174,192,208,.50)';g.fillRect(w*u-9.5*S,0,19*S,h);
+      g.fillStyle='rgba(142,166,188,.32)';g.fillRect(w*u-3.4*S,0,6.8*S,h);
+    }
+    for(let i=0;i<560*Q;i++){                        // grit and shadowed hollows
+      g.fillStyle=['rgba(158,178,196,.32)','rgba(255,255,255,.60)','rgba(116,138,162,.20)'][i%3];
+      const r=(0.8+Math.random()*2.2)*S;
+      g.beginPath();g.ellipse(Math.random()*w,Math.random()*h,r,r*.8,0,0,TAU);g.fill();
+    }
+    for(let i=0;i<7*Q;i++){                          // bare ice: bluer, smoother
+      g.fillStyle='rgba(146,196,222,.34)';
+      g.beginPath();g.ellipse(Math.random()*w,Math.random()*h,
+        (10+Math.random()*20)*S,(6+Math.random()*12)*S,Math.random()*TAU,0,TAU);g.fill();
+    }
+    g.strokeStyle='rgba(120,144,168,.26)';g.lineWidth=1.3*S;   // plough edges
+    for(const u of [.10,.90]){g.beginPath();g.moveTo(w*u,0);g.lineTo(w*u,h);g.stroke();}
+  });
   /* Atrium floor: polished marble with veining and a brass inlay running the
      length of the ribbon. Promenade's carpet read as a shopping street, which
      is exactly what an atrium is not -- this is the hard, reflective, formal
@@ -1205,6 +1255,15 @@ function buildTextures(){
   TEX.skyDusk=tex(8,128,(g,w,h)=>{
     const grd=g.createLinearGradient(0,0,0,h);
     grd.addColorStop(0,'#2B1B4D');grd.addColorStop(.45,'#7B3F72');grd.addColorStop(.72,'#E2725F');grd.addColorStop(1,'#FFC46B');
+    g.fillStyle=grd;g.fillRect(0,0,w,h);
+  });
+  /* Glacier Bay. Deeper and colder at the zenith than skyDay, and it lands on
+     near-white at the horizon rather than skyDay's warm cream -- a warm horizon
+     under a snow course is what makes rendered snow look like sand. */
+  TEX.skyArctic=tex(8,128,(g,w,h)=>{
+    const grd=g.createLinearGradient(0,0,0,h);
+    grd.addColorStop(0,'#255F8F');grd.addColorStop(.36,'#6FA8CC');
+    grd.addColorStop(.66,'#C2DEEE');grd.addColorStop(1,'#EEF6FA');
     g.fillStyle=grd;g.fillRect(0,0,w,h);
   });
   TEX.skyIn=tex(8,128,(g,w,h)=>{
@@ -1497,6 +1556,30 @@ const THEME={
             rock:0xD9CFBC, cap:0xEFE9DC},
         cloudA:.24,sunDisc:0xFFF8EC,sunR:22,
         waterBase:0x1FBAC6,waterTint:0xEAFFFB},
+  /* Glacier Bay. The only cold course in the game, deliberately: the other
+     eight run tropical, pink-sand, sunset or neon, and not one of them has a
+     blue shadow anywhere in it. Snow is also the best surface the ink outlines
+     will ever get -- a near-white field with black spruce standing on it is
+     almost entirely edge. */
+  ak:{sky:'skyArctic',fog:0xD2E6F2,fogN:240,fogF:1500,road:'akroad',roadRep:6,
+      apron:0xD9E4EC,deck:0xEEF5FA,base:0xE4EEF6,rail:0xBFD8E4,ocean:true,
+      /* High ambient, weak cool sun. Snow bounces most of what lands on it, so
+         a low-ambient/strong-sun setup (which is right for Bermuda) renders
+         snow shadows as near-black holes. */
+      amb:.60,sun:0xEAF2FF,sunI:1.05,props:'ak',
+      /* Hemisphere ground bounce, off snow rather than grass. Bermuda taught
+         this one the hard way: the bounce colour fills every shaded face, so
+         leaving it green turned a white course olive. */
+      gnd:0xCFE2F0,skirt:0xD4DEE6,rib:0xC2CEDA,cabin:0xF2F8FC,
+      terrain:true,coast:[-0.72,-0.69],rails:false,relief:1.15,bandScale:.62,
+      coastK:96,coastOff:0.30,verge:86,
+      /* Snow at every altitude; bare rock only where it is too steep to hold
+         any. The band ramp runs low->mid->rock->cap, which puts the dark rock
+         UNDER the summit snow -- the right way round for a snowline. */
+      tp:{wet:0x6E7C8A, sand:0xB9C8D4, low:0xE9F2F9, mid:0xDCE9F4,
+          rock:0x59647A, cap:0xFFFFFF},
+      cloudA:.34,sunDisc:0xF2F8FF,sunR:20,
+      waterBase:0x0E3346,waterTint:0xC8E6F0},
   neon:{sky:'skyNight',fog:0x271C55,fogN:110,fogF:520,road:'neon',roadRep:9,apron:0x37276B,deck:0x3A2F72,
         base:0x241B52,rail:0x53E4FF,ocean:true,amb:.60,sun:0xC5A0FF,sunI:.52,props:'neon',
         gnd:0x241858,skirt:0x3B3070,rib:0x4E3F8C,cabin:0x4C4090,fxScale:.55,glowRoad:.55,
@@ -2781,10 +2864,151 @@ function pBoulder(mb,x,y,z,s,rng){
   // a darker waterline stain so it does not look dropped on the sand
   mb.add(G_SPH_LO,M4(x,y+.35*s,z,0,0,0,8.0*s,1.0*s,7.2*s),0xB9AC92);
 }
+/* ---- Glacier Bay props ---------------------------------------------------
+   The visual problem a snow course has is that snow is very nearly all one
+   value, so form disappears. Everything in this kit is therefore built for
+   SILHOUETTE and for value contrast against white: near-black spruce, wet dark
+   rock, saturated cyan ice, oxblood timber. Nothing here is beige, and nothing
+   relies on the lighting to separate it from the ground. */
+const AK={ice:0x7FC8E4, iceD:0x3E8CB8, iceX:0xD6F0FA, snow:0xF6FBFD,
+          spruce:0x1B3A31, spruceL:0x27503F, bark:0x3A2E26,
+          rock:0x49566A, rockD:0x333E4E,
+          timber:0x6B4A32, timberD:0x412C1E, roof:0xE8F2F8,
+          red:0xB03A2E, teal:0x2E7E86, gold:0xD9A441, black:0x241E1C};
+/* Sitka spruce. Four cones and a trunk: 70 triangles, because this fires
+   several hundred times and it is the course's dominant object. Deliberately
+   narrow and very dark -- a real spruce is a spike, and the spike is the entire
+   reason the forest reads at distance. The snow load is a slightly WIDER pale
+   cone tucked under each tier, so it shows as a rim rather than a hat. */
+function pSpruce(mb,x,y,z,s,rng){
+  const H=(11+rng()*8)*s, lean=(rng()-.5)*.05;
+  mb.add(G_CYL6,M4(x,y+H*.14,z,0,0,lean,.60*s,H*.30,.60*s),AK.bark);
+  for(let k=0;k<3;k++){
+    const t=k/3, w=(5.2-t*2.7)*s, ch=H*(.44-t*.05), cy2=y+H*(.26+t*.25);
+    mb.add(G_CONE6,M4(x+lean*cy2*.1,cy2,z,0,rng()*TAU,0,w,ch,w),k?AK.spruce:AK.spruceL);
+    if(k<2)mb.add(G_CONE6,M4(x,cy2-ch*.34,z,0,0,0,w*1.06,ch*.26,w*1.06),AK.snow);
+  }
+}
+/* Snow-capped boulder. pBoulder is tuned for Bermuda limestone -- pale, dry,
+   with a sand stain. This is wet dark rock, and the snow sits only on the
+   up-facing part, which is what stops it reading as a marshmallow. */
+function pSnowRock(mb,x,y,z,s,rng){
+  mb.add(G_SPH_LO,M4(x,y+1.9*s,z,rng()*.4,rng()*TAU,rng()*.3,6.8*s,5.0*s,6.0*s),AK.rock);
+  mb.add(G_SPH_LO,M4(x,y+3.5*s,z,0,rng()*TAU,0,5.2*s,1.8*s,4.6*s),AK.snow);
+  for(let i=0;i<2;i++){
+    const a=rng()*TAU, r=(2.2+rng()*2.0)*s;
+    mb.add(G_SPH_LO,M4(x+Math.cos(a)*r,y+(.8+rng()*1.2)*s,z+Math.sin(a)*r,
+      rng()*.5,rng()*TAU,rng()*.4,
+      (3.0+rng()*2.0)*s,(2.2+rng()*1.4)*s,(2.8+rng()*1.8)*s),AK.rockD);
+  }
+}
 /* Straddles the road so you drive under it. Off to one side at 34 units it was
    unidentifiable at racing speed -- the whole point of the formation is passing
    beneath it. Legs sit clear of the track width, the span clears kart height
    with room to spare, and both are distance-checked against the centreline. */
+/* The calving glacier: the course's hero landmark, read from across the water
+   from most of the first half of the lap. Built entirely for silhouette --
+   a tall ragged wall, a broken crown of seracs, and vertical crevasse shadows.
+   The single detail that makes ice read as ice rather than as a white cliff is
+   that it gets BLUER toward the waterline, so the slab colours run dark-blue at
+   the base to near-white at the crown. */
+function pGlacierFace(mb,x0,y0,z0,dirx,dirz,len,H,rng,T){
+  const n=Math.max(7,Math.round(len/30));
+  const px=-dirz, pz=dirx;                       // normal, pointing at the water
+  const yaw=Math.atan2(dirx,dirz);
+  /* A 430-unit wall aimed by two probe points does not stay where you aimed it:
+     the course is a loop, so the far end swings back toward a DIFFERENT stretch
+     of track. Measured, the mid and top tiers reached to 2.0 units of a
+     centreline at +13.8 and +37.8 above the road -- a wall of ice standing in
+     the racing line. Ask, per segment, where it actually landed. */
+  const _gc={}, KEEP=T?T.hw+OFFROAD+26:0;
+  const clear=(x,z)=>{if(!T)return true;
+    const sm=T.sample(x,z,_gc); return !sm||Math.abs(sm.off)>KEEP;};
+  /* Segment width has to beat segment SPACING by a clear margin or the wall
+     comes apart into a row of separate towers with sky between them -- which is
+     exactly what 1.14 did once the yaw jitter was applied on top of it. Spacing
+     is len/(n-1); 1.45 guarantees overlap even at full jitter. */
+  for(let i=0;i<n;i++){
+    const t=i/(n-1)-.5;
+    const cx=x0+dirx*t*len, cz=z0+dirz*t*len;
+    // taper toward the ends so the wall sits in the landscape instead of
+    // stopping dead at both ends like a piece of set dressing
+    const h=H*(.80+rng()*.30)*(1-t*t*.45);
+    const w=len/n*1.45, jx=(rng()-.5)*2.0, jz=(rng()-.5)*2.0;
+    if(!clear(cx,cz)){rng();rng();rng();continue;}   // keep the rng stream steady
+    for(let k=0;k<3;k++){
+      const kt=k/3;
+      /* Bluest at the waterline, palest at the crown -- this single gradient is
+         what makes ice read as ice instead of as a white cliff. The crown is
+         NOT near-white: against a pale sky that made the top slabs disappear
+         into it and the wall looked like floating rectangles. */
+      mb.add(G_BOX,M4(cx+px*jx*kt,y0+h*(kt+1/6),cz+pz*jz*kt,
+        0,yaw+(rng()-.5)*.06,0, w, h/3*1.10, 36-kt*8),
+        k===0?0x2E7BA8:(k===1?AK.ice:0xB6DEEF));
+    }
+    for(let k=0;k<2;k++)                          // seracs along the top edge
+      mb.add(G_CONE6,M4(cx+(rng()-.5)*w*.55+px*(rng()-.5)*7, y0+h+1.0,
+        cz+(rng()-.5)*w*.55+pz*(rng()-.5)*7, 0,rng()*TAU,(rng()-.5)*.22,
+        6+rng()*8, 8+rng()*13, 6+rng()*8), AK.iceX);
+    if(rng()<.60)                                 // crevasse: a dark vertical slot
+      mb.add(G_BOX,M4(cx+(rng()-.5)*w*.45+px*18.6, y0+h*.52, cz+(rng()-.5)*w*.45+pz*18.6,
+        0,yaw,(rng()-.5)*.08, 2.2, h*.90, 2.6), 0x1F5B84);
+    // brash ice at the foot, so the wall meets the water instead of ending at it
+    if(rng()<.7)
+      mb.add(G_BOX,M4(cx+px*(21+rng()*9)+(rng()-.5)*w*.6, y0+3.2, cz+pz*(21+rng()*9)+(rng()-.5)*w*.6,
+        (rng()-.5)*.25,yaw+(rng()-.5)*.5,(rng()-.5)*.25, 7+rng()*9, 2.4, 6+rng()*7), AK.iceX);
+  }
+}
+/* Floating bergs. Two masses -- what is above the water and a wider, bluer
+   shelf at the waterline -- because a berg with no shelf reads as a rock. */
+function pIceberg(mb,x,y,z,s,rng){
+  mb.add(G_CONE6,M4(x,y+3.4*s,z,(rng()-.5)*.18,rng()*TAU,(rng()-.5)*.18,
+    9*s,8.4*s,7.6*s),AK.iceX);
+  mb.add(G_BOX,M4(x,y+.7*s,z,0,rng()*TAU,0,13*s,1.5*s,11*s),AK.ice);
+  mb.add(G_CONE6,M4(x+(rng()-.5)*5*s,y+2.0*s,z+(rng()-.5)*5*s,
+    (rng()-.5)*.3,rng()*TAU,(rng()-.5)*.3,5*s,5.2*s,4.4*s),AK.iceD);
+}
+/* The drive-through ice arch: this course's answer to Horseshoe Bay's rock
+   arch, and the moment players will actually remember. Same structural rules
+   as pRockArch -- legs strictly outboard of the racing line, span arched over
+   the road -- but a vault rather than a boulder pile, with icicles hanging from
+   the crown so you can see it is ice from underneath, which is the one angle
+   every driver gets. */
+function pIceArch(mb,T,u,s){
+  const i=Math.floor(u*T.N);
+  const cx=T.px[i], cz=T.pz[i], cy=T.py[i];
+  const rx=T.rx[i], rz=T.rz[i], rot=Math.atan2(rx,rz);
+  const LEG=T.hw+8.5, SPAN=21*s, R=mulberry(9931);
+  for(const sd of [-1,1]){
+    const lx=cx+rx*sd*LEG, lz=cz+rz*sd*LEG;
+    for(let k=0;k<5;k++){                         // tapering, slightly leaning pier
+      const t=k/5, lean=sd*(1-t)*2.6*s;
+      mb.add(G_BOX,M4(lx+rx*lean, cy+SPAN*(t+.10)*.94, lz+rz*lean,
+        0, rot+(R()-.5)*.16, sd*.05,
+        (11.5-t*4.0)*s, SPAN*.23, (9.5-t*2.6)*s),
+        k<2?AK.iceD:(k<4?AK.ice:AK.iceX));
+    }
+    for(let k=0;k<3;k++){                         // rubble skirt, strictly outboard
+      const out=(6+R()*6)*s, tan=(R()-.5)*13*s;
+      mb.add(G_SPH_LO,M4(lx+rx*sd*out-rz*tan, cy+1.3*s, lz+rz*sd*out+rx*tan,
+        R()*.4,R()*TAU,R()*.3,(7+R()*5)*s,(4+R()*3)*s,(6+R()*4)*s),
+        R()<.5?AK.ice:AK.iceX);
+    }
+  }
+  for(let k=-3;k<=3;k++){                         // the vault over the road
+    const t=k/3, drop=(1-t*t)*3.0*s;
+    mb.add(G_BOX,M4(cx+rx*t*LEG*.92, cy+SPAN+drop-1.8*s, cz+rz*t*LEG*.92,
+      0, rot, -t*.15, LEG*.62, (7.0-Math.abs(t)*1.7)*s, 12*s),
+      Math.abs(t)>.6?AK.ice:AK.iceX);
+  }
+  /* Icicles on the underside of the crown. Cheap, and they are the only part of
+     this that a driver sees close up. */
+  for(let k=0;k<11;k++){
+    const t=(k/10-.5)*1.7, len=(2.2+R()*4.4)*s;
+    mb.add(G_CONE6,M4(cx+rx*t*LEG*.86-rz*(R()-.5)*8*s, cy+SPAN-3.4*s-len*.5,
+      cz+rz*t*LEG*.86+rx*(R()-.5)*8*s, Math.PI,0,0, 1.5*s, len, 1.5*s), AK.iceX);
+  }
+}
 function pRockArch(mb,T,u,s){
   const i=Math.floor(u*T.N);
   const cx=T.px[i], cz=T.pz[i], cy=T.py[i];
@@ -2813,6 +3037,121 @@ function pRockArch(mb,T,u,s){
     mb.add(G_BOX,M4(cx+rx*t*LEG*0.92, cy+SPAN+drop-2.0*s, cz+rz*t*LEG*0.92,
       0, rot, -t*0.16, LEG*0.62, (7.5-Math.abs(t)*1.9)*s, 13*s), LIME[(k+3)%4]);
   }
+}
+/* Timber lodge. The only warm colour on the course, which is exactly why it is
+   here: several hundred units of blue-white need one thing in them that is not.
+   Log courses are stacked cylinders rather than a painted box, because the
+   horizontal banding is what says "log cabin" at any distance. */
+function pLodge(mb,x,y,z,rot,s){
+  const W=15*s, D=11*s, logs=6;
+  for(let k=0;k<logs;k++){
+    const yy=y+(k+.5)*(1.15*s);
+    for(const sd of [-1,1]){
+      mb.add(G_CYL6,M4(x+Math.sin(rot+Math.PI/2)*sd*D*.5,yy,z+Math.cos(rot+Math.PI/2)*sd*D*.5,
+        0,0,Math.PI/2,1.15*s,W,1.15*s),k%2?AK.timber:AK.timberD);
+      mb.add(G_CYL6,M4(x+Math.sin(rot)*sd*W*.5,yy,z+Math.cos(rot)*sd*W*.5,
+        Math.PI/2,rot,0,1.15*s,D,1.15*s),k%2?AK.timberD:AK.timber);
+    }
+  }
+  const RH=y+logs*1.15*s;
+  for(const sd of [-1,1])                          // pitched roof, deep snow load
+    mb.add(G_BOX,M4(x+Math.sin(rot+Math.PI/2)*sd*D*.26,RH+2.4*s,z+Math.cos(rot+Math.PI/2)*sd*D*.26,
+      sd*.62,rot,0,W*1.15,.9*s,D*.72),AK.roof);
+  mb.add(G_BOX,M4(x,RH+3.6*s,z,0,rot,0,W*1.16,.7*s,1.6*s),AK.roof);   // ridge
+  mb.add(G_BOX,M4(x+Math.sin(rot)*W*.26,RH+1.2*s,z+Math.cos(rot)*W*.26,
+    0,rot,0,2.6*s,5.0*s,2.6*s),AK.rockD);                             // stone chimney
+  mb.add(G_BOX,M4(x-Math.sin(rot+Math.PI/2)*D*.52,y+2.2*s,z-Math.cos(rot+Math.PI/2)*D*.52,
+    0,rot,0,3.0*s,4.4*s,.4*s),AK.timberD);                            // door
+  for(const u of [-1,1])                                              // lit windows
+    mb.add(G_BOX,M4(x-Math.sin(rot+Math.PI/2)*D*.52+Math.cos(rot)*u*4.2*s,y+3.4*s,
+      z-Math.cos(rot+Math.PI/2)*D*.52-Math.sin(rot)*u*4.2*s,0,rot,0,2.4*s,2.0*s,.3*s),0xFFD98A);
+}
+/* Carved totem. Stacked drums with wings, in the red/black/teal palette that
+   Pacific Northwest carving actually uses -- which happens to be the strongest
+   value contrast available against snow. */
+function pTotem(mb,x,y,z,rot,s){
+  const cols=[AK.red,AK.black,AK.teal,AK.gold];
+  const H=13*s;
+  for(let k=0;k<5;k++){
+    const yy=y+H*(k+.5)/5;
+    mb.add(G_CYL6,M4(x,yy,z,0,rot+k*.18,0,2.5*s,H/5*1.02,2.5*s),cols[k%4]);
+    // brow ridge and eyes, so each drum reads as a face rather than a band
+    mb.add(G_BOX,M4(x+Math.sin(rot)*1.25*s,yy+H/22,z+Math.cos(rot)*1.25*s,
+      0,rot,0,2.2*s,.5*s,.6*s),cols[(k+2)%4]);
+    for(const u of [-1,1])
+      mb.add(G_SPH_XS,M4(x+Math.sin(rot)*1.35*s+Math.cos(rot)*u*.7*s,yy+H/40,
+        z+Math.cos(rot)*1.35*s-Math.sin(rot)*u*.7*s,0,0,0,.55*s,.55*s,.35*s),0xF6F1E4);
+  }
+  for(const u of [-1,1])                            // outstretched wings at the top
+    mb.add(G_BOX,M4(x+Math.cos(rot)*u*3.4*s,y+H*.88,z-Math.sin(rot)*u*3.4*s,
+      0,rot,u*.12,5.2*s,1.5*s,.7*s),AK.red);
+  mb.add(G_CONE6,M4(x,y+H+1.2*s,z,0,rot,0,3.2*s,2.6*s,3.2*s),AK.snow);
+}
+/* Timber trestle over the meltwater ravine. The terrain already cuts a ravine
+   at u=0.90 (buildTerrain does this for every excursion), so this stands in a
+   real cut rather than on flat ground -- which is what stopped Puerto Plata's
+   bridge reading as roadworks. Bents are sampled down to the actual ground so
+   the legs land on the ravine floor at whatever depth it happens to be. */
+function pTrestle(mb,T,u0,u1,H2,s){
+  const i0=Math.floor(u0*T.N), i1=Math.floor(u1*T.N);
+  for(let i=i0;i<=i1;i+=2){
+    const k=T.px[i]!=null?i:i0;
+    const cx=T.px[k], cz=T.pz[k], cy=T.py[k]-1.0;
+    const rx=T.rx[k], rz=T.rz[k], rot=Math.atan2(rx,rz);
+    for(const sd of [-1,1]){
+      const lx=cx+rx*sd*(T.hw*.78), lz=cz+rz*sd*(T.hw*.78);
+      const gy=H2?H2(lx,lz):cy-24;
+      const h=cy-gy; if(h<2)continue;
+      mb.add(G_CYL6,M4(lx,gy+h*.5,lz,0,0,sd*.05,1.5*s,h,1.5*s),AK.timberD);
+      // cross brace, so the bent is a frame and not two poles
+      spanBox(mb,lx,gy+h*.72,lz,cx-rx*sd*(T.hw*.2),gy+h*.30,cz-rz*sd*(T.hw*.2),.9*s,AK.timber);
+    }
+    mb.add(G_BOX,M4(cx,cy-.6,cz,0,rot,0,T.hw*2.1,1.2,4.4),AK.timber);   // deck beam
+    /* Parapet at hw+.6 put a timber post 0.25 units from the kerb, inside the
+       band a kart can actually be pushed into -- and props have no collision,
+       so you would drive through it. hw+4.4 clears the containment wall at
+       hw+OFFROAD, so it is visible from the deck and never touched.
+
+       Slim POSTS with a continuous rail, not a solid slab every other sample:
+       at .8 x 1.8 x 4.4 in the darkest timber they rendered as a row of black
+       monoliths down the side of the bridge rather than as a guard rail. */
+    for(const sd of [-1,1]){
+      const px2=cx+rx*sd*(T.hw+4.4), pz2=cz+rz*sd*(T.hw+4.4);
+      if(i%6===0)mb.add(G_CYL6,M4(px2,cy+1.5,pz2,0,0,0,.55*s,3.0*s,.55*s),AK.timberD);
+      mb.add(G_BOX,M4(px2,cy+2.7,pz2,0,rot,0,.34*s,.42*s,4.6),AK.timber);   // top rail
+      mb.add(G_BOX,M4(px2,cy+1.5,pz2,0,rot,0,.28*s,.34*s,4.6),AK.timber);   // mid rail
+    }
+  }
+}
+/* Wildlife. These matter because everything else on this course is static, and
+   a frozen landscape reads as a diorama -- the same reason the Ferris wheel was
+   lifted out of the merged mesh. Each returns a Group the animator drives. */
+function pEagle(scene,out,cx,cy,cz,R,rate,phase){
+  const mb2=new MB();
+  mb2.add(G_BOX,M4(0,0,0,0,0,0,1.6,.7,3.4),0x3B2C22);                 // body
+  mb2.add(G_SPH_XS,M4(0,.45,-1.9,0,0,0,1.1,1.0,1.1),0xF6F1E4);        // white head
+  mb2.add(G_CONE6,M4(0,.30,-2.7,Math.PI/2,0,0,.45,1.0,.45),AK.gold);  // beak
+  for(const sd of [-1,1])                                             // spread wings
+    mb2.add(G_BOX,M4(sd*4.4,.35,.2,0,0,sd*.16,8.4,.35,3.0),0x2F241C);
+  mb2.add(G_BOX,M4(0,.2,2.4,0,0,0,2.6,.3,1.8),0xF6F1E4);              // white tail
+  const m=mb2.mesh(); m.matrixAutoUpdate=true; m.castShadow=true;
+  const grp=new THREE.Group(); grp.add(m); scene.add(grp); out.objs.push(grp);
+  out.orbit.push({obj:grp,mode:'circle',cx,cy,cz,R,rate,phase,amp:5.5});
+}
+function pOrca(scene,out,cx,cy,cz,rate,phase,head){
+  const mb2=new MB();
+  mb2.add(G_SPH_LO,M4(0,0,0,0,0,0,5.0,4.4,14.0),AK.black);            // body
+  mb2.add(G_SPH_LO,M4(0,-1.5,1.0,0,0,0,4.2,2.6,10.0),0xF6F1E4);       // white belly
+  for(const sd of [-1,1])                                             // eye patches
+    mb2.add(G_SPH_XS,M4(sd*1.9,1.1,-4.6,0,0,0,1.7,1.0,2.6),0xF6F1E4);
+  mb2.add(G_BOX,M4(0,3.6,.6,0,0,0,.8,5.2,3.0),AK.black);              // dorsal fin
+  for(const sd of [-1,1])                                             // pectorals
+    mb2.add(G_BOX,M4(sd*3.2,-1.0,-1.4,0,0,sd*.5,5.0,.7,3.2),AK.black);
+  mb2.add(G_BOX,M4(0,-.2,7.6,0,0,0,8.0,.8,2.6),AK.black);             // fluke
+  const m=mb2.mesh(); m.matrixAutoUpdate=true; m.castShadow=true;
+  const grp=new THREE.Group(); grp.rotation.y=head; grp.add(m);
+  scene.add(grp); out.objs.push(grp);
+  out.orbit.push({obj:grp,mode:'breach',cx,cy,cz,rate,phase,head,amp:13});
 }
 let _rs=mulberry(4242); function rng2(){return _rs();}
 function pLighthouse(mb,x,y,z,s){
@@ -2855,17 +3194,29 @@ function pBermudaHouse(mb,x,y,z,rot,s,rng){
    balcony decks, funnels with a boot stripe and a lifeboat row -- a stack of
    plain boxes reads as a barge, and the point is that it is recognisably YOUR
    cruise ship. */
-function pCruiseShip(scene,T,baseY,out){
+/* Where she is anchored, per theme. The default reproduces the numbers Puerto
+   Plata and Horseshoe Bay have always used, so neither of them moves.
+
+   Glacier Bay needs its own, because the default station is a straight line
+   through the glacier: measured, the ship was correctly built, in deep water at
+   -38.1 and 216 units off the track -- and completely invisible, because 74
+   units of opaque ice stood between it and the road. Anchored on the run home
+   instead, where it is 241 clear of the ice and in view on the approach to the
+   line and again on the opening straight. */
+const SHIP_AT={ak:{u:0.94,fwd:100,lat:240}};
+const SHIP_DEF={u:0.04,fwd:225,lat:150};
+function pCruiseShip(scene,T,baseY,out,theme){
   const mb=new MB();
   /* Placed with a FORWARD component as well as a seaward one. Anchoring it
      perpendicular to the track put it about 90 degrees off the direction of
      travel -- outside a 35 degree half-FOV, so it was never in frame on the
      straight it was meant to sit across. Ahead-and-left puts it on the horizon
      you are already driving toward. */
-  const i=Math.floor(0.04*T.N);
+  const A=SHIP_AT[theme]||SHIP_DEF;
+  const i=Math.floor(A.u*T.N);
   const bb=T.bounds, cx0=(bb.minx+bb.maxx)/2, cz0=(bb.minz+bb.maxz)/2;
   const sd=(T.rx[i]*(T.px[i]-cx0)+T.rz[i]*(T.pz[i]-cz0))>=0?1:-1;
-  const FWD=225, LAT=150;   // ~270 units out, was ~420
+  const FWD=A.fwd, LAT=A.lat;   // ~270 units out, was ~420
   const x=T.px[i]+T.fx[i]*FWD+T.rx[i]*sd*LAT;
   const z=T.pz[i]+T.fz[i]*FWD+T.rz[i]*sd*LAT;
   /* Measured, not derived: the hull bottom came out 17.4m ABOVE the waterline
@@ -2977,7 +3328,7 @@ function pCabins(mb,T,course,baseY,lmPos){
    prop functions can dress a night course without going light-beige. */
 let PROP_RIB=0xD8D3C4, PROP_CAB=0xF4F1EA;
 function buildWorldMeshes(scene,T,course){
-  const th=THEME[course.theme], out={objs:[],spin:[],anim:[],rail:[]};
+  const th=THEME[course.theme], out={objs:[],spin:[],anim:[],rail:[],orbit:[]};
   PROP_RIB=THC(th,'rib');PROP_CAB=THC(th,'cabin');
   const baseY=(function(){let m=1e9;for(let i=0;i<T.N;i++)m=Math.min(m,T.py[i]);return m-6;})();
   // Terrain first: the landmark pass needs ground heights to plant things on.
@@ -3276,6 +3627,116 @@ function buildWorldMeshes(scene,T,course){
   /* Horseshoe Bay. Everything iconic sits on the seaward side of the arc so it
      stays in frame through the long sweep; the inland half carries the cottages
      and the lighthouse headland. */
+  if(props==='ak'){
+    const H=out.terrainH, MY=out.terrainMeshY, ar=mulberry(course.id.length*8291+17);
+    const cxa=(T.bounds.minx+T.bounds.maxx)/2, cza=(T.bounds.minz+T.bounds.maxz)/2;
+    /* +1 when the track's right vector points away from the centre, i.e. which
+       side is the OUTSIDE of the loop at this point. The seaward dressing has to
+       track this or half of it ends up in the infield. */
+    const outw=(u)=>{const i=Math.floor(u*T.N);
+      return (T.rx[i]*(T.px[i]-cxa)+T.rz[i]*(T.pz[i]-cza))>=0?1:-1;};
+    const at=(u,off)=>{const i=Math.floor(u*T.N);
+      return {i,x:T.px[i]+T.rx[i]*off,z:T.pz[i]+T.rz[i]*off,y:T.py[i],
+              rot:Math.atan2(T.rx[i],T.rz[i])};};
+    /* Ground height for planting. Uses terrainMeshY, NOT terrainH: the rendered
+       surface is the grid triangulated, and where H peaks inside a cell the mesh
+       cuts the corner. Planting on H floated the worst Puerto Plata tree by
+       11.6m, and this course has far more relief than that one. */
+    const gnd=(x,z)=>MY?MY(x,z):(H?H(x,z):0);
+    /* Every placement here answers "where did it land?" rather than assuming.
+       Four separate bugs today came from offset-and-hope, so nothing gets put
+       down without checking the track distance and the ground under it. */
+    const clearOf=(x,z,margin)=>{const sm=T.sample(x,z,{});
+      return !sm || Math.abs(sm.off)>T.hw+OFFROAD+(margin==null?2:margin);};
+
+    /* ---- the glacier, standing in the water on the seaward side ----
+       Placed by PROBING, not by a fixed offset. Measured, the coast fall-off
+       only puts water outboard between u=0.00 and u=0.30, and the shoreline
+       moves from 44 units out to 80 across that span -- so a fixed 150 stood one
+       end of the wall in deep water and buried the other end in a hillside at
+       +0.8. Walk out from each station until the ground is genuinely below the
+       waterline, then set the wall a further 80 out so it reads across the bay
+       rather than crowding the verge. */
+    (function(){
+      const probe=(u)=>{const i=Math.floor(u*T.N), sd=outw(u);
+        for(let d=T.hw+18; d<300; d+=6){
+          const x=T.px[i]+T.rx[i]*sd*d, z=T.pz[i]+T.rz[i]*sd*d;
+          if(gnd(x,z)<SEA_Y-9)return {i,sd,d};
+        }
+        return null;};
+      const A=probe(.06), B=probe(.27);
+      if(!A||!B)return;
+      const pt=(p,extra)=>({x:T.px[p.i]+T.rx[p.i]*p.sd*(p.d+extra),
+                            z:T.pz[p.i]+T.rz[p.i]*p.sd*(p.d+extra)});
+      /* Standing it 80 further out put it in clear water but made it a thin pale
+         band on the edge of the frame from the driving position, which is the
+         only position that matters. 34 keeps it afloat and lets it fill the
+         seaward side. */
+      const P=pt(A,34), Q=pt(B,34);
+      const dx=Q.x-P.x, dz=Q.z-P.z, L=Math.hypot(dx,dz)||1;
+      // 74 tall against the road's 45m climb: it has to out-scale the terrain.
+      // 1.0 not 1.2: overshooting the probed span is what swung the far end
+      // back toward the track in the first place.
+      pGlacierFace(mb,(P.x+Q.x)/2,SEA_Y-4,(P.z+Q.z)/2,dx/L,dz/L,L,74,ar,T);
+    })();
+    for(let k=0;k<9;k++){                          // bergs adrift in the bay
+      const u=.10+k*.028, sd=outw(u);
+      const q=at(u,sd*(T.hw+52+ar()*58));
+      if(gnd(q.x,q.z)>SEA_Y+1.0)continue;          // only where there is actually water
+      pIceberg(mb,q.x,SEA_Y-.6,q.z,.7+ar()*.9,ar);
+    }
+    // ---- the ice arch, at the high shoulder where the climb has levelled ----
+    pIceArch(mb,T,0.545,1.0);
+    // ---- lodge and totems on the descent ----
+    (function(){
+      const sd=-outw(.70);
+      for(const extra of [0,14,28,-8]){
+        const q=at(.70,sd*(T.hw+24+extra));
+        const gy=seat(H,q.x,q.z,9,T.py[q.i]);
+        if(gy===null||!clearOf(q.x,q.z,11))continue;
+        pLodge(mb,q.x,gy,q.z,q.rot+Math.PI/2,1.0);
+        for(let k=0;k<3;k++){
+          const p=at(.70+(k-1)*.012, sd*(T.hw+13));
+          const py2=gnd(p.x,p.z);
+          if(clearOf(p.x,p.z,4))pTotem(mb,p.x,py2-.3,p.z,p.rot,.85+ar()*.3);
+        }
+        break;
+      }
+    })();
+    // ---- the trestle over the meltwater ravine buildTerrain already cuts ----
+    pTrestle(mb,T,0.875,0.925,MY,1.0);
+    /* ---- spruce forest, everywhere the ground is above the waterline ----
+       Starts at hw+15 rather than hw+9: closer than that and the trees form a
+       continuous hedge along the kerb that walls the driver in and hides the
+       landscape the course is FOR. Density falls with distance so the near
+       verge is open and the mass builds behind it. */
+    for(let i=0;i<T.N;i+=2){
+      for(const sd of [-1,1]){
+        for(let k=0;k<3;k++){
+          const t=ar();                            // 0 near the road, 1 far out
+          const o=sd*(T.hw+15+t*t*58);
+          if(ar()>.30+t*.42)continue;              // sparse at the verge, dense behind
+          const x=T.px[i]+T.rx[i]*o, z=T.pz[i]+T.rz[i]*o;
+          const gy=gnd(x,z);
+          if(gy<SEA_Y+2.2)continue;                // no trees in the fjord
+          if(!clearOf(x,z,4))continue;             // and none in the road
+          if(ar()<.88)pSpruce(mb,x,gy-.35,z,.95+ar()*.75,ar);
+          else pSnowRock(mb,x,gy-.5,z,.55+ar()*.5,ar);
+        }
+      }
+    }
+    // ---- wildlife ----
+    (function(){
+      for(let k=0;k<3;k++){                        // bald eagles over the bay
+        const q=at(.22+k*.19, outw(.22+k*.19)*(T.hw+40));
+        pEagle(scene,out,q.x,T.py[q.i]+34+k*9,q.z,34+k*13,.30+k*.07,k*2.1);
+      }
+      for(let k=0;k<2;k++){                        // orcas breaching offshore
+        const u=.13+k*.17, q=at(u,outw(u)*(T.hw+78));
+        pOrca(scene,out,q.x,SEA_Y+2,q.z,.55+k*.13,k*3.0,q.rot+Math.PI/2);
+      }
+    })();
+  }
   if(props==='bm'){
     const H=out.terrainH, br=mulberry(course.id.length*5171+13);
     const cxb=(T.bounds.minx+T.bounds.maxx)/2, czb=(T.bounds.minz+T.bounds.maxz)/2;
@@ -3695,7 +4156,7 @@ function buildWorldMeshes(scene,T,course){
   if(th.ocean){
     const om=new THREE.Mesh(new THREE.PlaneGeometry(4000,4000),makeWaterMaterial(th));
     om.rotation.x=-Math.PI/2;om.position.y=baseY-9;scene.add(om);out.objs.push(om);out.ocean=om;
-    if(th.terrain)pCruiseShip(scene,T,baseY-9,out);   // the ship you sailed in on
+    if(th.terrain)pCruiseShip(scene,T,baseY-9,out,course.theme);   // the ship you sailed in on
   }
   // sky
   const sky=new THREE.Mesh(new THREE.SphereGeometry(900,16,12),
@@ -5290,6 +5751,31 @@ function renderWorld(dt){
       r.t=(r.t+dt*r.speed)%2;
       r.obj.position.lerpVectors(r.a,r.b, r.t<1?r.t:2-r.t);
     }
+  /* Wildlife, Glacier Bay only. `spin` rotates about Z and `rail` lerps between
+     two points, so neither could carry a circling bird or a breaching whale.
+     Only populated when a course asks for it, so no other course pays for it. */
+  if(W.world&&W.world.orbit)
+    for(const o of W.world.orbit){
+      o.phase+=dt*o.rate;
+      if(o.mode==='circle'){
+        const a=o.phase;
+        o.obj.position.set(o.cx+Math.cos(a)*o.R, o.cy+Math.sin(a*2.1)*o.amp, o.cz+Math.sin(a)*o.R);
+        o.obj.rotation.set(0,-a+Math.PI/2,Math.sin(a*2.1)*.18);   // bank into the turn
+      }else{
+        /* Breach: out of the water on a short arc, then a long time under it.
+           A whale that is airborne half the time reads as a dolphin toy. */
+        const t=(o.phase%TAU)/TAU;
+        const u=t<.30?t/.30:-1;
+        if(u<0){ o.obj.visible=false; }
+        else{
+          o.obj.visible=true;
+          const arc=Math.sin(u*Math.PI);
+          o.obj.position.set(o.cx+Math.cos(o.head)*(u-.5)*46, o.cy+arc*o.amp-4,
+                             o.cz+Math.sin(o.head)*(u-.5)*46);
+          o.obj.rotation.set(-Math.cos(u*Math.PI)*.85, o.head, 0);
+        }
+      }
+    }
   if(W.world&&W.world.clouds) W.world.clouds.rotation.y+=dt*.0035;
   if(W.world&&W.world.flags) rippleFlags(now()*.001);
   // only the fallback Phong water scrolls a map; the reflective shader
@@ -5868,10 +6354,15 @@ const GRADES={
   // flowers and the sand from being swallowed by them
   dr:      {contrast:1.08,sat:1.20,lift:[ .006, .004, .000],gain:[1.05,1.02,0.97]},
   // pale and bright rather than saturated: the pink sand and turquoise carry it
-  bm:      {contrast:1.04,sat:1.14,lift:[ .010, .008, .006],gain:[1.03,1.01,1.02]}
+  bm:      {contrast:1.04,sat:1.14,lift:[ .010, .008, .006],gain:[1.03,1.01,1.02]},
+  /* The only cold grade. Contrast carries this course, not saturation -- every
+     other entry here pushes sat ABOVE 1, which on snow just makes the blues go
+     lurid. The gain is deliberately blue-biased and the lift is negative in red
+     so shadows land blue rather than grey, which is the whole look. */
+  ak:      {contrast:1.14,sat:0.94,lift:[-.004, .000, .012],gain:[0.97,1.00,1.08]}
 };
 /* Reverb amount per environment. Indoor courses are much wetter. */
-const SPACE={lido:.09,sundeck:.09,board:.12,neon:.17,prom:.30,dr:.11,bm:.10};
+const SPACE={lido:.09,sundeck:.09,board:.12,neon:.17,prom:.30,dr:.11,bm:.10,ak:.16};
 /* Mix balance. Measured engine RMS was 31 at cruise and 55 at top, against
    music sitting around the same figure — and a continuous drone masks melody
    even at equal level, so the engine has to sit well underneath it.
@@ -6410,6 +6901,10 @@ function makePortraits(){
   });
   r.dispose();
 }
+/* Card accent per theme. Keyed by theme so adding a course means adding a line
+   here, rather than inheriting whatever the fallback happens to be. */
+const MM_COL={lido:'#12C3B4',prom:'#FFC93C',atrium:'#C9A227',sundeck:'#18A6C8',
+              neon:'#FF3DBE',board:'#E4404A',dr:'#5E9E5C',bm:'#F06B8A',ak:'#7FD4F0'};
 function makeCourseMap(course){
   const cv=document.createElement('canvas');cv.width=112;cv.height=112;
   const g=cv.getContext('2d'),P=course.pts,pts=[];
@@ -6421,7 +6916,10 @@ function makeCourseMap(course){
   g.strokeStyle='rgba(255,246,231,.22)';g.lineWidth=13;
   g.beginPath();pts.forEach((p,i)=>{const x=(p[0]-cx)/sp*56+56,y=(p[2]-cz)/sp*56+56;i?g.lineTo(x,y):g.moveTo(x,y);});
   g.closePath();g.stroke();
-  g.strokeStyle=course.theme==='lido'?'#12C3B4':course.theme==='prom'?'#FFC93C':'#FF6B57';
+  /* Was a ternary chain ending in coral, so every theme without an explicit
+     branch silently drew the same colour -- six of nine courses shared one card
+     accent. A lookup makes a missing entry obvious instead of invisible. */
+  g.strokeStyle=MM_COL[course.theme]||'#FF6B57';
   g.lineWidth=5;g.stroke();
   return cv.toDataURL('image/png');
 }
