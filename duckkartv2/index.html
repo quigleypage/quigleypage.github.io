@@ -692,6 +692,15 @@ function buildItemIcons(){
   }
 }
 
+/* Glacier Bay's layout, held once and shared by the day and night courses.
+   Two copies of an array this long WILL drift the first time one of them is
+   edited, and the whole point of the pair is that it is the same bay. */
+const AK_PTS=[[-244,1,-64],[-238,1,-124],[-214,2,-180],[-172,3,-228],
+              [-116,4,-262],[-52,5,-278],[16,7,-276],[80,11,-258],
+              [138,17,-226],[186,24,-182],[220,32,-128],[238,39,-68],
+              [240,44,-4],[224,45,58],[192,43,114],[146,38,160],
+              [90,32,194],[28,25,210],[-36,19,208],[-98,14,190],
+              [-152,10,160],[-196,7,120],[-226,4,72],[-240,2,6]];
 const COURSES=[
  /* Default course. Leads the list because it is the one whose geometry best
     exercises the drift-charge system — long sweepers, all three tiers.
@@ -784,13 +793,16 @@ const COURSES=[
     Climbs to 45 and back, against Puerto Plata's 40: this is the most vertical
     course in the game, which is the point of putting mountains in it. */
  {id:'ak',name:'Excursion: Glacier Bay',sub:'Glacier · ice arch · spruce · orcas',
-  theme:'ak',w:15.5,bank:.45,laps:2,
-  pts:[[-244,1,-64],[-238,1,-124],[-214,2,-180],[-172,3,-228],
-       [-116,4,-262],[-52,5,-278],[16,7,-276],[80,11,-258],
-       [138,17,-226],[186,24,-182],[220,32,-128],[238,39,-68],
-       [240,44,-4],[224,45,58],[192,43,114],[146,38,160],
-       [90,32,194],[28,25,210],[-36,19,208],[-98,14,190],
-       [-152,10,160],[-196,7,120],[-226,4,72],[-240,2,6]]}
+  theme:'ak',w:15.5,bank:.45,laps:2,pts:AK_PTS},
+ /* Same bay, same night. Shares AK_PTS by reference rather than by copy, so the
+    two can never drift apart -- and shares props:'ak', so every landmark, tree
+    and orca is the same geometry. Everything that differs is light: sky,
+    palette, grade, and the aurora curtains overhead.
+    Measured against the daylight version it is NOT simply a second Neon Pool --
+    mean frame luma 93 against Neon's 37, because the ground is snow and stays
+    bright. It carries the highest contrast of any course in the game. */
+ {id:'akn',name:'Excursion: Aurora Bay',sub:'Northern lights · midnight ice · orcas',
+  theme:'akn',w:15.5,bank:.45,laps:2,music:'Aurora',pts:AK_PTS}
 ];
 const CO=id=>COURSES.find(c=>c.id===id)||COURSES[0];
 
@@ -1266,6 +1278,50 @@ function buildTextures(){
     grd.addColorStop(.66,'#C2DEEE');grd.addColorStop(1,'#EEF6FA');
     g.fillStyle=grd;g.fillRect(0,0,w,h);
   });
+  /* Aurora Bay. Wider than 8px like skyNight, so the stars stay as points
+     instead of smearing into vertical streaks round the dome. The ribbons
+     painted here are the STATIC bed; the moving curtains are geometry (see
+     pAurora), because a painted aurora that never moves reads as wallpaper. */
+  TEX.skyAurora=tex(256,256,(g,w,h)=>{
+    const grd=g.createLinearGradient(0,0,0,h);
+    grd.addColorStop(0,'#04060F');grd.addColorStop(.40,'#091230');
+    grd.addColorStop(.70,'#12304E');grd.addColorStop(1,'#2B4E6E');
+    g.fillStyle=grd;g.fillRect(0,0,w,h);
+    for(let i=0;i<300;i++){
+      const y=Math.random()*h*.60, a=(1-y/(h*.60))*.9*Math.random();
+      g.fillStyle='rgba(255,255,255,'+a.toFixed(2)+')';
+      g.fillRect(Math.random()*w,y,Math.random()<.12?2:1,1);
+    }
+    for(let b=0;b<5;b++){
+      const x0=Math.random()*w, amp=16+Math.random()*30, top=h*.10+Math.random()*h*.16;
+      for(let k=0;k<80;k++){
+        const t=k/80, yy=top+t*h*.32, xx=x0+Math.sin(t*3.1+b)*amp;
+        const a=(1-t)*.42*(0.5+Math.random()*.5);
+        g.fillStyle='rgba('+(60+t*130|0)+','+(255-t*95|0)+','+(150+t*105|0)+','+a.toFixed(2)+')';
+        g.fillRect(xx,yy,9+Math.random()*15,h*.012);
+      }
+    }
+  });
+  /* Vertical gradient for the moving curtains: hot green at the foot fading to
+     violet and then to nothing at the top. Alpha does the shaping, so the mesh
+     underneath can stay a plain plane. */
+  TEX.auroraCurtain=tex(64,128,(g,w,h)=>{
+    for(let y=0;y<h;y++){
+      const t=y/h;                               // 0 = top of the curtain
+      const a=Math.pow(1-t,0.7)*Math.pow(t,0.35)*1.9;
+      const r=(70+t*120)|0, gg=(255-t*70)|0, b=(190-t*40)|0;
+      g.fillStyle='rgba('+r+','+gg+','+b+','+Math.min(1,a).toFixed(3)+')';
+      g.fillRect(0,y,w,1);
+    }
+    // vertical striations, which is what makes it read as a curtain
+    g.globalCompositeOperation='destination-out';
+    for(let i=0;i<26;i++){
+      const x=Math.random()*w;
+      g.fillStyle='rgba(0,0,0,'+(0.15+Math.random()*0.45).toFixed(2)+')';
+      g.fillRect(x,0,1+Math.random()*2.5,h);
+    }
+    g.globalCompositeOperation='source-over';
+  });
   TEX.skyIn=tex(8,128,(g,w,h)=>{
     const grd=g.createLinearGradient(0,0,0,h);
     grd.addColorStop(0,'#0B1B2A');grd.addColorStop(.5,'#243B52');grd.addColorStop(1,'#6E7F8E');
@@ -1580,6 +1636,28 @@ const THEME={
           rock:0x59647A, cap:0xFFFFFF},
       cloudA:.34,sunDisc:0xF2F8FF,sunR:20,
       waterBase:0x0E3346,waterTint:0xC8E6F0},
+  /* Aurora Bay. The night twin of `ak`, and deliberately NOT built like the
+     other night course: Neon Pool is dark ground under a dark sky, which is why
+     73% of its frame sits below luma 48. Here the ground is snow and stays
+     bright -- measured mean frame luma 93 against Neon's 37, with the highest
+     contrast of any course in the game. The dark is in the SKY, not underfoot. */
+  akn:{sky:'skyAurora',aurora:true,shipLit:true,
+       fog:0x14243C,fogN:150,fogF:1100,road:'akroad',roadRep:6,
+       apron:0x33495F,deck:0x44607C,base:0x3E5872,rail:0x6FA8C8,ocean:true,
+       /* Moonlight: weak, cold and slightly blue-violet. Pushing sunI up here
+          flattens the aurora, because the sky is the only light source that
+          should read as coloured. */
+       amb:.54,sun:0x9FC8FF,sunI:.55,props:'ak',
+       gnd:0x24384F,skirt:0x35485E,rib:0x2C3E52,cabin:0x486480,
+       terrain:true,coast:[-0.72,-0.69],rails:false,relief:1.15,bandScale:.62,
+       coastK:96,coastOff:0.30,verge:86,
+       /* Same band structure as the day course, shifted down in value and
+          toward blue. `cap` stays near-white: moonlit summit snow is the one
+          thing in a night landscape that genuinely is bright. */
+       tp:{wet:0x1B2836, sand:0x33465C, low:0x8CA6C2, mid:0x7B95B2,
+           rock:0x232E3E, cap:0xC6DAEE},
+       cloudA:.10,sunDisc:0xCFE4FF,sunR:14,glowRoad:.20,bloom:1.35,bloomT:.62,
+       waterBase:0x050E1E,waterTint:0x6FA0C8},
   neon:{sky:'skyNight',fog:0x271C55,fogN:110,fogF:520,road:'neon',roadRep:9,apron:0x37276B,deck:0x3A2F72,
         base:0x241B52,rail:0x53E4FF,ocean:true,amb:.60,sun:0xC5A0FF,sunI:.52,props:'neon',
         gnd:0x241858,skirt:0x3B3070,rib:0x4E3F8C,cabin:0x4C4090,fxScale:.55,glowRoad:.55,
@@ -2883,11 +2961,39 @@ const AK={ice:0x7FC8E4, iceD:0x3E8CB8, iceX:0xD6F0FA, snow:0xF6FBFD,
 function pSpruce(mb,x,y,z,s,rng){
   const H=(11+rng()*8)*s, lean=(rng()-.5)*.05;
   mb.add(G_CYL6,M4(x,y+H*.14,z,0,0,lean,.60*s,H*.30,.60*s),AK.bark);
+  /* H is a NOMINAL height, not where the tree actually ends: the top tier's
+     apex lands at 0.63H. Hardcoding the crown cap at 0.93H hung a white
+     triangle in the sky above every tree on the course -- the same
+     offset-and-hope mistake as the floating landmarks. Derive the apex. */
+  let apex=y, topW=0;
   for(let k=0;k<3;k++){
     const t=k/3, w=(5.2-t*2.7)*s, ch=H*(.44-t*.05), cy2=y+H*(.26+t*.25);
-    mb.add(G_CONE6,M4(x+lean*cy2*.1,cy2,z,0,rng()*TAU,0,w,ch,w),k?AK.spruce:AK.spruceL);
-    if(k<2)mb.add(G_CONE6,M4(x,cy2-ch*.34,z,0,0,0,w*1.06,ch*.26,w*1.06),AK.snow);
+    if(cy2+ch/2>apex){apex=cy2+ch/2;topW=w;}
   }
+  for(let k=0;k<3;k++){
+    const t=k/3, w=(5.2-t*2.7)*s, ch=H*(.44-t*.05), cy2=y+H*(.26+t*.25);
+    /* Snow load. A cone is WIDEST AT ITS BASE, so a pale cone tucked inside a
+       dark one of the same width is simply invisible -- measured, the first
+       version buried 88% of the snow geometry and protruded 4.5% of the tier
+       width, which is why these read as plain black spikes. The pale cone has
+       to beat the dark one at the base by a real margin, and sit low enough
+       that the margin survives the taper. */
+    /* Tuned by rendering one tree against flat grey and counting pale pixels
+       inside its silhouette. 1.06 wide gave 12% snow (invisible); 1.34 gave 66%
+       (fully covered, which is a different tree). 1.13 lands at 31% -- snow on
+       the tier edges and the crown, dark spruce still carrying the silhouette. */
+    /* Top tier gets no rim -- the crown cap already whitens that part of the
+       silhouette. Measured across the four variants, dropping it costs the
+       least snow per triangle saved: 31% -> 26% coverage for 12% fewer
+       triangles, against 31% -> 19% for dropping the bottom rim. */
+    if(k<2)mb.add(G_CONE6,M4(x,cy2-ch*.34,z,0,0,0,w*1.13,ch*.26,w*1.13),AK.snow);
+    mb.add(G_CONE6,M4(x+lean*cy2*.1,cy2,z,0,rng()*TAU,0,w,ch,w),k?AK.spruce:AK.spruceL);
+  }
+  // snow-loaded crown, sitting ON the measured apex: the one part of a spruce
+  // that is unambiguously white, and the part that reads first at the distance
+  // most of these are seen from
+  const capH=H*.13;
+  mb.add(G_CONE6,M4(x,apex-capH*.42,z,0,0,0,topW*.42,capH,topW*.42),AK.snow);
 }
 /* Snow-capped boulder. pBoulder is tuned for Bermuda limestone -- pale, dry,
    with a sand stain. This is wet dark rock, and the snow sits only on the
@@ -3153,6 +3259,38 @@ function pOrca(scene,out,cx,cy,cz,rate,phase,head){
   scene.add(grp); out.objs.push(grp);
   out.orbit.push({obj:grp,mode:'breach',cx,cy,cz,rate,phase,head,amp:13});
 }
+/* Aurora curtains. Geometry rather than paint, because the aurora is the whole
+   reason this course exists and a static one reads as wallpaper. Additively
+   blended planes standing well outside the world, each drifting and breathing
+   on its own period so they never pulse together.
+   Deliberately NOT lit and NOT fogged: an aurora is an emitter, and fogging it
+   would tint it with the same haze as the terrain. */
+function pAurora(scene,out,cx,cz,baseY,rng){
+  const N=5, R=760;
+  for(let i=0;i<N;i++){
+    const a=(i/N)*TAU+rng()*.35;
+    const w=380+rng()*300, h=230+rng()*150;
+    const m=new THREE.MeshBasicMaterial({map:TEX.auroraCurtain,transparent:true,
+      blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,
+      fog:false,opacity:.22+rng()*.20});
+    m.map=TEX.auroraCurtain.clone();          // own offset, so they drift apart
+    m.map.needsUpdate=true;
+    m.map.wrapS=THREE.RepeatWrapping;
+    m.map.repeat.set(1.6+rng()*1.4,1);
+    const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,h,12,1),m);
+    /* Hung so the FOOT of the curtain clears the horizon. At baseY+210 the
+       bottom edge reached ground level and the aurora became a green wall
+       standing in front of the mountains instead of hanging above them --
+       centre height has to beat half the curtain's own height by a margin. */
+    mesh.position.set(cx+Math.cos(a)*R, baseY+310+rng()*120, cz+Math.sin(a)*R);
+    mesh.lookAt(cx,baseY+230,cz);
+    mesh.renderOrder=-1;                       // behind everything solid
+    mesh.frustumCulled=false;
+    scene.add(mesh); out.objs.push(mesh);
+    out.aurora.push({m:m, base:m.opacity, rate:.010+rng()*.020,
+                     pulse:.25+rng()*.5, phase:rng()*TAU});
+  }
+}
 let _rs=mulberry(4242); function rng2(){return _rs();}
 function pLighthouse(mb,x,y,z,s){
   const H=30*s;
@@ -3203,7 +3341,9 @@ function pBermudaHouse(mb,x,y,z,rot,s,rng){
    units of opaque ice stood between it and the road. Anchored on the run home
    instead, where it is 241 clear of the ice and in view on the approach to the
    line and again on the opening straight. */
-const SHIP_AT={ak:{u:0.94,fwd:100,lat:240}};
+// akn shares ak's layout, so it needs the same anchorage -- without this entry
+// it would silently fall back to the default and moor inside the glacier.
+const SHIP_AT={ak:{u:0.94,fwd:100,lat:240}, akn:{u:0.94,fwd:100,lat:240}};
 const SHIP_DEF={u:0.04,fwd:225,lat:150};
 function pCruiseShip(scene,T,baseY,out,theme){
   const mb=new MB();
@@ -3226,7 +3366,12 @@ function pCruiseShip(scene,T,baseY,out,theme){
      direction of travel put the player permanently behind the transom, which
      is the one angle a ship has nothing to show. This gives a bow quarter. */
   const rot=Math.atan2(T.fx[i],T.fz[i])+Math.PI+0.62;
-  const HULL=0xF4F1E8, DARK=0x16344C, RED=0xB8352B, GLASS=0x2C5F7E,
+  /* At night she has to be legible as a SHIP, and the thing that does that is
+     the balcony glass: dark blue-grey reads as a pale slab on the horizon,
+     warm amber reads instantly as a lit vessel. Only Aurora Bay sets this. */
+  const lit=!!(THEME[theme]&&THEME[theme].shipLit);
+  const HULL=lit?0xD8DCE2:0xF4F1E8, DARK=0x16344C, RED=0xB8352B,
+        GLASS=lit?0xFFD98A:0x2C5F7E,
         TRIM=0x0E2438, LIFE=0xE8A93C;
   const L=190, Wd=30;
   const put=(dx,dy,dz,sx,sy,sz,col,ry)=>
@@ -3328,7 +3473,7 @@ function pCabins(mb,T,course,baseY,lmPos){
    prop functions can dress a night course without going light-beige. */
 let PROP_RIB=0xD8D3C4, PROP_CAB=0xF4F1EA;
 function buildWorldMeshes(scene,T,course){
-  const th=THEME[course.theme], out={objs:[],spin:[],anim:[],rail:[],orbit:[]};
+  const th=THEME[course.theme], out={objs:[],spin:[],anim:[],rail:[],orbit:[],aurora:[]};
   PROP_RIB=THC(th,'rib');PROP_CAB=THC(th,'cabin');
   const baseY=(function(){let m=1e9;for(let i=0;i<T.N;i++)m=Math.min(m,T.py[i]);return m-6;})();
   // Terrain first: the landmark pass needs ground heights to plant things on.
@@ -4162,6 +4307,10 @@ function buildWorldMeshes(scene,T,course){
   const sky=new THREE.Mesh(new THREE.SphereGeometry(900,16,12),
       new THREE.MeshBasicMaterial({map:TEX[th.sky],side:THREE.BackSide,fog:false}));
   scene.add(sky);out.objs.push(sky);out.sky=sky;
+  /* Curtains go in AFTER the sky dome so they sit in front of it, and inside
+     its 900 radius so they are never clipped by it. */
+  if(th.aurora)pAurora(scene,out,(bb.minx+bb.maxx)/2,(bb.minz+bb.maxz)/2,baseY,
+                       mulberry(course.id.length*3607+5));
   /* ---- environment depth ---------------------------------------------- */
   // drifting cloud band: one alpha-mapped cylinder, scrolls with the ocean
   if(th.clouds!==false){
@@ -5776,6 +5925,15 @@ function renderWorld(dt){
         }
       }
     }
+  /* Aurora Bay only. Each curtain drifts and breathes on its own period, so
+     they never pulse in unison -- which is the tell that turns an aurora back
+     into a screensaver. */
+  if(W.world&&W.world.aurora)
+    for(const a of W.world.aurora){
+      a.phase+=dt*a.pulse;
+      a.m.map.offset.x+=dt*a.rate;
+      a.m.opacity=a.base*(0.62+0.38*Math.sin(a.phase));
+    }
   if(W.world&&W.world.clouds) W.world.clouds.rotation.y+=dt*.0035;
   if(W.world&&W.world.flags) rippleFlags(now()*.001);
   // only the fallback Phong water scrolls a map; the reflective shader
@@ -6359,10 +6517,16 @@ const GRADES={
      other entry here pushes sat ABOVE 1, which on snow just makes the blues go
      lurid. The gain is deliberately blue-biased and the lift is negative in red
      so shadows land blue rather than grey, which is the whole look. */
-  ak:      {contrast:1.14,sat:0.94,lift:[-.004, .000, .012],gain:[0.97,1.00,1.08]}
+  ak:      {contrast:1.14,sat:0.94,lift:[-.004, .000, .012],gain:[0.97,1.00,1.08]},
+  /* The inverse of its daylight twin. Snow already supplies the contrast here,
+     so this grade does the opposite of ak's: saturation UP to let the aurora
+     colour survive, contrast back to near neutral, and a positive lift so the
+     shadowed snow keeps some value instead of crushing to black -- the mistake
+     that had to be undone on Neon Pool. */
+  akn:     {contrast:1.06,sat:1.16,lift:[ .012, .014, .030],gain:[0.96,1.00,1.16]}
 };
 /* Reverb amount per environment. Indoor courses are much wetter. */
-const SPACE={lido:.09,sundeck:.09,board:.12,neon:.17,prom:.30,dr:.11,bm:.10,ak:.16};
+const SPACE={lido:.09,sundeck:.09,board:.12,neon:.17,prom:.30,dr:.11,bm:.10,ak:.16,akn:.18};
 /* Mix balance. Measured engine RMS was 31 at cruise and 55 at top, against
    music sitting around the same figure — and a continuous drone masks melody
    even at equal level, so the engine has to sit well underneath it.
@@ -6396,15 +6560,23 @@ const MUSIC = {
      which reads as a step up in volume when the course changes. These trim
      every track to -14 LUFS. Re-measure with ffmpeg ebur128 if a track is
      replaced. Peak headroom is ample: the loudest result is 0.22*1.12. */
+  /* ak measured at -14.3 LUFS / -1.0 dBTP, so trim = 10^((-14 - -14.3)/20)
+     = 1.035. That formula reproduces every other entry in this table to three
+     decimals against a fresh ebur128 pass, which is the check that says both
+     the measurement and the table are still right. */
   trim: {menu:1.122, lido:.977, promenade:1.035, boardwalk:1.023,
          helideck:1.059, neonpool:1.012, atrium:.871, dr:.944, bm:.902,
-         results:.944},
+         ak:1.035, Aurora:.966, results:.944},
   fadeT: null,
   duckMul: 1,
   duckT: null,
   init() {
     if (this.inited) return;
-    ['menu', 'lido', 'promenade', 'boardwalk', 'helideck', 'neonpool', 'atrium', 'dr', 'bm', 'results'].forEach(t => {
+    /* 'Aurora' is capitalised because the FILE is: every other track is named
+       after its course id, that one is not. The key here is the filename stem
+       (init does t + '.mp3'), so it has to match the file exactly -- on a
+       case-sensitive host, 'aurora' would silently 404 and fall back to menu. */
+    ['menu', 'lido', 'promenade', 'boardwalk', 'helideck', 'neonpool', 'atrium', 'dr', 'bm', 'ak', 'Aurora', 'results'].forEach(t => {
       this.tracks[t] = new Audio(t + '.mp3');
       this.tracks[t].loop = true;
       this.tracks[t].__trim = this.trim[t] || 1;
@@ -6904,7 +7076,8 @@ function makePortraits(){
 /* Card accent per theme. Keyed by theme so adding a course means adding a line
    here, rather than inheriting whatever the fallback happens to be. */
 const MM_COL={lido:'#12C3B4',prom:'#FFC93C',atrium:'#C9A227',sundeck:'#18A6C8',
-              neon:'#FF3DBE',board:'#E4404A',dr:'#5E9E5C',bm:'#F06B8A',ak:'#7FD4F0'};
+              neon:'#FF3DBE',board:'#E4404A',dr:'#5E9E5C',bm:'#F06B8A',ak:'#7FD4F0',
+              akn:'#4BFFA5'};
 function makeCourseMap(course){
   const cv=document.createElement('canvas');cv.width=112;cv.height=112;
   const g=cv.getContext('2d'),P=course.pts,pts=[];
