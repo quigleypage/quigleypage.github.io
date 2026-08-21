@@ -1600,20 +1600,36 @@ function pPlanter(mb,x,y,z,s){
    makes it read as indoors rather than as huts on an open deck. */
 function pStreetFront(mb,x,y,z,rot,col){
   const fx=-Math.sin(rot), fz=-Math.cos(rot);
+  /* Local axes, because getting these backwards is what caused the flashing
+     coloured rectangles on this course. With ry=rot: local +X is ALONG the
+     street and local +Z is ACROSS it, so (fx,fz) = local -Z = toward the road.
+     The block is 7 along the street and 11 deep, front face at Z = -5.5.
+
+     Every frontage piece below used to be authored the other way round: 0.4
+     thin in X (along the street) and 2.7 deep in Z. That did two things. It
+     buried the shopfronts 0.75 BEHIND the wall, where they cannot be seen; and
+     it pushed the outer two units out to X = +-3.5, which is EXACTLY the block's
+     own side face. Measured gap: 0.000 -- two coincident surfaces, which is
+     textbook z-fighting. It shows on a phone and not on a desktop because
+     mobile GPUs commonly give you a 16-bit depth buffer.
+
+     Fixed by swapping the extents and standing every piece PROUD of the wall
+     rather than flush with it. */
   mb.add(G_BOX,M4(x,y+5.6,z,0,rot,0,7,11.2,11),0xEFE7D6);            // block
+  const FRONT=5.5;                                                   // half-depth
   /* Three separate units rather than one 9-unit colour slab. Close to the road
      a single flat panel filled a third of the screen and read as a wall. */
   for(let u=-1;u<=1;u++){
-    const ux=Math.cos(rot)*u*3.3, uz=-Math.sin(rot)*u*3.3;
-    mb.add(G_BOX,M4(x+fx*3.4+ux,y+2.2,z+fz*3.4+uz,0,rot,0,.4,3.4,2.7),col);
-    mb.add(G_BOX,M4(x+fx*3.5+ux,y+4.0,z+fz*3.5+uz,0,rot,0,.3,.5,2.9),0xC9A227);
+    const ux=Math.cos(rot)*u*2.2, uz=-Math.sin(rot)*u*2.2;
+    mb.add(G_BOX,M4(x+fx*(FRONT+.1)+ux,y+2.2,z+fz*(FRONT+.1)+uz,0,rot,0,2.0,3.4,.4),col);
+    mb.add(G_BOX,M4(x+fx*(FRONT+.25)+ux,y+4.0,z+fz*(FRONT+.25)+uz,0,rot,0,2.2,.5,.3),0xC9A227);
   }
-  mb.add(G_BOX,M4(x+fx*3.9,y+4.4,z+fz*3.9,0,rot,0,1.5,.45,9.8),col); // awning
-  mb.add(G_BOX,M4(x+fx*3.5,y+6.6,z+fz*3.5,0,rot,0,.35,.35,9.6),0xC9A227); // balcony rail
-  mb.add(G_BOX,M4(x+fx*3.2,y+5.9,z+fz*3.2,0,rot,0,1.6,.4,9.6),0xE4DCC8);  // balcony floor
+  mb.add(G_BOX,M4(x+fx*(FRONT+.85),y+4.4,z+fz*(FRONT+.85),0,rot,0,7.4,.45,1.6),col); // awning
+  mb.add(G_BOX,M4(x+fx*(FRONT+.75),y+6.6,z+fz*(FRONT+.75),0,rot,0,7.4,.35,.35),0xC9A227); // balcony rail
+  mb.add(G_BOX,M4(x+fx*(FRONT+.45),y+5.9,z+fz*(FRONT+.45),0,rot,0,7.4,.4,1.6),0xE4DCC8);  // balcony floor
   for(let i=-1;i<=1;i++)                                              // upper windows
-    mb.add(G_BOX,M4(x+fx*3.3+Math.cos(rot)*i*2.9,y+8.2,z+fz*3.3-Math.sin(rot)*i*2.9,
-      0,rot,0,.3,2.2,2.0),0x2B3A46);
+    mb.add(G_BOX,M4(x+fx*(FRONT+.05)+Math.cos(rot)*i*2.2,y+8.2,z+fz*(FRONT+.05)-Math.sin(rot)*i*2.2,
+      0,rot,0,2.0,2.2,.3),0x2B3A46);
   mb.add(G_BOX,M4(x,y+11.5,z,0,rot,0,7.4,.6,11.4),0xC9A227);          // cornice
 }
 function pCafeTable(mb,x,y,z,rot,col){
@@ -1846,13 +1862,17 @@ function pPoolRect(mb,cx,cy,cz,hL,hW,rot,water,deckCol,coping,tile,glow){
   // water, set down inside the lip so the rim casts a shadow onto it
   mb.add(G_BOX,M4(cx,cy+.28,cz,0,rot,0,hW*2,.42,hL*2),water);
   if(glow)mb.add(G_BOX,M4(cx,cy+.46,cz,0,rot,0,hW*1.94,.14,hL*1.94),glow);
-  // waterline tile band, just inside the lip
-  const TB=1.1;
+  /* Waterline tile band, just inside the lip. INSET by .25: at hW-TB*.5 the
+     band's outer face landed exactly on the water's outer face (gap 0.000) for
+     the whole 342-unit length of the pool. Two coincident surfaces z-fight, and
+     on a phone -- where the depth buffer is usually 16-bit -- that reads as a
+     flickering stripe along the waterline. */
+  const TB=1.1, TI=.25;
   for(const sd of [-1,1]){
-    let q=at(sd*(hW-TB*.5),0);
-    mb.add(G_BOX,M4(q[0],cy+.52,q[1],0,rot,0,TB,.16,hL*2),tile);
-    q=at(0,sd*(hL-TB*.5));
-    mb.add(G_BOX,M4(q[0],cy+.52,q[1],0,rot,0,hW*2,.16,TB),tile);
+    let q=at(sd*(hW-TB*.5-TI),0);
+    mb.add(G_BOX,M4(q[0],cy+.52,q[1],0,rot,0,TB,.16,(hL-TI)*2),tile);
+    q=at(0,sd*(hL-TB*.5-TI));
+    mb.add(G_BOX,M4(q[0],cy+.52,q[1],0,rot,0,(hW-TI)*2,.16,TB),tile);
   }
   // lane lines down the long axis
   const lanes=Math.max(3,Math.round(hW/9));
