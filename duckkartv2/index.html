@@ -801,7 +801,7 @@ const COURSES=[
     Measured against the daylight version it is NOT simply a second Neon Pool --
     mean frame luma 93 against Neon's 37, because the ground is snow and stays
     bright. It carries the highest contrast of any course in the game. */
- {id:'akn',name:'Excursion: Aurora Bay',sub:'Northern lights · midnight ice · orcas',
+ {id:'akn',name:'Excursion: Glacier Bay (Night)',sub:'Northern lights · midnight ice · orcas',
   theme:'akn',w:15.5,bank:.45,laps:2,music:'Aurora',pts:AK_PTS}
 ];
 const CO=id=>COURSES.find(c=>c.id===id)||COURSES[0];
@@ -1278,7 +1278,7 @@ function buildTextures(){
     grd.addColorStop(.66,'#C2DEEE');grd.addColorStop(1,'#EEF6FA');
     g.fillStyle=grd;g.fillRect(0,0,w,h);
   });
-  /* Aurora Bay. Wider than 8px like skyNight, so the stars stay as points
+  /* Glacier Bay (Night). Wider than 8px like skyNight, so the stars stay as points
      instead of smearing into vertical streaks round the dome. The ribbons
      painted here are the STATIC bed; the moving curtains are geometry (see
      pAurora), because a painted aurora that never moves reads as wallpaper. */
@@ -1636,7 +1636,7 @@ const THEME={
           rock:0x59647A, cap:0xFFFFFF},
       cloudA:.34,sunDisc:0xF2F8FF,sunR:20,
       waterBase:0x0E3346,waterTint:0xC8E6F0},
-  /* Aurora Bay. The night twin of `ak`, and deliberately NOT built like the
+  /* Glacier Bay (Night). The night twin of `ak`, and deliberately NOT built like the
      other night course: Neon Pool is dark ground under a dark sky, which is why
      73% of its frame sits below luma 48. Here the ground is snow and stays
      bright -- measured mean frame luma 93 against Neon's 37, with the highest
@@ -3368,7 +3368,7 @@ function pCruiseShip(scene,T,baseY,out,theme){
   const rot=Math.atan2(T.fx[i],T.fz[i])+Math.PI+0.62;
   /* At night she has to be legible as a SHIP, and the thing that does that is
      the balcony glass: dark blue-grey reads as a pale slab on the horizon,
-     warm amber reads instantly as a lit vessel. Only Aurora Bay sets this. */
+     warm amber reads instantly as a lit vessel. Only `akn` sets this. */
   const lit=!!(THEME[theme]&&THEME[theme].shipLit);
   const HULL=lit?0xD8DCE2:0xF4F1E8, DARK=0x16344C, RED=0xB8352B,
         GLASS=lit?0xFFD98A:0x2C5F7E,
@@ -5925,7 +5925,7 @@ function renderWorld(dt){
         }
       }
     }
-  /* Aurora Bay only. Each curtain drifts and breathes on its own period, so
+  /* `akn` only. Each curtain drifts and breathes on its own period, so
      they never pulse in unison -- which is the tell that turns an aurora back
      into a screensaver. */
   if(W.world&&W.world.aurora)
@@ -6566,7 +6566,7 @@ const MUSIC = {
      the measurement and the table are still right. */
   trim: {menu:1.122, lido:.977, promenade:1.035, boardwalk:1.023,
          helideck:1.059, neonpool:1.012, atrium:.871, dr:.944, bm:.902,
-         ak:1.035, Aurora:.966, results:.944},
+         ak:1.035, Aurora:.955, results:.944},
   fadeT: null,
   duckMul: 1,
   duckT: null,
