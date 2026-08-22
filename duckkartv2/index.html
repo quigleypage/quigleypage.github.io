@@ -42,7 +42,20 @@ button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer
 @keyframes titleIn{from{opacity:0}to{opacity:1}}
 .screen::after{content:"";position:absolute;inset:0;pointer-events:none;
   background:repeating-linear-gradient(180deg,rgba(255,255,255,.035) 0 2px,transparent 2px 5px);opacity:.5;}
-.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;}
+/* overflow-x:clip is load-bearing, not tidying. Setting overflow-y:auto with
+   overflow-x unset makes the computed overflow-x `auto` -- the spec forces it
+   when either axis is non-visible -- so this silently became a horizontal
+   scroller. .pickrow bleeds -16px to reach the screen edge, which gave it
+   exactly 16px of scrollable width, and any scrollIntoView on an edge card
+   slid the whole content column sideways with no scrollbar to put it back.
+   Measured: 15.9px shift. `clip` clips without creating a scroll container;
+   `hidden` would NOT fix it, because hidden boxes are still programmatically
+   scrollable. The bleed moves here (negative margin + matching padding) so the
+   pickrow still reaches the screen edge and clipping happens at the padding
+   box, which is the screen edge. */
+.scroll{flex:1;overflow-y:auto;overflow-x:clip;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;touch-action:pan-y;
+  margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px;}
 .scroll::-webkit-scrollbar{width:0;height:0}
 
 .eyebrow{font-family:var(--disp);font-size:11px;letter-spacing:.22em;text-transform:uppercase;
@@ -122,7 +135,9 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
 
 /* ---------- character cards ---------- */
 .pickrow{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 12px;
-  margin:0 -16px;padding-left:16px;padding-right:16px;touch-action:pan-x;}
+  margin:0 -16px;padding-left:16px;padding-right:16px;touch-action:pan-x;
+  /* stop a flick past the last card from chaining into an ancestor */
+  overscroll-behavior-x:contain;}
 .pickrow::-webkit-scrollbar{height:0}
 .card{scroll-snap-align:center;flex:0 0 74%;max-width:290px;border-radius:20px;position:relative;overflow:hidden;
   background:linear-gradient(170deg,rgba(255,246,231,.13),rgba(255,246,231,.05));
@@ -149,14 +164,36 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
 .pip.on.hi{background:var(--sun);}
 
 /* ---------- course cards ---------- */
-.courses{display:flex;flex-direction:column;gap:10px;}
-.course{display:flex;gap:12px;align-items:center;padding:12px;border-radius:16px;text-align:left;
-  background:rgba(255,246,231,.07);border:1.5px solid var(--line);width:100%;}
-.course.sel{border-color:var(--pool);background:rgba(18,195,180,.14);}
-.course .map{width:56px;height:56px;flex:0 0 56px;border-radius:12px;background:rgba(4,22,31,.45);}
-.course .cn{font-family:var(--disp);font-weight:900;font-size:16px;}
-.course .cs{font-size:11.5px;opacity:.62;margin-top:2px;}
-.course .lock{margin-left:auto;font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.5;font-weight:800;}
+/* Ten courses in a single vertical column put the newest work at the bottom of
+   a scroll. Two-up halves the height and lets the map thumbnail be big enough
+   to actually distinguish one track from another, which a 56px chip could not. */
+.courses{display:flex;flex-direction:column;gap:4px;}
+/* auto-fill, not a fixed 2 columns: the thumbnail is square, so on a wide
+   window two columns made each card a third of the screen TALL. This caps the
+   card size and adds columns instead -- two on a phone, more on a desktop. */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));
+  gap:8px;margin-bottom:4px;}
+.course{display:flex;flex-direction:column;padding:7px;border-radius:14px;text-align:left;
+  background:rgba(255,246,231,.07);border:1.5px solid var(--line);width:100%;position:relative;
+  transition:border-color .15s, background .15s;}
+.course.sel{border-color:var(--pool);background:rgba(18,195,180,.14);
+  box-shadow:0 0 0 3px rgba(18,195,180,.16);}
+/* 4:3, not square. A square thumbnail at two-up made each card 217px tall and
+   the whole block 1234px -- TALLER than the flat list it replaced. */
+.course .map{width:100%;aspect-ratio:4/3;border-radius:10px;background:rgba(4,22,31,.45);
+  display:block;margin-bottom:5px;object-fit:cover;}
+.course .cn{font-family:var(--disp);font-weight:900;font-size:11.5px;line-height:1.15;}
+/* The per-card sub does not fit at this size, so it moves to a single line
+   under the grid for whatever is selected -- the copy survives and picking a
+   course now says something back. */
+.course .cs{display:none;}
+.cdesc{margin-top:6px;font-size:11.5px;line-height:1.35;opacity:.72;
+  padding:8px 10px;border-radius:10px;background:rgba(255,246,231,.05);
+  border:1px solid var(--line);}
+.cdesc b{font-family:var(--disp);font-weight:900;opacity:.95;}
+.course .lock{position:absolute;top:7px;right:7px;font-size:8.5px;letter-spacing:.1em;
+  text-transform:uppercase;font-weight:800;background:rgba(6,26,42,.82);
+  padding:3px 6px;border-radius:6px;}
 
 /* ---------- lobby ---------- */
 .codebox{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:18px;
@@ -416,8 +453,8 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
   <p class="sub">Each duck comes with its own kart. No swapping.</p>
   <div class="scroll">
     <div class="pickrow" id="soloChars"></div>
-    <h2 class="sec" style="margin-top:6px">Choose a deck</h2>
-    <p class="sub">Three laps, one course.</p>
+    <h2 class="sec" style="margin-top:6px">Choose a course</h2>
+    <p class="sub" id="soloCourseHint"></p>
     <div class="courses" id="soloCourses"></div>
     <h2 class="sec" style="margin-top:16px">Crew size</h2>
     <p class="sub">How many CPU ducks join you?</p>
@@ -463,7 +500,7 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
     <h2 class="sec">Your duck</h2>
     <p class="sub">Taken ducks are dimmed.</p>
     <div class="pickrow" id="lobChars"></div>
-    <h2 class="sec">Deck <span id="lobCourseWho" style="opacity:.5;font-size:13px"></span></h2>
+    <h2 class="sec">Course <span id="lobCourseWho" style="opacity:.5;font-size:13px"></span></h2>
     <div class="courses" id="lobCourses"></div>
   </div>
   <div class="row" style="margin-top:12px">
@@ -7078,22 +7115,39 @@ function makePortraits(){
 const MM_COL={lido:'#12C3B4',prom:'#FFC93C',atrium:'#C9A227',sundeck:'#18A6C8',
               neon:'#FF3DBE',board:'#E4404A',dr:'#5E9E5C',bm:'#F06B8A',ak:'#7FD4F0',
               akn:'#4BFFA5'};
+/* Rendered at 224 rather than 112 because the card now shows it at roughly a
+   third of the screen width instead of as a 56px chip -- at the old size the
+   line was soft and two oval courses were indistinguishable. */
+/* Drawn at 4:3 to match the card, NOT square. A square canvas in a 4:3 box gets
+   object-fit cropped, which cut the top and bottom off the taller layouts --
+   and those extremes are exactly what distinguishes one track from another. */
 function makeCourseMap(course){
-  const cv=document.createElement('canvas');cv.width=112;cv.height=112;
+  const W=240, H=180;
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;
   const g=cv.getContext('2d'),P=course.pts,pts=[];
-  for(let i=0;i<P.length;i++)for(let k=0;k<10;k++)pts.push(crAt(P,i,k/10));
+  for(let i=0;i<P.length;i++)for(let k=0;k<12;k++)pts.push(crAt(P,i,k/12));
   let mnx=1e9,mxx=-1e9,mnz=1e9,mxz=-1e9;
   pts.forEach(p=>{mnx=Math.min(mnx,p[0]);mxx=Math.max(mxx,p[0]);mnz=Math.min(mnz,p[2]);mxz=Math.max(mxz,p[2]);});
-  const sp=Math.max(mxx-mnx,mxz-mnz)*.62,cx=(mnx+mxx)/2,cz=(mnz+mxz)/2;
+  const cx=(mnx+mxx)/2,cz=(mnz+mxz)/2;
+  // one scale for both axes so the track keeps its real proportions
+  const sp=Math.max((mxx-mnx)/(W*.74),(mxz-mnz)/(H*.74));
+  const px=p=>[(p[0]-cx)/sp+W/2,(p[2]-cz)/sp+H/2];
+  const trace=()=>{g.beginPath();pts.forEach((p,i)=>{const q=px(p);i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]);});g.closePath();};
+  const accent=MM_COL[course.theme]||'#FF6B57';
   g.lineJoin='round';g.lineCap='round';
-  g.strokeStyle='rgba(255,246,231,.22)';g.lineWidth=13;
-  g.beginPath();pts.forEach((p,i)=>{const x=(p[0]-cx)/sp*56+56,y=(p[2]-cz)/sp*56+56;i?g.lineTo(x,y):g.moveTo(x,y);});
-  g.closePath();g.stroke();
-  /* Was a ternary chain ending in coral, so every theme without an explicit
-     branch silently drew the same colour -- six of nine courses shared one card
-     accent. A lookup makes a missing entry obvious instead of invisible. */
-  g.strokeStyle=MM_COL[course.theme]||'#FF6B57';
-  g.lineWidth=5;g.stroke();
+  // faint fill so the enclosed shape reads, not just the ribbon
+  trace(); g.fillStyle='rgba(255,246,231,.05)'; g.fill();
+  trace(); g.strokeStyle='rgba(4,22,31,.45)'; g.lineWidth=26; g.stroke();   // shadowed bed
+  trace(); g.strokeStyle='rgba(255,246,231,.20)'; g.lineWidth=21; g.stroke();
+  trace(); g.strokeStyle=accent; g.lineWidth=8; g.stroke();
+  // start line, so the thumbnail has an orientation and a reading direction
+  const s0=px(pts[0]), s1=px(pts[3]);
+  const a=Math.atan2(s1[1]-s0[1],s1[0]-s0[0])+Math.PI/2;
+  g.strokeStyle='#FFF6E7';g.lineWidth=5;
+  g.beginPath();
+  g.moveTo(s0[0]+Math.cos(a)*13,s0[1]+Math.sin(a)*13);
+  g.lineTo(s0[0]-Math.cos(a)*13,s0[1]-Math.sin(a)*13);
+  g.stroke();
   return cv.toDataURL('image/png');
 }
 function statPips(v,hi){
@@ -7125,20 +7179,78 @@ function renderChars(host,selId,taken,onPick){
   if(sel)host.scrollLeft=sel.offsetLeft-host.offsetLeft-20;
   if(selId){previewSet(selId);previewAttach(host);}
 }
+/* Which section a course belongs to is DERIVED from its theme, not listed by
+   id. A hardcoded id list is the same failure mode as the old props `else`
+   fallback: forget to add a course and it silently disappears from the only
+   screen that can launch it. Here, a new course lands in a section
+   automatically and a new SECTION is the only thing that needs code. */
+const COURSE_SECTIONS=[
+  {label:'Ship decks',       test:c=>!THEME[c.theme].terrain},
+  {label:'Shore excursions', test:c=>!!THEME[c.theme].terrain}
+];
+/* The old sub said "Three laps, one course", which stopped being true the
+   moment excursions shipped at two laps and stayed wrong through four more
+   courses. Counted from COURSES so it cannot go stale again -- and the lap
+   count now lives on the selected course's own line, where it is actually
+   correct. */
+const NUMWORD=['no','one','two','three','four','five','six','seven','eight',
+               'nine','ten','eleven','twelve'];
+const numWord=n=>NUMWORD[n]||String(n);
+function courseHintText(){
+  const decks=COURSES.filter(COURSE_SECTIONS[0].test).length;
+  const shore=COURSES.filter(COURSE_SECTIONS[1].test).length;
+  const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+  if(!shore)return cap(numWord(decks))+' decks aboard.';
+  if(!decks)return cap(numWord(shore))+' ports ashore.';
+  return cap(numWord(decks))+' decks aboard, '+numWord(shore)+' ports ashore.';
+}
 function renderCourses(host,selId,locked,onPick){
   host.innerHTML='';
-  COURSES.forEach(c=>{
+  /* One notice, not a badge stamped on all ten thumbnails. At one card per row
+     a per-card "Host picks" was fine; at ten small cards it just covered the
+     maps. */
+  if(locked){const n=el('div','cdesc');n.innerHTML='<b>Host picks the course</b>';
+             n.style.marginBottom='6px';n.style.marginTop='0';host.appendChild(n);}
+  const seen=new Set();
+  const addCard=(grid,c)=>{
     if(!UI.maps[c.id])UI.maps[c.id]=makeCourseMap(c);
     const b=el('button','course'+(c.id===selId?' sel':''));
-    b.innerHTML='<img class="map" src="'+UI.maps[c.id]+'"><div><div class="cn">'+c.name+'</div>'+
-      '<div class="cs">'+c.sub+'</div></div>'+(locked?'<div class="lock">Host picks</div>':'');
-    b.onclick=()=>{if(locked){toast('Only the host chooses the deck');return;}onPick(c.id);};
-    host.appendChild(b);
-  });
+    b.innerHTML='<img class="map" src="'+UI.maps[c.id]+'" alt="">'+
+      '<div class="cn">'+c.name.replace(/^Excursion: /,'')+'</div>'+
+      '<div class="cs">'+c.sub+'</div>';
+    b.onclick=()=>{if(locked){toast('Only the host chooses the course');return;}onPick(c.id);};
+    grid.appendChild(b);
+    seen.add(c.id);
+  };
+  for(const sec of COURSE_SECTIONS){
+    const list=COURSES.filter(sec.test);
+    if(!list.length)continue;
+    const hd=el('div','deckline');hd.textContent=sec.label;host.appendChild(hd);
+    const grid=el('div','cgrid');
+    list.forEach(c=>addCard(grid,c));
+    host.appendChild(grid);
+  }
+  /* Anything no section claimed still gets shown rather than vanishing --
+     the whole point of not hardcoding the lists. */
+  const orphans=COURSES.filter(c=>!seen.has(c.id));
+  if(orphans.length){
+    const hd=el('div','deckline');hd.textContent='Other';host.appendChild(hd);
+    const grid=el('div','cgrid');
+    orphans.forEach(c=>addCard(grid,c));
+    host.appendChild(grid);
+  }
+  const cur=COURSES.find(c=>c.id===selId);
+  if(cur){
+    const d=el('div','cdesc');
+    d.innerHTML='<b>'+cur.name+'</b> &middot; '+cur.sub+
+                ' &middot; '+(cur.laps||LAPS)+' laps';
+    host.appendChild(d);
+  }
 }
 /* ------------------------------ solo screen ------------------------------ */
 function buildSoloScreen(){
   renderChars($('soloChars'),UI.soloChar,null,id=>{UI.soloChar=id;buildSoloScreen();SFX.blip(700,.07,'square',.08);});
+  const hint=$('soloCourseHint'); if(hint)hint.textContent=courseHintText();
   renderCourses($('soloCourses'),UI.soloCourse,false,id=>{UI.soloCourse=id;buildSoloScreen();SFX.blip(600,.07,'square',.08);});
   const r=$('cpuRow');r.innerHTML='';
   [1,2,3].forEach(n=>{
