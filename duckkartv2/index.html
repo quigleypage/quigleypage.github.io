@@ -7188,6 +7188,26 @@ const COURSE_SECTIONS=[
   {label:'Ship decks',       test:c=>!THEME[c.theme].terrain},
   {label:'Shore excursions', test:c=>!!THEME[c.theme].terrain}
 ];
+/* Display order within a section. Helideck leads because it is also
+   UI.soloCourse's default -- it is the card that arrives pre-selected, so it is
+   the first thing anyone sees, and having the highlighted card sit third was
+   just inconsistent.
+
+   Everything after it ramps by measured difficulty: turn rate per kilometre,
+   with elevation as the tie-breaker.
+     Helideck 662 (hero) / Lido 446 / Boardwalk 500 but 19m of climb /
+     Atrium 792 / Neon Pool 807 / Promenade 1096
+     Horseshoe Bay 244 / Puerto Plata 354 / Glacier Bay 233 but longest+steepest
+   Glacier Bay (Night) is placed by hand: it measures identically to its daylight
+   twin because it IS the same track, and nothing in the geometry knows that
+   darkness makes it harder. It follows its own day version.
+
+   Separate from the COURSES array, which orders by a development concern
+   (helideck's geometry best exercises the drift chain). Anything not listed
+   here sorts to the end rather than disappearing. */
+const COURSE_ORDER=['helideck','lido','boardwalk','atrium','neonpool','promenade',
+                    'bm','dr','ak','akn'];
+const courseRank=c=>{const i=COURSE_ORDER.indexOf(c.id);return i<0?999:i;};
 /* The old sub said "Three laps, one course", which stopped being true the
    moment excursions shipped at two laps and stayed wrong through four more
    courses. Counted from COURSES so it cannot go stale again -- and the lap
@@ -7223,7 +7243,7 @@ function renderCourses(host,selId,locked,onPick){
     seen.add(c.id);
   };
   for(const sec of COURSE_SECTIONS){
-    const list=COURSES.filter(sec.test);
+    const list=COURSES.filter(sec.test).slice().sort((a,b)=>courseRank(a)-courseRank(b));
     if(!list.length)continue;
     const hd=el('div','deckline');hd.textContent=sec.label;host.appendChild(hd);
     const grid=el('div','cgrid');
