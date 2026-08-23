@@ -6,6 +6,29 @@
 <meta name="theme-color" content="#08243A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<!-- Keep this out of search results while it is shared by link rather than
+     published. These are honoured by well-behaved crawlers only: they are a
+     request, not access control, and they do nothing about anyone who simply
+     has the URL. A robots.txt and an X-Robots-Tag response header at the host
+     are stronger, and neither can be set from inside this file.
+     noarchive/nosnippet also stop cached copies and preview text, which is what
+     usually keeps a page visible after it has been pulled. -->
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, noai, noimageai">
+<meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta name="referrer" content="no-referrer">
+<!--
+  Duck Kart: Deck Party
+
+  Provided as is, without warranty of any kind, express or implied, including
+  but not limited to the warranties of merchantability, fitness for a particular
+  purpose and non-infringement. In no event shall the author be liable for any
+  claim, damages or other liability arising from, out of or in connection with
+  this software or its use.
+
+  Bundled third-party components keep their own licences, reproduced inline
+  beside each: three.js (MIT) and, in builds that include multiplayer,
+  PeerJS (MIT). Music is the author's own, generated with Suno.
+-->
 <title>Duck Kart: Deck Party</title>
 <style>
 :root{
@@ -425,7 +448,7 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
   <div class="title-actions stack">
     <div class="attract-tag"><i></i><span id="attractName">Sunset Helideck</span></div>
     <button class="btn go" id="bSolo">Race the crew</button>
-    <div class="row">
+    <div class="row" id="mpRow">
       <button class="btn tealo" id="bHost">Host a room</button>
       <button class="btn tealg" id="bJoin">Join with a code</button>
     </div>
@@ -437,7 +460,9 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
 <section class="screen" id="s-set">
   <p class="eyebrow">Settings</p>
   <h2 class="sec">Options</h2>
-  <p class="sub">Saved on this device.</p>
+  <!-- Copy is set from PERSIST_SETTINGS: the solo build stores nothing, so
+       "Saved on this device" would be a false statement there. -->
+  <p class="sub" id="setNote">Saved on this device.</p>
   <div class="scroll">
     <div class="setrow"><div><b>Sound</b><i>Engine, effects and music</i></div>
       <button class="btn sm" id="optSound">On</button></div>
@@ -6605,6 +6630,10 @@ const AMBIENCE={
   bm:     {wind:0.95,sea:.022,room:0    }
 };
 
+/* null in the normal build, which loads sibling .mp3 files. build-bundle.py
+   replaces this with {name:{d:'<base64>',m:'<mime>'}} to produce a true single
+   file. Declared here so both builds run the same code path. */
+const MUSIC_DATA = null;
 const MUSIC = {
   tracks: {},
   current: null,
@@ -6633,18 +6662,44 @@ const MUSIC = {
        (init does t + '.mp3'), so it has to match the file exactly -- on a
        case-sensitive host, 'aurora' would silently 404 and fall back to menu. */
     ['menu', 'lido', 'promenade', 'boardwalk', 'helideck', 'neonpool', 'atrium', 'dr', 'bm', 'ak', 'Aurora', 'results'].forEach(t => {
-      this.tracks[t] = new Audio(t + '.mp3');
-      this.tracks[t].loop = true;
-      this.tracks[t].__trim = this.trim[t] || 1;
-      this.tracks[t].volume = this.vol * this.tracks[t].__trim;
+      const a = new Audio();
+      a.__name = t;
+      /* Sibling .mp3 in the normal build. In the single-file build MUSIC_DATA
+         holds the audio and src is attached lazily -- see srcFor. */
+      if (!MUSIC_DATA) a.src = t + '.mp3';
+      a.loop = true;
+      a.__trim = this.trim[t] || 1;
+      a.volume = this.vol * a.__trim;
+      this.tracks[t] = a;
     });
     this.inited = true;
   },
+  _urls: {},
+  /* Single-file build: decode base64 to a Blob and hand back an object URL.
+     Blob URL rather than a `data:` URI on purpose -- Safari has long-standing
+     trouble with data URIs in <audio> because they cannot answer range
+     requests, and a blob behaves like a real file everywhere.
+     Decoded ON FIRST PLAY, not in init: doing all twelve up front would mean
+     chewing through ~21MB of base64 before the title screen appears, and most
+     sessions never touch more than two or three of them. */
+  srcFor(t) {
+    if (!MUSIC_DATA || !MUSIC_DATA[t]) return t + '.mp3';
+    if (this._urls[t]) return this._urls[t];
+    try {
+      const bin = atob(MUSIC_DATA[t].d), n = bin.length, u8 = new Uint8Array(n);
+      for (let i = 0; i < n; i++) u8[i] = bin.charCodeAt(i);
+      const url = URL.createObjectURL(new Blob([u8], { type: MUSIC_DATA[t].m || 'audio/mpeg' }));
+      this._urls[t] = url;
+      return url;
+    } catch (e) { return t + '.mp3'; }   // never let music break the game
+  },
+  ensureSrc(a) { if (a && !a.src && a.__name) a.src = this.srcFor(a.__name); },
   play(id) {
     this.init();
     // Courses added later have no track of their own, and the old code threw
     // here when tracks[id] and current were both undefined.
     const next = this.tracks[id] || this.tracks.menu || null;
+    this.ensureSrc(next);            // no-op unless this is the single-file build
     if (this.current === next) {
       if (this.on && next && next.paused) next.play().catch(()=>{});
       return;
@@ -6728,6 +6783,11 @@ const Net={
 };
 /* 32 symbols, with the ambiguous glyphs (I, O, 0, 1) removed so a code can be
    read aloud without spelling it out. */
+/* Single switch for the solo-only build. build-solo.py flips this line and
+   drops the PeerJS <script> block, so the solo copy is GENERATED from this file
+   rather than maintained beside it -- two hand-kept copies of a 1.1MB file will
+   drift, and the drift will be silent. */
+const MULTIPLAYER=true;
 const CODE_CHARS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const PREFIX='dkdeckparty-';
 const CODE_LEN=6;
@@ -6991,9 +7051,20 @@ function interpRemote(dt){
 /* Persisted options. localStorage can throw outright on a file:// origin in
    some browsers, so every access is guarded and the game simply runs with the
    defaults if storage is unavailable -- it must never be load-bearing. */
+/* build-solo.py flips this to false. Both storage calls are behind it, so the
+   solo build never touches browser storage at all -- not "stores nothing
+   sensitive", literally never calls localStorage. The cost is real and is
+   stated in the Settings copy: preferences reset every time the game is
+   opened. */
+const PERSIST_SETTINGS=true;
 const OPT={sound:true, outlines:true, copilot:false};
-try{const j=localStorage.getItem('dk.opt'); if(j)Object.assign(OPT,JSON.parse(j)||{});}catch(e){}
-function optSave(){try{localStorage.setItem('dk.opt',JSON.stringify(OPT));}catch(e){}}
+if(PERSIST_SETTINGS){
+  try{const j=localStorage.getItem('dk.opt'); if(j)Object.assign(OPT,JSON.parse(j)||{});}catch(e){}
+}
+function optSave(){
+  if(!PERSIST_SETTINGS)return;
+  try{localStorage.setItem('dk.opt',JSON.stringify(OPT));}catch(e){}
+}
 function applySound(){
   SFX.on=OPT.sound;
   if(!SFX.on){SFX.engineAt(0,false);SFX.squealAt(0);SFX.ambStop();SFX.rivalsStop();}
@@ -8236,19 +8307,35 @@ function toOrder(res){
 }
 /* ================================ WIRING ================================= */
 function wire(){
+  /* Solo build: hide the multiplayer entry points entirely. The handlers below
+     still exist and still guard on window.Peer, so even if something reached
+     them they would toast rather than throw. */
+  /* Belt and braces: build-solo.py removes this markup outright so it never
+     paints, but if the file is ever run with the flag off and the markup still
+     present, hide it here too. */
+  if(!MULTIPLAYER){const mp=$('mpRow'); if(mp)mp.style.display='none';}
+  if(!PERSIST_SETTINGS){const sn=$('setNote');
+    if(sn)sn.textContent='Reset each time you open the game — nothing is stored on your device.';}
   $('bSolo').onclick=()=>{Net.mode='solo';showScreen('s-solo');buildSoloScreen();};
-  $('bHost').onclick=()=>{
-    if(!window.Peer){toast('Multiplayer needs the network library — check your connection');return;}
-    UI.joinMode=false;$('nameEyebrow').textContent='Host a room';$('joinWrap').style.display='none';
-    $('hostNote').style.display='';
-    $('nameGo').textContent='Open the room';showScreen('s-name');$('nameIn').focus();
-  };
-  $('bJoin').onclick=()=>{
-    if(!window.Peer){toast('Multiplayer needs the network library — check your connection');return;}
-    UI.joinMode=true;$('nameEyebrow').textContent='Join a room';$('joinWrap').style.display='';
-    $('hostNote').style.display='none';
-    $('nameGo').textContent='Join the room';showScreen('s-name');$('nameIn').focus();
-  };
+  /* Guarded, because the solo build DELETES this markup. Wiring it
+     unconditionally threw `Cannot set properties of null` right here, which
+     aborted the rest of wire() -- so attract mode never started and every
+     handler below this point was never attached. A missing element has to be a
+     no-op, not an exception, in a file that ships in two shapes. */
+  if(MULTIPLAYER && $('bHost') && $('bJoin')){
+    $('bHost').onclick=()=>{
+      if(!window.Peer){toast('Multiplayer needs the network library — check your connection');return;}
+      UI.joinMode=false;$('nameEyebrow').textContent='Host a room';$('joinWrap').style.display='none';
+      $('hostNote').style.display='';
+      $('nameGo').textContent='Open the room';showScreen('s-name');$('nameIn').focus();
+    };
+    $('bJoin').onclick=()=>{
+      if(!window.Peer){toast('Multiplayer needs the network library — check your connection');return;}
+      UI.joinMode=true;$('nameEyebrow').textContent='Join a room';$('joinWrap').style.display='';
+      $('hostNote').style.display='none';
+      $('nameGo').textContent='Join the room';showScreen('s-name');$('nameIn').focus();
+    };
+  }
   $('soloBack').onclick=()=>showScreen('s-title');
   $('soloGo').onclick=()=>{SFX.init();SFX.resume();startSolo();};
   $('nameBack').onclick=()=>showScreen('s-title');
