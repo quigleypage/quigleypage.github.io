@@ -96,6 +96,11 @@ h2.sec{font-family:var(--disp);font-weight:900;font-size:22px;margin:0 0 2px;let
 input.field{width:100%;font-family:var(--disp);font-weight:800;font-size:20px;color:var(--cream);
   background:rgba(4,22,31,.5);border:1.5px solid var(--line);border-radius:14px;padding:15px 16px;outline:none;}
 input.field:focus{border-color:var(--pool);}
+/* Network disclosure. Deliberately plain and not alarming -- it is a statement
+   of how direct-connect multiplayer works, not a warning. */
+.netnote{margin-top:10px;font-size:11.5px;line-height:1.45;opacity:.62;
+  padding:9px 11px;border-radius:10px;background:rgba(255,246,231,.05);
+  border:1px solid var(--line);}
 input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-family:var(--mono);font-size:26px;}
 
 /* ---------- title ----------
@@ -472,10 +477,24 @@ input.code{text-transform:uppercase;letter-spacing:.4em;text-align:center;font-f
   <h2 class="sec">What should we call you?</h2>
   <p class="sub">Your name shows on the leaderboard and in the lobby.</p>
   <input class="field" id="nameIn" maxlength="12" placeholder="Deck hand" autocomplete="off" autocapitalize="words" spellcheck="false">
+  <!-- Hosting carries the greater exposure of the two: a host publishes a room
+       that anyone holding the code can connect to, and every player who joins
+       sees the host's network address. A joiner only ever reveals theirs to the
+       one host they chose. The copy says so. -->
+  <div id="hostNote" style="display:none;margin-top:14px">
+    <p class="sub netnote">You'll get a room code to share. Anyone with that code
+      can join, and everyone who does connects straight to your device and can
+      see your network address.
+      Share the code only with people you know. It stops working when you
+      close the room.</p>
+  </div>
   <div id="joinWrap" style="display:none;margin-top:14px">
     <h2 class="sec">Room code</h2>
-    <p class="sub">Ask the host for the four characters on their screen.</p>
-    <input class="field code" id="codeIn" maxlength="4" placeholder="····" autocomplete="off" autocorrect="off" spellcheck="false">
+    <p class="sub">Ask the host for the six characters on their screen.</p>
+    <input class="field code" id="codeIn" maxlength="6" placeholder="······" autocomplete="off" autocorrect="off" spellcheck="false">
+    <p class="sub netnote">Racing together connects your device straight to the
+      other players, so they can see your network address. Only share a code with people
+      you know.</p>
   </div>
   <div style="flex:1"></div>
   <div class="row">
@@ -6707,9 +6726,37 @@ const Net={
   inSeq:0,hist:[],buf:[],playT:0,lastSnap:0,rtt:0,pingAt:0,stalled:false,
   onLobby:null,onGo:null,onEnd:null,onErr:null,onStatus:null,idx:0,ended:false
 };
+/* 32 symbols, with the ambiguous glyphs (I, O, 0, 1) removed so a code can be
+   read aloud without spelling it out. */
 const CODE_CHARS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const PREFIX='dkdeckparty-';
-function makeCode(){let s='';for(let i=0;i<4;i++)s+=CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)];return s;}
+const CODE_LEN=6;
+/* SIX characters, not four, and from a CSPRNG rather than Math.random().
+
+   Four gave 32^4 = 1,048,576 codes -- 20 bits. That is plenty against a person
+   guessing and nothing at all against a script: at 100 attempts a second the
+   whole space falls in under three hours, and because every live room sits at a
+   predictable peer id (PREFIX + code) on a public broker, walking the space
+   yields a list of active rooms and, on connecting, each host's IP.
+   Six gives 32^6 = 1,073,741,824 -- 30 bits, a thousand times the work, and
+   still short enough to read out over a phone.
+
+   Math.random() is not seeded unpredictably in every engine and is not intended
+   for anything anyone might want to guess. getRandomValues is.
+   256 is an exact multiple of 32, so the modulo here is unbiased -- with an
+   alphabet that did not divide 256 evenly this would need rejection sampling. */
+function makeCode(){
+  const n=CODE_LEN;
+  let bytes;
+  try{ bytes=new Uint8Array(n); crypto.getRandomValues(bytes); }
+  catch(e){ bytes=null; }                       // ancient browser: degrade, don't break
+  let s='';
+  for(let i=0;i<n;i++){
+    const v=bytes?bytes[i]:Math.floor(Math.random()*256);
+    s+=CODE_CHARS[v%CODE_CHARS.length];
+  }
+  return s;
+}
 function safeSend(c,o){try{if(c&&c.open)c.send(o);}catch(e){}}
 function bcast(o,except){for(const c of Net.conns)if(c!==except)safeSend(c,o);}
 
@@ -8193,11 +8240,13 @@ function wire(){
   $('bHost').onclick=()=>{
     if(!window.Peer){toast('Multiplayer needs the network library — check your connection');return;}
     UI.joinMode=false;$('nameEyebrow').textContent='Host a room';$('joinWrap').style.display='none';
+    $('hostNote').style.display='';
     $('nameGo').textContent='Open the room';showScreen('s-name');$('nameIn').focus();
   };
   $('bJoin').onclick=()=>{
     if(!window.Peer){toast('Multiplayer needs the network library — check your connection');return;}
     UI.joinMode=true;$('nameEyebrow').textContent='Join a room';$('joinWrap').style.display='';
+    $('hostNote').style.display='none';
     $('nameGo').textContent='Join the room';showScreen('s-name');$('nameIn').focus();
   };
   $('soloBack').onclick=()=>showScreen('s-title');
@@ -8208,7 +8257,7 @@ function wire(){
     UI.pendingName=nm;SFX.init();SFX.resume();
     if(UI.joinMode){
       const code=($('codeIn').value||'').trim().toUpperCase();
-      if(code.length!==4){toast('Room codes are four characters');return;}
+      if(code.length!==CODE_LEN){toast('Room codes are '+numWord(CODE_LEN)+' characters');return;}
       $('waitTitle').textContent='Finding room '+code+'…';
       $('waitSub').textContent='Connecting your phone directly to the host.';
       showScreen('s-wait');Net.join(code,nm);
@@ -8261,7 +8310,7 @@ function wire(){
   Net.onLobbyBack=()=>{stopRace();showScreen('s-lobby');renderLobby();};
   Net.onErr=(type,why)=>{
     const msg={
-      'peer-unavailable':'No room with that code. Check the four characters and try again.',
+      'peer-unavailable':'No room with that code. Check the characters and try again.',
       'timeout':'That room did not answer. It may have closed.',
       'unavailable-id':'Could not open a room. Try again.',
       'network':'Cannot reach the matchmaking server from here.',
